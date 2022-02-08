@@ -1,0 +1,59 @@
+<div class="col-12 tex-center p-2">
+  <div class="col-12 mb-3">
+    <div class="row">
+      <div class="col-3 m-0 p-2" *ngIf="events != null && events.events != null">
+        <select id="drpEvents" class="col-12" (change)="onEventChange($event)">
+          <option [value]="0">Seleziona evento</option>
+          <option *ngFor="let ev of events.events" [value]="ev.id">{{ev.name}}</option>
+        </select>
+      </div>
+      <div class="col-3 m-0 p-2">
+        <select id="drpReservationStatus" class="col-12" (change)="onResStatusChange($event)">
+          <option [value]="0">Stato prenotazione</option>
+          <option *ngFor="let rs of reservationStatus" [value]="rs.reservationStatusId">{{rs.reservationStatusValue}}</option>
+        </select>
+      </div>
+      <div class="col-6 m-0 p-2 text-end">
+        <label style="text-decoration:underline; cursor:pointer" for="btnShowMap" class="me-1">Mappa</label>
+        <i id="btnShowMap" class=" fa fa-file-pdf-o" (click)="showTableMap()"></i>
+      </div>
+    </div>    
+  </div>
+  <div class="row card-header p-2" data-value="tblHeader" style="background-color:burlywood">
+    <div class="col-3">Nome tavolo</div>
+    <div class="col-3">Nr. persone previste</div>
+    <div class="col-3">Budget previsto</div>
+    <div class="col-3">Tavolo assegnato</div>
+  </div>
+  <div class="card-body" data-value="tblBody" *ngIf="acceptedReservations != null && acceptedReservations.reservations != null && acceptedReservations.reservations.length > 0;else noDataTemplate">
+    <div class="row col-12 p-2" data-value="tblRow" *ngFor="let r of acceptedReservations.reservations">
+      <div class="col-3">{{r.reservationName}}</div>
+      <div class="col-3">{{r.reservationPeopleCount}}</div>
+      <div class="col-3">{{r.reservationExpectedBudget | currency: 'EUR'}} </div>
+      <div class="col-3" *ngIf="r.reservationStatusId == 2; else warningTemplate">
+        <select class="col-12" (change)="onTableAssigned(r.eventId, r.reservationId, $event)" *ngIf="acceptedReservations.canAssignTable;else unsassignableTable" [(ngModel)]="r.tableId">
+          <option [value]="0"></option>
+          <option *ngFor="let t of avaiableTables" [value]="t.tableId">{{t.tableAreaDescription}} - {{t.tableNumber}}</option>
+        </select>
+        <ng-template #unsassignableTable>
+          <div class="col-12 no-data">
+            <label *ngIf="r.reservationTablAssigned == null">TAVOLO ACCETTATO MA NON ASSEGNATO</label>
+            <label *ngIf="r.reservationTablAssigned != null">{{r.reservationTablAssigned}}</label>
+          </div>
+        </ng-template>
+      </div>
+      <ng-template #warningTemplate>
+        <div class="col-3 no-data">
+          IL TAVOLO NON E' STATO ANCORA ACCETTATO
+        </div>
+      </ng-template>
+    </div>
+  </div>
+  <ng-template #noDataTemplate>
+    <div class="col-12 no-data">
+      NON HAI TAVOLI PER QUESTO EVENTO
+    </div>
+  </ng-template>
+</div>
+
+<ng-container #modalContainer></ng-container>

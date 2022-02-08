@@ -1,0 +1,77 @@
+<div class="col-12 p-4 row">
+  <div id="navigationLabelContainer" class="col-2 p-0" style="position:static">
+    <div class="col-12 p-2" *ngFor="let m Of navigationLabel" [style.background-color]="getLabelColor(m)">
+      <div class="col-12">
+        <a [routerLink]="[m.link]" style="text-decoration:unset; color:#000"><label (click)="onNavigationLabelClick(m)">{{m.label}}</label></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-10 p-5 mx-auto" style="border:1px solid #000" *ngIf="user != null">
+    <!--User data-->
+    <div class="col-12 p-2 row">
+      <div class="col-3 p-2 m-0">
+        <img class="col-5 ms-4" style="border:1px dashed #000; background: #cbc5c5" src="../../../assets/computer-icons-user-profile-password-login-end-user-8397fa9c574355b8ae57e8decb559d1e.png" />
+      </div>
+      <div class="col-7 m-0" *ngIf="userEdit == false; else edtEmail">
+        <i class="col-12 fa fa-edit text-end" (click)="userInfoEnableEdit()"></i>
+        <div class="col-12">Nome: {{user!.userName}} </div>
+        <div class="col-12">Cognome: {{user!.userSurname}}</div>
+        <div class="col-12">Data di nascita:</div>
+        <div class="col-12" >Email: {{user!.userEmail}}</div>
+      </div>
+      <ng-template #edtEmail>
+        <div class="row col-8">
+          <div class="col-8">Nome: <input type="text" class="col-12" [(ngModel)]="user!.userName" /></div>
+          <div class="col-8">Cognome: <input type="text" class="col-12" [(ngModel)]="user!.userSurname" /></div>
+          <div class="col-8">Email: <input type="text" class="col-12" [(ngModel)]="user!.userEmail" /></div>
+          <button class="col-12 mt-2" (click)="confirmUserEdit()">Conferma</button>
+        </div>       
+        
+      </ng-template>
+    </div>
+    <div class="col-12 mb-5" *ngIf="user.isCustomer">
+      <label class="col-12" style="font-size: 20px">Il mio PR</label>
+      <!--Pr data (only for user view)-->
+      <div class="col-12 p-2 row">
+        <div class="col-3 p-2 m-0">
+          <img class="col-5 ms-4" style="border:1px dashed #000; background: #cbc5c5" src="../../../assets/computer-icons-user-profile-password-login-end-user-8397fa9c574355b8ae57e8decb559d1e.png" />
+        </div>
+        <div class="col-7 m-0">
+          <div class="col-12 m-0 p-0">Nome: {{user!.prName}}</div>
+          <div class="col-12 m-0 p-0">Cognome: {{user!.prSurname}}</div>
+          <div class="col-12 m-0 p-0">Data di nascita:</div>
+          <div class="col-12 m-0 p-0">Email: {{user!.prEmail}}</div>
+
+          <div class="col-12 m-0">Codice: {{user!.prCode}}</div>
+        </div>
+        <div class="col-auto change-pr" (click)="changePr()">
+          <img src="../../../assets/exchange.png" />
+        </div>
+      </div>
+    </div>
+
+    <!-- User reservation -->
+    <div class="col-12 p-0 mt-5">
+      <label class="col-12" style="font-size: 20px">Le mie prenotazioni</label>
+      <div class="col-12">
+        <div class="card-header row">
+          <div class="col-3 text-center">Data prenotazione</div>
+          <div class="col-3 text-center">Nome prenotazione</div>
+          <div class="col-3 text-center">Evento</div>
+          <div class="col-3 text-end">Budget</div>
+        </div>
+        <div class="col-12 row card-body" *ngFor="let r Of userReservation">
+           <div class="col-3 text-center">{{r.reservationDate | date: 'dd/MM/yyyy'}}</div>
+           <div class="col-3 text-center">{{r.reservationName}}</div>
+           <div class="col-3 text-center">{{r.eventName}}</div>
+           <div class="col-3 text-end">{{r.reservationRealBudget | currency: 'EUR'}}</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<ng-template #modalContainer></ng-template>

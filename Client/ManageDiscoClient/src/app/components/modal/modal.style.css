@@ -1,0 +1,65 @@
+.listview{
+    border:1px solid #e5e0e0;    
+}
+
+.table-inputs{
+    height: 200px;
+}
+
+.input-title{
+    font-family:Arial;
+    font-size:16px;
+    font-weight:bold;
+}
+
+.error{
+    color:red;
+}
+.modal-border {
+    border: 1px solid #000;
+    border-radius:5px;
+    background: #faf3f3;  /*Modal background*/
+}
+
+/*#modalContainer{
+    width:300px;
+    height:280px;
+    transition: .6s ease-in;;
+}*/
+
+.modal-background-transparent{
+    background: rgb(87,85,85,0.47);
+    top:0;
+    left:0;
+    z-index:1050;
+    position:fixed;
+    width:100%;
+    height:100%;
+    overflow:auto;
+}
+
+.title-bg {
+  background: #e5e0e0;
+}
+
+.header-round-border {
+    border:1px solid #000;
+    border-color: #000;
+    border-top-right-radius:10px;
+    border-top-left-radius:10px;
+}
+
+.modal-header-bg{
+    background: #e58a1b;
+}
+
+.modal-body-bg {
+  background: rgb(255 ,255, 255);
+}
+
+.body-round-border {
+  border: 1px solid #000;
+  border-color: #000;
+  border-bottom-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+}

@@ -1,0 +1,129 @@
+<div *ngIf="visibile" class="modal-bg-trasparent col-12 modal-background-transparent">
+  <!--New generic modal 2-->
+  <div class="col-xxl-8 col-lg-8 mx-auto my-5" id="modalContainer" *ngIf="modalType == 1 || modalType == 3">
+    <div class="modal-header-bg title-bg header-round-border p-3">
+      <h3>{{header}}</h3>
+    </div>
+    <div class="modal-body-bg body-round-border p-2">
+      <!--<form>-->
+      <div class="col-12 text-center">
+        <div class="col-12 m-0 p-0" *ngIf="lists != null && lists.length > 0">
+          <div class="col-12 d-flex row" *ngFor="let viewGroup Of lists">
+            <div class="col-12" *ngFor="let viewItem of viewGroup.viewItems;let i = index">
+              <div class="col-5 mx-auto">
+                <label class="col-12 input-title" *ngIf="viewGroup.type != 3">{{viewItem.label}}</label>
+                <div class="col-12 mx-auto">
+                  <!--dropdown inputs-->
+                  <select *ngIf="viewGroup.type == 1"
+                          [name]="viewItem.viewId" class="col-12"
+                          [id]="viewItem.viewId"
+                          [ngModel]="values.get(viewItem.referenceId)"
+                          (ngModelChange)="values.set(viewItem.referenceId, $event)">
+                    <option *ngFor="let listItem of viewItem.list"
+                            [value]="listItem._dropId">
+                      {{listItem._modalDropText}}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-12 mx-auto">
+                  <!--textbox inputs-->
+                  <input *ngIf="viewGroup.type == 0 && viewItem.hasNgModel == true;else inputNoModel"
+                         class="col-12"
+                         type="text"
+                         [id]="viewItem.referenceId"
+                         [(ngModel)]="modelOut"
+                         (ngModelChange)="onChange($event, viewItem.referenceId)" />
+                  <!--"inputNOMODEL" da intendersi come senza nessun model collegato agli altri dati-->
+                  <ng-template #inputNoModel>
+                    <input *ngIf="viewGroup.type == 0" class="col-12" type="text" placeholder=""
+                           [ngModel]="values.get(viewItem.referenceId)"
+                           (ngModelChange)="values.set(viewItem.referenceId, $event)" />
+                  </ng-template>
+                </div>
+              </div>
+              <!--textarea-->
+              <div class="col-12" *ngIf="viewGroup.type == 5">
+                 <textarea id="viewGroup.viewId" class="col-10" [ngModel]="values.get(viewItem.referenceId)" (ngModelChange)="values.set(viewItem.referenceId, $event)"></textarea>
+              </div>
+              <div class="col-12 p-2 mx-auto">
+                <!--image input-->
+                <input id="{{viewItem.viewId}}"
+                       *ngIf="viewGroup.type == 2"
+                       class="col-12" type="file"
+                       accept="image/webp"
+                       (change)="onFileChanged($event,viewItem.referenceId)" />
+              </div>
+              <!--table input-->
+              <div class="col-12 mx-auto" *ngIf="viewGroup.type == 3">
+                <label class="col-12">{{viewItem.label}}</label>
+                <div class="col-12 card-body table-inputs" style="overflow-x:auto;overflow-y:auto; border: 1px solid #000">
+                  <div class="row" *ngFor="let listData of viewItem.list">
+                    <!--qui ho la lista dati-->
+                    <!--<div class="col-12" style="font-size:14px;" *ngFor="let row of listData">-->
+                    <input class="col-1" type="checkbox" (change)="onCheckboxChangeState(viewItem.referenceId, listData)" />
+                    <!--<i class="fa fa-user-circle p-2"></i>-->
+                    {{listData._modalDropText}} - {{listData._valueOut | currency: 'EUR'}}
+                    <!--</div>-->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!--<div class="col-12 mt-2" *ngIf="table != null">
+            <div class="col-12" *ngFor="let tbl of table!.viewItems">
+              <label class="col-12">{{tbl.label}}</label>-->
+          <!--<div class="col-12 row">
+            <div class="col-8" style="font-size:10px">#</div>
+          </div>-->
+          <!--<div class="col-12 card-body" style="overflow-x:auto;overflow-y:scroll" *ngFor="let list of tbl.list">
+                <div class="row" *ngFor="let row of list">
+                  <div class="" style="font-size:14px;">
+                    <input class="col-1" type="checkbox" (change)="onCheckboxChangeState($event, row)" />
+                    <i class="fa fa-user-circle p-2"></i>
+                    {{row._modalDropText}}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>-->
+
+        </div>
+        <div class="row mt-3 justify-content-center">
+          <button type="button" class="col-2 btn btn-secondary m-1" (click)="onCloseModal()">Close</button>
+          <button class="col-2 btn btn-primary m-1" (click)="onConfirmModal()">OK</button>
+        </div>
+        <!--</form>-->
+      </div>
+    </div>
+
+
+  </div>
+  <div *ngIf="modalType == 6" class="col-5 modal-border m-auto mt-5">
+    <div class="modal-header-bg title-bg header-round-border p-3">
+      <h3>{{header}}</h3>
+    </div>
+    <div class="col-12 listview p-4" >
+      <ul class="col-12 p-4">
+        <li *ngFor="let data Of lists[0].viewItems[0].list">
+          {{data._modalDropText}}
+          <div class="dropdown-divider"></div>
+        </li>
+      </ul>
+    </div>
+    <div class="row mt-3 justify-content-center">
+      <button class="col-2 btn btn-primary m-1" (click)="onConfirmModal()">OK</button>
+    </div>
+  </div>
+
+  <!--Error dialog-->
+  <div *ngIf="modalType == 5" class="col-8 modal-border m-auto mt-5" style="max-width:30%;width:100%;">
+    <div class="col-12 card-header" data-value="">
+      {{header}}
+      <i class="fa fa-close" style="float:right" (click)="onCloseModal()"></i>
+    </div>
+    <div class="card-body" style="background-color:white">
+      <label>{{message}}</label>
+    </div>
+  </div>
+</div>

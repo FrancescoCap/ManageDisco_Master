@@ -1,0 +1,48 @@
+<div class="row">
+  <label style="font-family:Britannic; font-size:18px;" class="col-12 mt-5 p-3">POSIZIONE ECONOMICA VS COLLABORATORI <small>(Clicca sulla riga per i dettagli)</small></label>
+  <div class="col-6 p-3">
+    <div class="row card-header tblheader-bk p-2" data-value="tblHeader">
+      <div class="col-3">Nome</div>
+      <div class="col-3">Cognome</div>
+      <div class="col-2 text-end">Tot. incassato</div>
+      <div class="col-2 text-end">Tot. pagato</div>
+      <div class="col-2 text-end">Da pagare</div>
+    </div>
+    <div class="row card-body main-table p-2 " data-value="tblBody" (click)="loadPaymentsDetail(payment.userId)" *ngFor="let payment Of payments;let idx = index">
+      <div class="row" [class.selected-row]="paymentDetailsMap.get(userIdExpanded)" data-value="tblRow">
+        <!--<i [id]="payment.userIdView" style="background-color:transparent" [ngClass]="{'fa-chevron-up': showDetails[idx],'fa-chevron-down': !showDetails[idx]}" class="fa btn-icon col-1" (click)="expandRow($event,idx)"></i>-->
+        <div class="col-3">{{payment.name}}</div>
+        <div class="col-3">{{payment.surname}}</div>
+        <div class="col-2 text-end">{{payment.totalIncoming | currency: 'EUR'}}</div>
+        <div class="col-2 text-end">{{payment.totalPayed | currency: 'EUR'}}</div>
+        <div class="col-2 text-end">{{payment.resumeCredit | currency: 'EUR'}}</div>
+        <!--<div class="col-1 fa fa-euro" (click)="openModalNewPayment(payment.userId)"></div>-->
+      </div>
+    </div>
+  </div>
+
+  <div class="col-6 p-3 d-flex justify-content-center" *ngIf="paymentDetailsMap.get(userIdExpanded)">
+    <div class="col-4">
+      <div class="row card-header tblheader-bk p-2" data-value="tblHeader">
+        <div class="col-6">Importo</div>
+        <div class="col-6 text-end">Data</div>
+      </div>
+      <div class="row card-body main-table p-2" data-value="tblBody" *ngFor="let pDetails Of paymentsDetails">
+        <div class="row" data-value="tblRow">
+          <!--<i [id]="payment.userIdView" style="background-color:transparent" [ngClass]="{'fa-chevron-up': showDetails[idx],'fa-chevron-down': !showDetails[idx]}" class="fa btn-icon col-1" (click)="expandRow($event,idx)"></i>-->
+          <div class="col-6">{{pDetails.reservationPaymentAmount | currency: 'EUR'}}</div>
+          <div class="col-6 text-end">{{pDetails.reservationPaymentDate | date: 'dd/MM/yyyy'}}</div>
+          <!--<div class="col-1 fa fa-euro" (click)="openModalNewPayment(payment.userId)"></div>-->
+        </div>
+      </div>
+      <div class="col-12 justify-content-end p-2 text-end">
+        <button class="btn btn-info p-1 mt-3" (click)="addPayment()"><i class="fa fa-money me-1"></i>NUOVO</button>
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+<ng-container #modalContainer></ng-container>
+
+

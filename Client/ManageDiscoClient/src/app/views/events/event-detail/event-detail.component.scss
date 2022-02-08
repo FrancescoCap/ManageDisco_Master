@@ -1,0 +1,78 @@
+swiper{
+    height:600px!important;
+}
+
+#divDetails
+{
+   /* border:1px dashed #000;
+    border-radius:5px;*/
+}
+
+.event-title{
+    text-transform:capitalize;
+    font-size:30px;
+    font-family:Broadway;
+}
+
+.event-description-p{
+    font-size:22px;
+    font-family: Britannic;
+}
+
+.price-div{
+    border:3px solid #000;
+    border-radius: 15px;    
+}
+
+.event-price-title{
+    font-size: 26px;
+}
+
+.ul-price{
+    list-style:none;
+}
+
+.ul-price li {
+  font-size: 22px;
+  font-family: Britannic;
+}
+
+.ul-price li label {
+  font-size: 16px;
+  
+}
+
+#divDetails {
+  height: 250px;
+  padding: 1.5%
+}
+
+#divDetails:hover, #divDetails div:hover, #divDetails textarea:hover {
+    cursor:pointer;
+}
+
+#divDetails textarea{
+  background: #fff;
+  padding:1%;
+}
+
+#divDetails textarea{
+    font-size: 20px;
+    letter-spacing:1px;
+    height:  200px;
+}
+#divDetails textarea[disabled]{
+    background:#fff;
+    color: #000;
+}
+
+.title{
+    font-size: 55px;
+    letter-spacing:1px;
+}
+
+#divButtons button {
+    width: 150px;
+    height:40px;
+    margin: 0px 0.5% 0px 0.5%;
+}

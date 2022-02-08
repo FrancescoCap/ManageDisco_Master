@@ -1,0 +1,41 @@
+<div class="col-11 mx-auto p-5">
+  <div class="row pe-3">
+    <div class="col-6 p-4">
+      <form (ngSubmit)="filterEventsForName()">
+        <input name="txtEvtFilter" class="col-6" placeholder="Nome evento" #evtFilter="ngModel" [(ngModel)]="eventFilterValue" />
+        <input type="submit" class="col-3 btn btn-info ms-3" value="FILTRA" />
+      </form>
+    </div>
+    <div class="col-12 text-end">
+      <i class="mt-5 fa fa-plus" (click)="openNewEventModal()" *ngIf="events?.userCanAddEvent"></i>
+    </div>
+  </div>
+  <div class="row p-3" *ngFor="let e of events!.events">
+    <div class="col-2">
+      <img class="img-preview" [src]="e.imagePreview"  />
+    </div>
+    <div class="col-8 p-3" >
+      <h2 class="col-12 event-title">{{e.name}}</h2>
+      <h6 class="col-12 event-date">{{e.date | date: 'dd/MM/yyyy'}}</h6>
+      <h5 class="col-12 event-description">{{e.description}}</h5>
+      <div class="row pb-3 pt-3">
+        <h5 class="col-1">Stato: </h5>
+        <h5 class="col-3" style="background-color:#ec842a">{{e.eventPartyStatusDescription}}</h5>
+      </div>
+    </div>
+    <div class="col-1">
+      <div class="col-12 p-2"> <button class="col-12 p-1 btn btn-secondary" (click)="goToEvent(e.id)">DETTAGLI</button></div>
+      <div class="col-12 p-2"><button class="col-12 p-1 btn btn-danger" *ngIf="events!.userCanDeleteEvent" (click)="deleteEvent(e.id)">ELIMINA</button></div>
+     
+    </div>
+    <div class="dropdown-divider"></div>
+  </div>
+  <!--No events template-->
+  <div id="no-data" *ngIf="events == null || events!.events == null || events.events!.length == 0" class="row col-12 p-4">
+    NON CI SONO EVENTI IN PROGRAMMA
+  </div>
+</div>
+
+<ng-container #modalContainer></ng-container>
+
+

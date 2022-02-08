@@ -1,0 +1,24 @@
+<header style="z-index:99;position:relative">
+  <ul class="col-12" id="ulmenu">
+    <li *ngFor="let itemMenu Of menu" [class.drpdown]="itemMenu.child != null && itemMenu.child.length > 0">
+      <a [class.dropbtn]="itemMenu.child != null && itemMenu.child.length > 0" [href]="itemMenu.link">{{itemMenu.header}}</a>
+      <div *ngIf="itemMenu.child != null && itemMenu.child.length > 0" class="drpdown-content">
+        <a *ngFor="let subItem of itemMenu.child" [href]="subItem.link">{{subItem.title}}</a>
+      </div>
+    </li>
+  </ul>
+</header>
+
+<!--<div class="navbar">
+  <ul class="col-11" id="ulmenu">
+    <li *ngFor="let itemMenu Of menu" [class.drpdown]="itemMenu.child != null && itemMenu.child.length > 0">
+      <a [class.dropbtn]="itemMenu.child != null && itemMenu.child.length > 0" [href]="itemMenu.link">{{itemMenu.header}}</a>
+      <div *ngIf="itemMenu.child != null && itemMenu.child.length > 0" class="drpdown-content">
+        <a *ngFor="let subItem of itemMenu.child" [href]="subItem.link">{{subItem.title}}</a>
+      </div>
+    </li>
+  </ul>-->
+  <!--<a *ngFor="let itemMenu Of menu" [href]="itemMenu.link">{{itemMenu.header}}</a>-->
+<!--</div>-->
+
+<router-outlet></router-outlet>

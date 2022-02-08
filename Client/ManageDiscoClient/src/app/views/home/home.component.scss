@@ -1,0 +1,22 @@
+
+.event-action{
+    opacity: 0.6;
+}
+
+.event-action:hover{
+    opacity:1;       
+}
+
+.event-action img {
+  width: 40px !important;
+  height: 40px;
+}
+
+.event-action:hover img {
+  width: 60px !important;
+  height: 60px;
+  transition: width .5s, height .5s;
+  cursor:pointer;
+}
+
+

@@ -1,0 +1,97 @@
+<!-- STUTTURA HOME:
+  1. Titolo con nome discoteca
+  2. Slider prossimi eventi
+  3. Breve descrizione
+  4. Slider foto eventi passati
+  -->
+<div class="col-12 m-0 p-0" >
+  <swiper [effect]="'slide'"
+          [grabCursor]="true"
+          [centeredSlides]="true"
+          [pagination]="true"
+          [autoplay]="{
+              delay:2500,
+              disableOnInteraction: false
+          }"
+          [slidesPerView]="1"
+          class="mySwiper">
+    <ng-template swiperSlide>
+      <img class="img-sl-one" src="../../../assets/opium1.jpg" />
+    </ng-template>
+    <ng-template swiperSlide>
+      <img src="../../../assets/opium2.jpg" />
+    </ng-template>
+    <ng-template swiperSlide>
+      <img src="../../../assets/opium3.jpg" />
+    </ng-template>
+    <ng-template swiperSlide>
+      <img src="../../../assets/opium4.jpg" />
+    </ng-template>
+  </swiper>
+
+  <div class="mt-5 col-12 text-center" style="position:relative">
+    <h1>Prossimi Eventi</h1>
+  </div>
+  <div class="swiper-div" style="position:relative">
+    <swiper [effect]="'coverflow'"
+            [grabCursor]="true"
+            [spaceBetween]="20"
+            [centeredSlides]="true"
+            [slidesPerView]="'auto'"
+            [coverflowEffect]="{
+      rotate: 20,
+      stretch: 0,
+      depth: 100,
+      modifier: 1,
+      slideShadows: true
+    }"
+            class="mySwiper">
+      <ng-template *ngFor="let event Of homeInfo.events" swiperSlide class="coverflow-size">
+        <label class="col-12 text-center">{{event.date | date: 'dd/MM/yyyy'}}</label>
+        <div>
+          <div class="row mx-auto justify-content-center" style="position: absolute; margin-top: 50%;width:100%">
+            <div class="col-5 m-0 p-0 text-center event-action">
+              <img class="mx-auto" src="../../../assets/ticket.png" />
+              <label class="col-12 text-center">ACQUISTA BIGLIETTI</label>
+            </div>
+            <div class="col-5 m-0 p-0 text-center event-action">
+              <img class="mx-auto" src="../../../assets/information-button.png" (click)="getEventInfo(event.id)" />
+              <label class="col-12">INFO</label>
+            </div>
+          </div>
+          <img [src]="event.linkImage![0]" />
+        </div>
+      </ng-template>
+    </swiper>
+    <div id="no-data" *ngIf="homeInfo == null || homeInfo.events?.length == 0" class="row col-12 justify-content-center ">
+      NON CI SONO EVENTI IN PROGRAMMA
+    </div>
+  </div>
+
+  <div class="mt-5 col-12 text-center" style="position:relative">
+    <h1>MOMENTI....</h1>
+  </div>
+  <swiper [effect]="'coverflow'"
+          [grabCursor]="true"
+          [centeredSlides]="true"
+          [slidesPerView]="'auto'"
+          [coverflowEffect]="{
+      rotate: 35,
+      stretch: 0,
+      depth: 100,
+      modifier: 1,
+      slideShadows: true
+    }"
+          class="mySwiper">
+    <ng-template swiperSlide class="coverflow-size">
+      <img src="../../../assets/opium3.jpg" />
+    </ng-template>
+    <ng-template swiperSlide class="coverflow-size">
+      <img src="../../../assets/opium4.jpg" />
+    </ng-template>
+    <ng-template swiperSlide class="coverflow-size">
+      <img src="../../../assets/opium2.jpg" />
+    </ng-template>
+  </swiper>
+</div>
+

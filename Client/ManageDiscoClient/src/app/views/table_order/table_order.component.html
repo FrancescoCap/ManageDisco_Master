@@ -1,0 +1,43 @@
+<div class="p-3 col-12">
+  <div class="row col-12 m-3">
+    <label class="col-12 label-subtitle">FILTRI:</label>
+    <div class="col-3 p-2">
+      <input class="col-12" [disabled]="selectedEvent <= 0" id="txtTableNameFilter" #query placeholder="Nome tavolo" (input)="onTableNameFilter(query.value)" [(ngModel)]="tableNameFilter" />
+    </div>
+    <div class="col-2 p-2">
+      <select id="drpEvents" class="col-12" [(ngModel)]="selectedEvent" (change)="onEventChange()">
+        <option [value]="0">Seleziona evento</option>
+        <option [value]="event.id" *ngFor="let event of events!.events">{{event.name}}</option>
+      </select>
+    </div>
+    <div class="col-12 row justify-content-end">
+      <!--<button class="col-1 btn btn-filter-bg" (click)="onTableNameFilter()">FILTRA</button>
+      <button class="col-1 btn btn-filter-bg me-3 ms-3" (click)="onResetFilter()">AZZERA</button>-->
+    </div>
+  </div>
+
+  <div class="row card-header" data-value="tblHeader" style="background-color:burlywood">
+    <div class="row p-1">
+      <div class="col-3">Nome</div>
+      <div class="col-3">Zona</div>
+      <div class="col-3">Numero</div>
+      <div class="col-3"></div>
+    </div>   
+  </div>
+
+   <div class="card-body" data-value="tblBody">
+    <div class="row col-12 p-2" data-value="tblRow" *ngFor="let table of eventTables.tables">
+      <div class="col-3">{{table.tableName}}</div>
+      <div class="col-3">{{table.tableAreaDescription}}</div>
+      <div class="col-3">{{table.tableNumber}}</div>
+      <div class="col-3">
+        <i class="fa fa-plus" (click)="addOrderTable(table.tableName, table.tableId)"></i>
+        <i class="fa fa-eye ms-5" *ngIf="table.hasOrder" (click)="getOrderHistory(table.tableId)"></i>
+        
+      </div>
+    </div>
+  </div>
+</div>
+<ng-container #addOrderModal></ng-container>
+
+

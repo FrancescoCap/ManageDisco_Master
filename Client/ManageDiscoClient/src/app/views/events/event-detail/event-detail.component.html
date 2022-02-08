@@ -1,0 +1,84 @@
+<div class="col-12" *ngIf="event != null">  
+<div class="col-12 swiper-div">
+  <swiper [effect]="'slide'"
+          [grabCursor]="true"
+          [centeredSlides]="true"
+          [pagination]="true"
+          [slidesPerView]="1"
+          [autoplay]="{
+              delay:2500,
+              disableOnInteraction: false
+          }"
+          class="mySwiper">
+    <ng-template swiperSlide *ngFor="let image Of event.linkImage">
+      <img class="img-sl-one" [src]="image" />
+    </ng-template>
+    
+  </swiper>
+  <!--<img *ngIf="event.linkImage != null" class="col-12 mx-auto p-4" style="width:auto;height:420px" [src]="event?.linkImage" />-->
+</div>
+<div class="col-12 row">
+  <div class="col-6 justify-content-start mt-5 p-5 text-capitalize">
+    <div class="col-12">
+      <!--Titolo-->
+      <label class="fw-bold col-12 event-title">{{event.name}}</label>
+      <h6>{{event.date | date: 'dd/MM/yyyy'}}</h6>
+    </div>
+
+    <!--Descrizione-->
+    <div class="col-12 m-5 mx-auto" (click)="editDescription = true">
+      <div class="col-12 justify-content-start">
+        <textarea class="col-12" *ngIf="event.userCanEditInfo;else labelDescription" [disabled]="!editDescription" [(ngModel)]="event.description">{{event.description}}</textarea>
+        <ng-template #labelDescription>
+          <p class="col-12  event-description-p" [(ngModel)]="event.description">{{event.description}}</p>
+        </ng-template>
+      </div>
+      <div class="col-12 text-end"><button class="col-2 btn btn-primary" *ngIf="editDescription" (click)="editPriceConfirm()">Conferma</button></div>
+    </div>
+
+  </div>
+  
+  <!--Prezzi-->
+  <div class="col-5 justify-content-end row">
+    <div class="col-6 align-content-end mt-5 p-5 price-div">
+      <label class="fw-bold col-12 event-title event-price-title">Prezzi:<i class="ms-3 fa fa-edit" *ngIf="event.userCanEditInfo" (click)="editPrice()"></i></label>
+      <ul class="p-0 ul-price" *ngIf="!editPriceMode; else editPriceTemplate">
+        <li>Ingresso: <label>{{event.entrancePrice | currency: 'EUR'}}</label></li>
+        <li>Tavolo: <label>{{event.tablePrice | currency: 'EUR'}}</label></li>
+        <li>Omaggio: <label>{{event.freeEntranceDescription }}</label></li>
+      </ul>
+      <div class="col-12">
+        <button class="col-12 btn btn-primary" (click)="addReservation()"><i class="fa fa-calendar-check-o me-2"></i>PRENOTA</button>
+      </div>
+      <ng-template #editPriceTemplate>
+        <form #editPriceForm="ngForm" (ngSubmit)="editPriceConfirm()">
+          <div class="row">
+            <label for="txtEntrancePrice">Ingresso:</label>
+            <input type="number" class="col-1" required id="txtEntrancePrice" name="entrancePrice" #entrance="ngModel" [(ngModel)]="event.entrancePrice" />
+            <small class="col-12 error" *ngIf="entrance.errors?.['required']">Inserire un prezzo valido</small>
+          </div>
+          <div class="row">
+            <label for="txtEntrancePrice">Tavolo:</label>
+            <input type="number" required class="col-1" name="tablePrice" #table="ngModel" [(ngModel)]="event.tablePrice" />
+            <small class="col-12 error" *ngIf="table.errors?.['required']">Inserire un prezzo valido</small>
+          </div>
+          <div class="row">
+            <label for="txtEntrancePrice">Condizioni omaggio:</label>
+            <textarea class="col-4" name="tableEntrance" #entrance="ngModel" [(ngModel)]="event.freeEntranceDescription"></textarea>
+          </div>
+          <div class="col-4 text-end p-3">
+            <button class="btn btn-secondary col-4" [disabled]="!editPriceForm.valid">Conferma</button>
+          </div>
+        </form>
+      </ng-template>
+    </div>   
+  </div>
+  
+  <div class="col-12 text-end p-3" id="divButtons">
+    <button id="events" class="btn btn-primary" (click)="goTo($event.target)"><i class="me-2 fa fa-arrow-circle-o-left"></i>Eventi</button>
+    <button id="delete" class="btn btn-danger" (click)="goTo($event.target)" *ngIf="areDetailsEditableFromUser == true"><i class="me-2 fa fa-calendar-times-o"></i>Annulla evento</button>
+  </div>
+</div>
+</div>
+
+<ng-container #modalContainer></ng-container>
