@@ -87,9 +87,8 @@ namespace ManageDisco.Controllers
                     UserCanEditInfo = HelperMethods.UserIsPrOrAdministrator(_user)                    
                 }).FirstOrDefaultAsync();
 
-            var eventImgs = await _db.EventPhoto.Where(x => (x.EventPhotoEventId == eventId && x.EventPhotoType.EventPhotoDescription == EventPhotoDescriptionValues.EVENT_IMAGE_TYPE_DETAILS_ONE) ||
-                (x.EventPhotoEventId == eventId && x.EventPhotoType.EventPhotoDescription == EventPhotoDescriptionValues.EVENT_IMAGE_TYPE_DETAILS_TWO) ||
-                (x.EventPhotoEventId == eventId && x.EventPhotoType.EventPhotoDescription == EventPhotoDescriptionValues.EVENT_IMAGE_TYPE_DETAILS_THREE)).ToListAsync();
+            var eventImgs = await _db.EventPhoto.Where(x => x.EventPhotoEventId == eventId && 
+                    x.PhotoType.PhotoTypeDescription.Contains(EventPhotoDescriptionValues.EVENT_IMAGE_TYPE_EVENT_DETAIL)).ToListAsync();
 
             var ftpUser = _configuration["Ftp:User"];
             var ftpPass = _configuration["Ftp:Pass"];
@@ -132,7 +131,7 @@ namespace ManageDisco.Controllers
 
             int photoIndex = 1;
             //get EventPhotoType to assign to EvenPhoto
-            var eventPhotoType = _db.EventPhotoType.ToList();
+            var eventPhotoType = _db.PhotoType.Where(x => x.PhotoTypeDescription.Contains(EventPhotoDescriptionValues.EVENT_IMAGE_FILTER_LIKE)).ToList();
 
             foreach (string s in eventParty.LinkImage)
             {
@@ -146,7 +145,7 @@ namespace ManageDisco.Controllers
                 {
                     EventPhotoEventId = eventParty.Id,
                     EventPhotoImagePath = $"{ftpAddress}/{fileName}.{fileExtension}",
-                    EventPhotoTypeId = eventPhotoType[photoIndex - 1].EventPhotoTypeId
+                    PhotoTypeId = eventPhotoType[photoIndex - 1].PhotoTypeId
                 });
                 
                 photoIndex++;

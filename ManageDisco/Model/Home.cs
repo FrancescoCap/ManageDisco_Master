@@ -10,7 +10,11 @@ namespace ManageDisco.Model
     /// </summary>
     public class Home
     {
+        public List<HomePhotoValue> HomePhoto { get; set; }
         public List<EventPartyImages> Events { get; set; }
-        
+        public List<PhotoType> PhotoType { get; set; }
+        public List<ContactGroup> Contacts { get; set; }
+        public DiscoEntity DiscoEntity { get; set; }
+
     }
 }

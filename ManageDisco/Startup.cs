@@ -35,9 +35,9 @@ namespace ManageDisco
         {
             //non funzionano le migrazioni. Probabilmente il problema è qui
             services.AddDbContext<DiscoContext>(options => { 
-                options.UseSqlServer(Configuration.GetConnectionString("connString"));
+                options.UseSqlServer(Configuration.GetConnectionString("connString"));              
                
-            });
+            }, ServiceLifetime.Transient);
             services.AddAntiforgery(options =>
             {
                 options.Cookie.Name = "ATF-F";

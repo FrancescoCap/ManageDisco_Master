@@ -42,15 +42,29 @@ namespace ManageDisco.Controllers
                     {
                         Title = "Programmazione eventi",
                         Link = "/Events"
-                    }, 
-                    new MenuChild()
-                    {
-                        Title = "Storico eventi",
-                        Link = "/EventsHistory"
                     }
                 }
             };
-          
+
+            HeaderMenu profile = new HeaderMenu()
+            {
+                Header = "Profilo",
+                Link = "MyProfile",
+                child = new List<MenuChild>()
+                {
+                    new MenuChild()
+                    {
+                        Title ="I miei dati",
+                        Link = "MyProfile"
+                    },
+                    new MenuChild()
+                    {
+                         Title = "Le mie prenotazioni",
+                         Link = "MyProfile/Reservation"
+                    }
+                }
+            };
+
             HeaderMenu catalog = new HeaderMenu()
             {
                 Header = "Listino",
@@ -66,7 +80,7 @@ namespace ManageDisco.Controllers
             };
             menu.Add(home);
             menu.Add(events);
-            menu.Add(catalog);           
+            menu.Add(catalog);
             #endregion
 
             #region PR & Administrator menu
@@ -102,9 +116,22 @@ namespace ManageDisco.Controllers
                         {
                             Title = "Pagamenti",
                             Link = "/Payments"
-                        }                        
+                        }
                     }
                 };
+                if (HelperMethods.UserIsAdministrator(_user))
+                {
+                    m3.child.Add(new MenuChild()
+                    {
+                        Title = "Home",
+                        Link = "/HomeSettings"
+                    });
+                    m3.child.Add(new MenuChild()
+                    {
+                        Title = "Magazzino-bottiglie",
+                        Link = "/Warehouse"
+                    });
+                }
                 menu.Add(m3);
             }
             #endregion
@@ -125,29 +152,18 @@ namespace ManageDisco.Controllers
                     }
                 }
                 };
+                HeaderMenu warehouse = new HeaderMenu()
+                {
+                    Header = "Magazzino",
+                    Link = "/Warehouse"
+                };
                 menu.Add(order);
+                menu.Add(warehouse);
             }
 
             #endregion
 
-            HeaderMenu profile = new HeaderMenu()
-            {
-                Header = "Profilo",
-                Link = "MyProfile",
-                child = new List<MenuChild>()
-                {
-                    new MenuChild()
-                    {
-                        Title ="I miei dati",
-                        Link = "MyProfile"
-                    },
-                    new MenuChild()
-                    {
-                         Title = "Le mie prenotazioni",
-                         Link = "MyProfile/Reservation"
-                    }
-                }
-            };
+
             menu.Add(profile);
 
             return Ok(menu);

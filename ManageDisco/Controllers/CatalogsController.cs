@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ManageDisco.Context;
 using ManageDisco.Model;
+using ManageDisco.Helper;
 
 namespace ManageDisco.Controllers
 {
@@ -21,9 +22,13 @@ namespace ManageDisco.Controllers
 
         // GET: api/Catalogs
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Catalog>>> GetCatalog()
+        public async Task<IActionResult> GetCatalog()
         {
-            return await _db.Catalog.ToListAsync();
+            var catalogViews = new CatalogView();
+            catalogViews.Catalog = _db.Catalog.ToList();
+            catalogViews.UserCanEditCatalog = HelperMethods.UserIsAdministrator(_user);
+
+            return Ok(catalogViews);
         }
 
         // GET: api/Catalogs/5

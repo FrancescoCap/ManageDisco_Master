@@ -23,11 +23,19 @@ namespace ManageDisco.Controllers
         protected UserRoles _user;
         protected IConfiguration _configuration;
 
+        protected readonly string ftpUser;
+        protected readonly string ftpPassword;
+        protected readonly string ftpAddress;
+
         //Facendomi passare lo UserManager nel costruttore ottengo errore ogni chiamata che faccio
         public BaseController(DiscoContext db, IConfiguration configuration)
         {
             _db = db;
             _configuration = configuration;
+
+            ftpAddress = configuration["Ftp:Address"];
+            ftpUser = configuration["Ftp:User"];
+            ftpPassword = configuration["Ftp:Pass"];
         }
         public BaseController(DiscoContext db)
         {

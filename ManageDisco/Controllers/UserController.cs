@@ -175,7 +175,7 @@ namespace ManageDisco.Controllers
                 UserEmail = user.Email
             };
             var roles = await _userManager.GetRolesAsync(user);
-            userInfoView.IsCustomer = !HelperMethods.UserIsPrOrAdministrator(user, (List<string>)roles);
+            userInfoView.IsCustomer = !HelperMethods.UserIsInStaff(user, roles.ToList());
 
             if (userInfoView.IsCustomer)
             {

@@ -13,7 +13,7 @@ namespace ManageDisco.Model
         public int EventPhotoId { get; set; }
         public string EventPhotoImagePath { get; set; }
         public int EventPhotoEventId { get; set; }
-        public int EventPhotoTypeId { get; set; }
-        public EventPhotoType EventPhotoType { get; set; }
+        public int PhotoTypeId { get; set; }
+        public PhotoType PhotoType { get; set; }
     }
 }

@@ -12,4 +12,10 @@ namespace ManageDisco.Model
         public int CatalogId { get; set; }
         public string CatalogName { get; set; }
     }
+
+    public class CatalogView
+    {
+        public bool UserCanEditCatalog { get; set; }
+        public List<Catalog> Catalog { get; set; }
+    }
 }

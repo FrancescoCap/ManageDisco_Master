@@ -36,7 +36,11 @@ namespace ManageDisco.Context
         public DbSet<EventStatus> EventStatus { get; set; }
         public DbSet<PrCustomer> PrCustomer { get; set; }
         public DbSet<EventPhoto> EventPhoto { get; set; }
-        public DbSet<EventPhotoType> EventPhotoType { get; set; }
+        public DbSet<PhotoType> PhotoType { get; set; }
+        public DbSet<HomePhoto> HomePhoto { get; set; }
+        public DbSet<Warehouse> Warehouse { get; set; }
+        public DbSet<Contact> Contact { get; set; }
+        public DbSet<ContactType> ContactType { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseLoggerFactory(loggerFactory);

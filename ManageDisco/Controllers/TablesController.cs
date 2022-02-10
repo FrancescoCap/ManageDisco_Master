@@ -103,7 +103,9 @@ namespace ManageDisco.Controllers
         [Route("TableOrdersList")]
         public async Task<IActionResult> GetOrderList([FromQuery]int tableId)
         {
-            List<TableOrderHeader> header = await _db.TableOrderHeader
+            //Per tutta la serata il tavolo avrà sempre e solo un header in cui verranno
+            //aggiornati i valori ad ogni ordine
+            TableOrderHeader header = await _db.TableOrderHeader
                 .Where(x => x.TableId == tableId)
                 .Select(x => new TableOrderHeader()
                 {
@@ -111,7 +113,7 @@ namespace ManageDisco.Controllers
                     TableOrderHeaderExit = x.TableOrderHeaderExit,
                     TableOrderHeaderSpending = x.TableOrderHeaderSpending                    
                     
-                }).ToListAsync();
+                }).FirstOrDefaultAsync();
 
             List<TableOrderRowView> rows = await _db.TableOrderRow
                 .Where(x => x.TableOrderHeader.TableId == tableId)
@@ -124,37 +126,22 @@ namespace ManageDisco.Controllers
                     
                 }).ToListAsync();
 
+            var groupedRow = rows
+                .GroupBy(x => x.ProductName)
+                .Select(x => new TableOrderRowView
+                {
+                    ProductName = x.Key,
+                    TableOrderRowQuantity = x.Sum(x => x.TableOrderRowQuantity)
+                });
 
-            List<TableOrderSummary> summaryItem = new List<TableOrderSummary> ();
-            List<Task> tasks = new List<Task>()
-            {
-                //Un header contiene tutte le righe d'ordine del tavolo per un evento
-                new Task(() => {
-                    header.ForEach(x =>
-                    {
-                        summaryItem.Add(new TableOrderSummary()
-                        {
-                            TableOrderHeaderId = x.TableOrderHeaderId,
-                            TableOrderHeaderExit = x.TableOrderHeaderExit,
-                            TableOrderHeaderSpending = x.TableOrderHeaderSpending
-                        });
-                    });
-                    summaryItem.ForEach(r => {
-                        r.Rows = rows.Where(rf => rf.TableOrderHeaderId == r.TableOrderHeaderId).ToList();
-                    });
-                })
-            };
-
-            tasks.ForEach(t => t.Start());
-            Task.WaitAll(tasks.ToArray());           
-
-            //summaryItem.Rows = new List<TableOrderRowView>();
-            //summaryItem.TableOrderHeaderExit = header.TableOrderHeaderExit;
-            //summaryItem.TableOrderHeaderSpending = header.TableOrderHeaderSpending;
-            //summaryItem.Rows = rows;
+            TableOrderSummary summary = new TableOrderSummary();
+            summary.Rows = groupedRow.ToList();
+            summary.TableOrderHeaderExit = header.TableOrderHeaderExit;
+            summary.TableOrderHeaderSpending = header.TableOrderHeaderSpending;
+            summary.TableOrderHeaderId = header.TableOrderHeaderId;
 
 
-            return Ok(summaryItem);
+            return Ok(summary);
         }
 
         // PUT: api/Tables/5
@@ -224,8 +211,8 @@ namespace ManageDisco.Controllers
             }
             else
             {
-                orderHeader.TableOrderHeaderExit = orderInfo.ExitChanged;
-                orderHeader.TableOrderHeaderSpending = orderInfo.ProductsSpendingAmount;
+                orderHeader.TableOrderHeaderExit = orderHeader.TableOrderHeaderExit + orderInfo.ExitChanged;
+                orderHeader.TableOrderHeaderSpending = orderHeader.TableOrderHeaderSpending + orderInfo.ProductsSpendingAmount;
                 _db.Entry(orderHeader).State = EntityState.Modified;
             }
 
