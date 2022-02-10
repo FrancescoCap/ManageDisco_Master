@@ -110,8 +110,8 @@ export class ModalComponent implements OnInit {
     return controlsCount;
   }
 
-  onCheckboxChangeState(keyRef: any, product: any) {
-   
+  onCheckboxChangeState(keyRef: any, product: any, event:any) {
+    
     if (this.values.get(keyRef) == null) {
       this.values.set(keyRef, [product._dropId]);    
     } else {
@@ -138,7 +138,9 @@ export class ModalComponent implements OnInit {
      * VISIONARE ANCHE L'HTML
      */
     if (product._valueOut != null) {
-      this.modelOut = this.modelOut == null ? product._valueOut : this.modelOut + product._valueOut;
+      var addValue = event.target.checked;
+      
+      this.modelOut = this.modelOut == null ? product._valueOut : (addValue ? this.modelOut + product._valueOut : this.modelOut - product._valueOut);
       var ngModelReference = this.modelValues?.get(keyRef);
       this.values.set(ngModelReference, this.modelOut);
     }

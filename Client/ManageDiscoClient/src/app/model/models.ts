@@ -9,8 +9,72 @@ export enum ModalType {
   LISTVIEW = 6
 }
 
+export interface DiscoEntity {
+  discoId?: string;
+  discoName?:string
+  discoVatCode?: string;
+  discoAddress?: string;
+  discoCity?: string;
+  discoProvince?: string;
+  discoCityCap?: string;
+  discoOpeningTime?: string;
+  discoClosingTime?: string;
+}
+
+export interface Contact {
+  contactId?: number;
+  contactTypeId?: number;
+  contactDescription?: string;
+  contactTypeDescription?: string;
+}
+
+
+export interface ContactType {
+  contactTypeId?: number;
+  contactTypeDescription?: string;
+}
+
+export interface ContactGroup {
+  contactTypeDescription?: string;
+  contactTypeId?: number;
+  contactsValues?: string[];
+}
+
+export interface Warehouse {
+  productId?: number;
+  productName?: string;
+  warehouseQuantity?: number;
+}
+
 export interface HomeInfo {
   events?: EventParty[];
+  homePhoto?: Home[];
+  photoType?: PhotoType[];
+  contacts?: ContactGroup[]
+  discoEntity?: DiscoEntity;
+}
+
+export interface Home {
+  photoTypeDescription?: string;
+  base64Image?: string[];
+  homePhotoPath?: string;
+}
+
+export interface HomePhotoPost {
+  homePhotoBase64?: string;
+  photoTypeId?: number;
+  photoName?: string;
+}
+
+export interface HomePhotoPut {
+  photoName?: string;
+  base64NewPhoto?: string;
+}
+
+export interface PhotoType {
+  photoTypeId?: number;
+  photoTypeDescription?: string;
+  photoTypeMaxNumber?: number;
 }
 
 /*******
@@ -241,6 +305,11 @@ export interface AssignTablePost {
 export interface TableMapFileInfo {
   fileName?: string;
   path?: string;
+}
+
+export interface CatalogView {
+  userCanEditCatalog?: boolean;
+  catalog?: Catalog[];
 }
 
 export interface Catalog {

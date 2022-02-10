@@ -257,7 +257,7 @@ export class TableOrderComponent implements AfterViewInit {
         this._modalService.showErrorModal(err.message);
         return err;
       })).subscribe((data: any) => {
-        this.openOrderHistoryModal(data[0].rows, tableId);
+        this.openOrderHistoryModal(data.rows, tableId);
       })
   }
 

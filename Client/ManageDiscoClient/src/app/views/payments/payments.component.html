@@ -1,5 +1,5 @@
 <div class="row">
-  <label style="font-family:Britannic; font-size:18px;" class="col-12 mt-5 p-3">POSIZIONE ECONOMICA VS COLLABORATORI <small>(Clicca sulla riga per i dettagli)</small></label>
+  <label style="font-family:Britannic; font-size:18px;" class="col-12 mt-5 p-3">STATO PAGAMENTI <small>(Clicca sulla riga per i dettagli)</small></label>
   <div class="col-6 p-3">
     <div class="row card-header tblheader-bk p-2" data-value="tblHeader">
       <div class="col-3">Nome</div>
@@ -9,7 +9,7 @@
       <div class="col-2 text-end">Da pagare</div>
     </div>
     <div class="row card-body main-table p-2 " data-value="tblBody" (click)="loadPaymentsDetail(payment.userId)" *ngFor="let payment Of payments;let idx = index">
-      <div class="row" [class.selected-row]="paymentDetailsMap.get(userIdExpanded)" data-value="tblRow">
+      <div class="row" [class.selected-row]="paymentDetailsMap.get(payment.userId)" data-value="tblRow">
         <!--<i [id]="payment.userIdView" style="background-color:transparent" [ngClass]="{'fa-chevron-up': showDetails[idx],'fa-chevron-down': !showDetails[idx]}" class="fa btn-icon col-1" (click)="expandRow($event,idx)"></i>-->
         <div class="col-3">{{payment.name}}</div>
         <div class="col-3">{{payment.surname}}</div>
@@ -36,7 +36,7 @@
         </div>
       </div>
       <div class="col-12 justify-content-end p-2 text-end">
-        <button class="btn btn-info p-1 mt-3" (click)="addPayment()"><i class="fa fa-money me-1"></i>NUOVO</button>
+        <button class="new-button p-1 mt-3" (click)="addPayment()"><i class="fa fa-money me-1"></i>PAGA</button>
       </div>
     </div>
   </div>

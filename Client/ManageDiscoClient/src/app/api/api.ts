@@ -4,7 +4,7 @@ import { Router } from "@angular/router";
 import { catchError, map, Observable, pipe } from "rxjs";
 import { ModalComponent } from "../components/modal/modal.component";
 import { GeneralMethods } from "../helper/general";
-import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartyView, PrCustomerView, HomeInfo, TableOrderRow } from "../model/models";
+import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartyView, PrCustomerView, HomeInfo, TableOrderRow, CatalogView, HomePhotoPost } from "../model/models";
 import { ModalService } from "../service/modal.service";
 
 import { ApiHttpService } from "./http";
@@ -38,6 +38,30 @@ export class ApiCaller {
     }
   }
 
+  public postContact(contact: any): Observable<any>{
+    return this.http.postCall(this.url.postContact(), contact);
+  }
+
+  public getContact() {
+    return this.http.getCall(this.url.getContact());
+  }
+
+  public getContactTypes() {
+    return this.http.getCall(this.url.getContactTypes());
+  }
+
+  public putWarehouseQuantity(warehouse:any) {
+    return this.http.putCall(this.url.putWarehouseQuantity(), warehouse);
+  }
+
+  public getWarehouse(): Observable<any> {
+    return this.http.getCall(this.url.getWarehouse());
+  }
+
+  public postHomePhoto(data:HomePhotoPost[]) {
+    return this.http.postCall(this.url.getHome(), data);
+  }
+
   public deleteEvent(eventId:any):Observable<any> {
     return this.http.deleteCall(this.url.getEvents(eventId));
   }
@@ -59,6 +83,12 @@ export class ApiCaller {
             x.linkImage![i] = p;
           })
           
+        })
+        data.homePhoto!.forEach((x, y) => {
+          x.base64Image?.forEach((p, i) => {
+            p = GeneralMethods.normalizeBase64(p);
+            x.base64Image![i] = p;
+          })
         })
         return data;
       }));
@@ -222,10 +252,10 @@ export class ApiCaller {
     return this.http.getCall(this.url.getTableMap());
   }
 
-  public getCatalogs(): Observable<Catalog[]> {
+  public getCatalogs(): Observable<CatalogView> {
     return this.http.getCall(this.url.getCatalog()).pipe(
-      map(data => {
-        data.map((item: Catalog) => {
+      map((data:CatalogView) => {
+        data.catalog?.forEach((item: Catalog) => {
           item._modalDropText = item.catalogName;
           item._dropId = item.catalogId;
         })
@@ -258,15 +288,12 @@ export class ApiCaller {
     return this.http.putCall(this.url.putTableOrder(tableId), data);
   }
 
-  public getTableOrderRows(tableId: number):Observable<TableOrderHeader[]> {
+  public getTableOrderRows(tableId: number):Observable<TableOrderHeader> {
     return this.http.getCall(this.url.getTableOrderRow(tableId)).pipe(
-      map((data: TableOrderHeader[]) => {
-        data?.forEach((x, y) => {
-          x.rows?.forEach((r, i) => {
-            r._modalDropText = r.productName + " Qtà: " + r.tableOrderRowQuantity;
-            x.rows![i]._modalDropText = r._modalDropText;
-          });
-        });
+      map((data: TableOrderHeader) => {
+        data.rows!.forEach((x, y) => {
+          x._modalDropText = x.productName + ` (${x.tableOrderRowQuantity}) `;          
+        })
         return data;
       }));
   }

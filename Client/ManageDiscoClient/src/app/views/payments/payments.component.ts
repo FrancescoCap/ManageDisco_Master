@@ -53,7 +53,7 @@ export class PaymentsComponent implements OnInit {
         return err;
       })).subscribe((data:any) => {
         this.payments = data;
-        this.initDetailsFlags(this.payments);
+        this.initDetailsFlags();
       })
   }
 
@@ -109,10 +109,9 @@ export class PaymentsComponent implements OnInit {
       });
   }
 
-  initDetailsFlags(payments: PaymentOverview[] | undefined) {
-    payments?.forEach(x => {
+  initDetailsFlags() {
+   this.payments?.forEach(x => {
       this.paymentDetailsMap.set(x.userId, false);
-     // this.showDetails.includes(false);
     })
   }
 
@@ -127,7 +126,8 @@ export class PaymentsComponent implements OnInit {
 
   loadPaymentsDetail(userId: any) {
     this.userIdExpanded = userId;
-    
+    this.initDetailsFlags();
+
     this._api.getPaymentsOverviewDetails(userId).pipe(
       catchError(err => {
         console.log(err);

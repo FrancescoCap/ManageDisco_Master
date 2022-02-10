@@ -4,7 +4,7 @@ import { catchError, last } from 'rxjs';
 import { forkJoin, Observable } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { ModalModelEnum, ModalModelList, ModalTextBoxList, ModalViewGroup } from '../../components/modal/modal.model';
-import { Catalog, ModalType, Product } from '../../model/models';
+import { Catalog, CatalogView, ModalType, Product } from '../../model/models';
 import { ModalService } from '../../service/modal.service';
 
 @Component({
@@ -18,7 +18,7 @@ export class ProductComponent implements OnInit {
 
   products: Product[] = [];
   productsFiltered: Product[] = [];
-  catalogs: Catalog[] = [];
+  catalogView: CatalogView = {};
 
   showShieldBack: Map<any, boolean> = new Map();
   shieldText: string = "";
@@ -53,12 +53,13 @@ export class ProductComponent implements OnInit {
 
     forkJoin(calls).pipe(
       catchError(err => {
-        console.log(err);
+        this._modal.showErrorModal(err.modal);
         return err;
       })).subscribe((data: any) => {
         this.products = data[0];
-        this.catalogs = data[1];
-        this.catalogs.forEach(x => {
+        this.catalogView = data[1];
+        //imposto il map per la gestione dello show del listino
+        this.catalogView.catalog!.forEach(x => {
           this.showShieldBack.set(x.catalogId, false);
         })
       });
@@ -71,7 +72,7 @@ export class ProductComponent implements OnInit {
     catal.dropId = "drpCatalog";
     catal.id = "catalogId";
     catal.label = "Catalogo";
-    catal.list.push(this.catalogs);
+    catal.list.push(this.catalogView.catalog);
     catal.valueDisplay = "catalogName";
     this.dropDown.push(catal);
 

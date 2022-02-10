@@ -13,6 +13,7 @@ import { PdfViewerModule } from 'ng2-pdf-viewer';
 import { ModalService } from './service/modal.service';
 import { CarouselModule } from './components/carousel/carousel.module';
 import { SwiperModule } from 'swiper/angular';
+import { WarehouseComponent } from './views/warehouse/warehouse.component';
 
 const routes:Routes = [ 
   { path: 'Login', loadChildren: () => import('./views/login/login.module').then(m => m.LoginModule)},
@@ -26,7 +27,9 @@ const routes:Routes = [
   { path: 'TableOrder', loadChildren: () => import('./views/table_order/table_order.module').then(m => m.TableOrderModule)},
   { path: 'Events', loadChildren: () => import('./views/events/events.module').then(m => m.EventsModule)},
   { path: 'Events/Details', loadChildren: () => import('./views/events/event-detail/event-detail.module').then(m => m.EventDetailModule)},
-  { path: 'MyProfile', loadChildren: () => import('./views/profile/profile.module').then(m => m.ProfileModule)}
+  { path: 'MyProfile', loadChildren: () => import('./views/profile/profile.module').then(m => m.ProfileModule)},
+  { path: 'HomeSettings', loadChildren: () => import('./views/home-settings/home-settings.module').then(m => m.HomeSettingsModule)},
+  { path: 'Warehouse', loadChildren: () => import('./views/warehouse/warehouse.module').then(m => m.WarehouseModule)}
 ]
 
 @NgModule({

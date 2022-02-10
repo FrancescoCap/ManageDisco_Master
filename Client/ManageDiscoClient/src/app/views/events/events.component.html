@@ -1,20 +1,23 @@
 <div class="col-11 mx-auto p-5">
+  <div class="col-12 text-center">
+    <label id="no-data" class="col-12">PROGRAMMAZIONE EVENTI</label>
+  </div>
   <div class="row pe-3">
     <div class="col-6 p-4">
       <form (ngSubmit)="filterEventsForName()">
-        <input name="txtEvtFilter" class="col-6" placeholder="Nome evento" #evtFilter="ngModel" [(ngModel)]="eventFilterValue" />
-        <input type="submit" class="col-3 btn btn-info ms-3" value="FILTRA" />
+        <input name="txtEvtFilter" class="col-6" placeholder="Cerca evento" #evtFilter="ngModel" [(ngModel)]="eventFilterValue" />
+        <input type="submit" class="col-3 btn btn-info ms-3" value="CERCA" />
       </form>
     </div>
     <div class="col-12 text-end">
       <i class="mt-5 fa fa-plus" (click)="openNewEventModal()" *ngIf="events?.userCanAddEvent"></i>
     </div>
   </div>
-  <div class="row p-3" *ngFor="let e of events!.events">
+  <div class="row p-2" *ngFor="let e of events!.events">
     <div class="col-2">
-      <img class="img-preview" [src]="e.imagePreview"  />
+      <img class="img-preview" [src]="e.imagePreview"/>
     </div>
-    <div class="col-8 p-3" >
+    <div class="col-8 p-3">
       <h2 class="col-12 event-title">{{e.name}}</h2>
       <h6 class="col-12 event-date">{{e.date | date: 'dd/MM/yyyy'}}</h6>
       <h5 class="col-12 event-description">{{e.description}}</h5>
@@ -26,7 +29,7 @@
     <div class="col-1">
       <div class="col-12 p-2"> <button class="col-12 p-1 btn btn-secondary" (click)="goToEvent(e.id)">DETTAGLI</button></div>
       <div class="col-12 p-2"><button class="col-12 p-1 btn btn-danger" *ngIf="events!.userCanDeleteEvent" (click)="deleteEvent(e.id)">ELIMINA</button></div>
-     
+
     </div>
     <div class="dropdown-divider"></div>
   </div>

@@ -1,0 +1,34 @@
+<div class="p-3 col-12">
+  <div class="col-12 text-center">
+    <label id="no-data">RIFORNIMENTO MAGAZZINO</label>
+  </div>  
+  <div class="row col-12 mx-auto">
+    <div class="row p-3">
+      <!--<select class="col-3" (change)="dropEventChange()" [(ngModel)]="eventFilter">
+        <option [value]="0">Filtra per evento</option>
+        <option *ngFor="let event of events" [value]="event.id">{{event.name}} - {{event.date | date: 'dd/MM/yyyy'}}</option>
+      </select>-->
+    </div>
+    <div class="row col-12 p-2 tblheader-bk" data-value="tblHeader">
+      ="
+      <div class="col-4">-4
+Prodotto
+      as</div>
+      -4
+      as
+      <div class="col-4">Stock</div>
+      <div class="col-4"></div>
+    </div>
+    <div class="row" data-value="tblBody">
+      <div class="row p-2" data-value=tblRow *ngFor="let wh Of warehouse">
+        <div class="col-4">{{wh.productName}}</div>
+        <div class="col-4">{{wh.warehouseQuantity}}</div>
+        <div class="col-4">
+          <i class="fa fa-plus" (click)="addQuantity(wh.productId)"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-container #modalContainer></ng-container>

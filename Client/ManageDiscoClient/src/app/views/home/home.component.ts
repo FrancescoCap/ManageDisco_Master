@@ -1,9 +1,9 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ApiCaller } from '../../api/api';
 import { ModalService } from '../../service/modal.service';
 import SwiperCore, {Autoplay, Navigation, EffectCoverflow, Scrollbar, Pagination } from "swiper";
-import { catchError } from 'rxjs';
-import { HomeInfo } from '../../model/models';
+import { catchError, forkJoin, Observable } from 'rxjs';
+import { Contact, HomeInfo } from '../../model/models';
 import { Router } from '@angular/router';
 
 SwiperCore.use([EffectCoverflow, Autoplay, Navigation, Scrollbar, Pagination]);
@@ -16,7 +16,17 @@ SwiperCore.use([EffectCoverflow, Autoplay, Navigation, Scrollbar, Pagination]);
 })
 export class HomeComponent implements OnInit {
 
-  homeInfo: HomeInfo = { events: []};
+  homeInfo: HomeInfo = { events: [], homePhoto: [], photoType: [] };
+  contacts: Contact[] = [];
+
+  photoGalleryMain?: HomeInfo;
+  photoGalleryMoments?: HomeInfo;
+
+  instagramContactTypeId?: number;
+  facebookContactTypeId?: number;
+
+  readonly HOME_GALLERY_MAIN = "Home_Galleria";
+  readonly HOME_GALLERY_MOMENTS = "Home_Momenti";
 
   constructor(private _modalService: ModalService,
     private _api: ApiCaller,
@@ -27,13 +37,24 @@ export class HomeComponent implements OnInit {
   }
 
   initData() {
-    this._api.getHomeInfo().pipe(
+    const calls: Observable<any>[] = [
+      this._api.getHomeInfo()
+    ]
+
+    forkJoin(calls).pipe(
       catchError(err => {
         this._modalService.showErrorModal(err.message);
         return err;
       })).subscribe((data: any): any => {
-        this.homeInfo.events = data.events;
-        console.log(this.homeInfo.events)
+        this.homeInfo = data[0];
+        //Pulisco la galleria foto dalle immagini vuote
+        this.homeInfo.homePhoto = this.homeInfo.homePhoto?.filter(x => x.homePhotoPath != "no_image.webp");
+
+        this.photoGalleryMain = { homePhoto: this.homeInfo.homePhoto?.filter(x => x.photoTypeDescription == this.HOME_GALLERY_MAIN)! };       
+        this.photoGalleryMoments = { homePhoto: this.homeInfo.homePhoto?.filter(x => x.photoTypeDescription == this.HOME_GALLERY_MOMENTS)! };
+
+        this.instagramContactTypeId = this.homeInfo.contacts?.find(x => x.contactTypeDescription?.includes("Instagram"))?.contactTypeId;
+        this.facebookContactTypeId = this.homeInfo.contacts?.find(x => x.contactTypeDescription?.includes("Facebook"))?.contactTypeId;
       })
   }
 

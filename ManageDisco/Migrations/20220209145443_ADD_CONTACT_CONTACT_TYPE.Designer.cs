@@ -4,14 +4,16 @@ using ManageDisco.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ManageDisco.Migrations
 {
     [DbContext(typeof(DiscoContext))]
-    partial class DiscoContextModelSnapshot : ModelSnapshot
+    [Migration("20220209145443_ADD_CONTACT_CONTACT_TYPE")]
+    partial class ADD_CONTACT_CONTACT_TYPE
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -74,28 +76,7 @@ namespace ManageDisco.Migrations
                     b.Property<string>("DiscoId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("DiscoAddress")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoCity")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoCityCap")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoClosingTime")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("DiscoName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoOpeningTime")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoProvince")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoVatCode")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("DiscoId");

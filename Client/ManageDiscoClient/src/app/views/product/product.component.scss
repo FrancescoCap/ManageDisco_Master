@@ -3,6 +3,7 @@
   height:100px;
   border-radius:10% 10% 30% 30%;
   border: 3px solid #d3d3d3;
+  transition: .5s ease-out;
 }
 
 .shield:hover {
@@ -23,6 +24,7 @@
 
 .unordered-list-container {
     height: 150px;
+    list-style:inside;
 }
 
 .unordered-list-container ul {
@@ -30,13 +32,6 @@
     overflow:auto;
 }
 
-.new-button {
-   border: 1px solid #fff;
-   border-radius: 15%;
-   font-family: Britannic;
-   font-size: 16px;
-   background:#71f86b;
-}
 
 .shield:hover .catalog-title {
   font-family: Britannic;

@@ -4,14 +4,16 @@ using ManageDisco.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ManageDisco.Migrations
 {
     [DbContext(typeof(DiscoContext))]
-    partial class DiscoContextModelSnapshot : ModelSnapshot
+    [Migration("20220210125040_ALTER_DISCOENTITY")]
+    partial class ALTER_DISCOENTITY
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,16 +82,7 @@ namespace ManageDisco.Migrations
                     b.Property<string>("DiscoCity")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("DiscoCityCap")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoClosingTime")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("DiscoName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoOpeningTime")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DiscoProvince")

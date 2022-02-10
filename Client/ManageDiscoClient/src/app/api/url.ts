@@ -2,7 +2,30 @@ export class Endpoints {
  
   private base_url = "http://localhost:5000/api/"
 
-  
+  public postContact() {
+    return this.base_url + "Contacts"
+  }
+
+  public getContact() {
+    return this.base_url + "Contacts";
+  }
+  public getContactTypes() {
+    return this.base_url + "ContactTypes";
+  }
+
+
+  public putWarehouseQuantity() {
+    return this.base_url + `Warehouses/Product/Add`;
+  }
+
+  public getWarehouse() {
+    return this.base_url + "Warehouses";
+  }
+
+  public getHome() {
+    return this.base_url + "Home";
+  }
+
   public getHomeInfo() {
     return this.base_url + "Home/Info";
   }

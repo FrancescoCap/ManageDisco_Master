@@ -4,14 +4,16 @@ using ManageDisco.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ManageDisco.Migrations
 {
     [DbContext(typeof(DiscoContext))]
-    partial class DiscoContextModelSnapshot : ModelSnapshot
+    [Migration("20220209145320_ADD_CONTACT")]
+    partial class ADD_CONTACT
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,12 +46,7 @@ namespace ManageDisco.Migrations
                     b.Property<string>("ContactDescription")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ContactTypeId")
-                        .HasColumnType("int");
-
                     b.HasKey("ContactId");
-
-                    b.HasIndex("ContactTypeId");
 
                     b.ToTable("Contact");
                 });
@@ -74,28 +71,7 @@ namespace ManageDisco.Migrations
                     b.Property<string>("DiscoId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("DiscoAddress")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoCity")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoCityCap")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoClosingTime")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("DiscoName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoOpeningTime")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoProvince")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoVatCode")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("DiscoId");
@@ -738,17 +714,6 @@ namespace ManageDisco.Migrations
                     b.HasIndex("ReservationsReservationId");
 
                     b.ToTable("ReservationReservationPayment");
-                });
-
-            modelBuilder.Entity("ManageDisco.Model.Contact", b =>
-                {
-                    b.HasOne("ManageDisco.Model.ContactType", "ContactType")
-                        .WithMany()
-                        .HasForeignKey("ContactTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ContactType");
                 });
 
             modelBuilder.Entity("ManageDisco.Model.EventPhoto", b =>

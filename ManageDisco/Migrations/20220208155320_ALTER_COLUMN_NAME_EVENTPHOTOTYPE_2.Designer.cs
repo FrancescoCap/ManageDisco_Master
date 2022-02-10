@@ -4,14 +4,16 @@ using ManageDisco.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ManageDisco.Migrations
 {
     [DbContext(typeof(DiscoContext))]
-    partial class DiscoContextModelSnapshot : ModelSnapshot
+    [Migration("20220208155320_ALTER_COLUMN_NAME_EVENTPHOTOTYPE_2")]
+    partial class ALTER_COLUMN_NAME_EVENTPHOTOTYPE_2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,68 +36,12 @@ namespace ManageDisco.Migrations
                     b.ToTable("Catalog");
                 });
 
-            modelBuilder.Entity("ManageDisco.Model.Contact", b =>
-                {
-                    b.Property<int>("ContactId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("ContactDescription")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ContactTypeId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ContactId");
-
-                    b.HasIndex("ContactTypeId");
-
-                    b.ToTable("Contact");
-                });
-
-            modelBuilder.Entity("ManageDisco.Model.ContactType", b =>
-                {
-                    b.Property<int>("ContactTypeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("ContactTypeDescription")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ContactTypeId");
-
-                    b.ToTable("ContactType");
-                });
-
             modelBuilder.Entity("ManageDisco.Model.DiscoEntity", b =>
                 {
                     b.Property<string>("DiscoId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("DiscoAddress")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoCity")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoCityCap")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoClosingTime")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("DiscoName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoOpeningTime")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoProvince")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DiscoVatCode")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("DiscoId");
@@ -176,26 +122,6 @@ namespace ManageDisco.Migrations
                     b.ToTable("EventStatus");
                 });
 
-            modelBuilder.Entity("ManageDisco.Model.HomePhoto", b =>
-                {
-                    b.Property<int>("HomePhotoId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("HomePhotoPath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PhotoTypeId")
-                        .HasColumnType("int");
-
-                    b.HasKey("HomePhotoId");
-
-                    b.HasIndex("PhotoTypeId");
-
-                    b.ToTable("HomePhoto");
-                });
-
             modelBuilder.Entity("ManageDisco.Model.PaymentOverview", b =>
                 {
                     b.Property<int>("PaymentOverviewId")
@@ -231,9 +157,6 @@ namespace ManageDisco.Migrations
 
                     b.Property<string>("PhotoTypeDescription")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PhotoTypeMaxNumber")
-                        .HasColumnType("int");
 
                     b.HasKey("PhotoTypeId");
 
@@ -574,26 +497,6 @@ namespace ManageDisco.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
-            modelBuilder.Entity("ManageDisco.Model.Warehouse", b =>
-                {
-                    b.Property<int>("WarehouseId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("WarehouseQuantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("WarehouseId");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("Warehouse");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -740,29 +643,7 @@ namespace ManageDisco.Migrations
                     b.ToTable("ReservationReservationPayment");
                 });
 
-            modelBuilder.Entity("ManageDisco.Model.Contact", b =>
-                {
-                    b.HasOne("ManageDisco.Model.ContactType", "ContactType")
-                        .WithMany()
-                        .HasForeignKey("ContactTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ContactType");
-                });
-
             modelBuilder.Entity("ManageDisco.Model.EventPhoto", b =>
-                {
-                    b.HasOne("ManageDisco.Model.PhotoType", "PhotoType")
-                        .WithMany()
-                        .HasForeignKey("PhotoTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PhotoType");
-                });
-
-            modelBuilder.Entity("ManageDisco.Model.HomePhoto", b =>
                 {
                     b.HasOne("ManageDisco.Model.PhotoType", "PhotoType")
                         .WithMany()
@@ -896,17 +777,6 @@ namespace ManageDisco.Migrations
                         .HasForeignKey("DiscoEntityId");
 
                     b.Navigation("DiscoEntity");
-                });
-
-            modelBuilder.Entity("ManageDisco.Model.Warehouse", b =>
-                {
-                    b.HasOne("ManageDisco.Model.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
