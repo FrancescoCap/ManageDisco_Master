@@ -67,8 +67,8 @@ namespace ManageDisco.Controllers
             claims.Add(new Claim(JwtRegisteredClaimNames.Jti, new Guid().ToString()));
             /**CUSTOM CLAIMS*/
             claims.Add(new Claim(CustomClaim.CLAIM_USERCODE, user.UserCode != null ? user.UserCode:""));
-            claims.Add(new Claim(CustomClaim.CLAIM_USERNAME, user.UserName));
-
+            claims.Add(new Claim(CustomClaim.CLAIM_USERNAME, user.UserName));           
+            
             var userRoles = await _userManager.GetRolesAsync(user);
             foreach (string role in userRoles)
             {
@@ -82,8 +82,22 @@ namespace ManageDisco.Controllers
             response.Token = token;
             response.RefreshToken = HelperMethods.GenerateRandomString(468);
 
-            return Ok(response);
+            Response.Cookies.Append("_auth", token, new CookieOptions() { HttpOnly = true,  SameSite = SameSiteMode.Strict});
+            Response.Cookies.Append("isAuth", "1"); 
+            if (HelperMethods.UserIsPrOrAdministrator(user, (List<string>)userRoles))
+            {
+                Response.Cookies.Append("authorization", "True");
+                if (HelperMethods.UserIsAdministrator((List<string>)userRoles))
+                    Response.Cookies.Append("authorization_full", "True");
 
+            }else if (HelperMethods.UserIsCustomer((List<string>)userRoles))
+            {
+                var prId = _db.PrCustomer.FirstOrDefaultAsync(x => x.PrCustomerCustomerid == user.Id).Result.PrCustomerPrId;
+                var prCode = _db.Users.FirstOrDefaultAsync(x => x.Id == prId).Result.UserCode;
+                Response.Cookies.Append("pr_ref", prCode);
+            }         
+          
+            return Ok(response);
         }
 
         [HttpPost]
@@ -108,12 +122,29 @@ namespace ManageDisco.Controllers
                     Enum.GetValues(typeof(RolesEnum)).GetValue(registrationInfo.Role).ToString();
 
             if (_userManager.Users.Any(x => x.Email == registrationInfo.Email))
-                return Ok("Email is already used.");
+            {
+                authenticationResponse.Token = "";
+                authenticationResponse.RefreshToken = "";
+                authenticationResponse.Message = "L'email è già registrata.";
+                authenticationResponse.OperationSuccess = false;
+                return Ok(authenticationResponse);
+            }
+                
 
-            if (registrationInfo.PrCode == null)
-                return BadRequest("Insert Pr code.");
+            if (registrationInfo.PrCode == null && roleName == RolesConstants.ROLE_CUSTOMER)
+            {
+                authenticationResponse.Token = "";
+                authenticationResponse.RefreshToken = "";
+                authenticationResponse.Message = "Codice PR non valido.";
+                authenticationResponse.OperationSuccess = false;
+                return Ok(authenticationResponse);
+            }              
 
-            newUser.UserCode = registrationInfo.PrCode;
+            if (roleName == RolesConstants.ROLE_ADMINISTRATOR || roleName == RolesConstants.ROLE_PR || roleName == RolesConstants.ROLE_WAREHOUSE_WORKER)
+            {
+                newUser.UserCode = HelperMethods.GenerateRandomString(6, false);
+            }
+           
             
             var isUserCreated = _userManager.CreateAsync(newUser, registrationInfo.Password);
             if (!isUserCreated.Result.Succeeded)
@@ -127,15 +158,22 @@ namespace ManageDisco.Controllers
                 authenticationResponse.Token = "";
                 authenticationResponse.RefreshToken = "";
                 authenticationResponse.Message = "Registration failed: " + stringBuilder.ToString();
+                authenticationResponse.OperationSuccess = false;
                 return Ok(authenticationResponse);
             }
             await _userManager.AddToRoleAsync(newUser, roleName);
 
             if (roleName == RolesConstants.ROLE_CUSTOMER)
             {
-                string prId = _db.ReservationUserCode.FirstOrDefault(x => x.ReservationUserCodeValue == registrationInfo.PrCode).UserId;
+                var prId = _db.Users.FirstOrDefaultAsync(x => x.UserCode == registrationInfo.PrCode).Result.Id; // _db.ReservationUserCode.FirstOrDefault(x => x.ReservationUserCodeValue == registrationInfo.PrCode).UserId;
                 if (prId == String.Empty)
-                    return BadRequest("No pr found for code.");
+                {
+                    authenticationResponse.Token = "";
+                    authenticationResponse.RefreshToken = "";
+                    authenticationResponse.Message = "Il codice fornito non corrisponde ad un PR.";
+                    authenticationResponse.OperationSuccess = false;
+                    return Ok(authenticationResponse);
+                }
 
                 _db.PrCustomer.Add(new PrCustomer()
                 {
@@ -150,7 +188,7 @@ namespace ManageDisco.Controllers
             //    return BadRequest("No PR found.");
 
             authenticationResponse.Message = "Registration success";
-
+            authenticationResponse.OperationSuccess = true;
             //Change to Redirect(loginPage)
             return Ok(authenticationResponse);
         }
@@ -241,6 +279,20 @@ namespace ManageDisco.Controllers
 
             _db.Entry(user).State = EntityState.Modified;
             await _db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("Logout")]
+        public async Task<IActionResult> Logout()
+        {
+
+            Response.Cookies.Delete("_auth");
+            Response.Cookies.Delete("isAuth");
+            Response.Cookies.Delete("authorization");
+            Response.Cookies.Delete("authorization_full");
+            Response.Cookies.Delete("pr_ref");
 
             return Ok();
         }

@@ -2,12 +2,14 @@ import { Component, OnInit, ViewChild, ViewContainerRef, ViewEncapsulation } fro
 import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import { catchError } from 'rxjs';
 import { ApiCaller } from '../../../api/api';
-import { EventParty, ModalType, PrCustomerView, ReservationPost, ReservationType } from '../../../model/models';
+import { EventParty, LoginRequest, ModalType, PrCustomerView, ReservationPost, ReservationType } from '../../../model/models';
 import { ModalService } from '../../../service/modal.service';
 import SwiperCore, { EffectFade, Autoplay, Pagination, Navigation, Scrollbar } from "swiper";
 import { ModalModelEnum, ModalViewGroup } from '../../../components/modal/modal.model';
 import { Observable } from 'rxjs';
 import { forkJoin } from 'rxjs';
+import { HttpStatusCode } from '@angular/common/http';
+import { UserService } from '../../../service/user.service';
 
 SwiperCore.use([EffectFade, Autoplay, Pagination, Navigation, Scrollbar]);
 
@@ -20,6 +22,8 @@ SwiperCore.use([EffectFade, Autoplay, Pagination, Navigation, Scrollbar]);
 export class EventDetailComponent implements OnInit {
 
   @ViewChild("modalContainer", { read: ViewContainerRef, static: false }) modalContainer?: ViewContainerRef;
+
+  isLoading = false;
 
   modaViews: ModalViewGroup[] = [];
   reservationType?: ReservationType[];
@@ -36,13 +40,14 @@ export class EventDetailComponent implements OnInit {
   constructor(private _api: ApiCaller,
     private route: RouterOutlet,
     private modal: ModalService,
-    private router: Router) { }
+    private router: Router,
+    private user: UserService  ) { }
 
   ngOnInit(): void {
     this.route.activatedRoute.queryParams.subscribe(params => {
       this.eventId = params["eventId"];
       if (params["editable"] == "true")
-        this.areDetailsEditableFromUser = true;
+        this.areDetailsEditableFromUser = this.user.userIdAdminstrator();
 
     })
     this.initData();
@@ -53,10 +58,14 @@ export class EventDetailComponent implements OnInit {
   }
 
   initData() {
-    this._api.getEventDetail(this.eventId).subscribe(data => {
+    this.isLoading = true;
+    this._api.getEventDetail(this.eventId)
+    .subscribe(data => {
       this.event = data;
       this.editPriceMode = false;
       this.editDescription = false;
+      
+      this.isLoading = false;
     });
   }
 
@@ -65,11 +74,15 @@ export class EventDetailComponent implements OnInit {
     this.editPriceMode = !this.editPriceMode;
   }
 
+  editEventDescription() {
+    this.editDescription = !this.editDescription;
+  }
+
   editPriceConfirm() {
-    console.log(this.event)
+
     this._api.editEventPrices(this.eventId, this.event).pipe(
       catchError(err => {
-        this.modal.showErrorModal(err.message);
+        this.modal.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe(() => {
         this.initData();
@@ -82,7 +95,7 @@ export class EventDetailComponent implements OnInit {
     else if (target.id == "delete") {
       this._api.putCancelEvent(this.eventId).pipe(
         catchError(err => {
-          this.modal.showErrorModal(err.message);
+          this.modal.showErrorOrMessageModal(err.message);
           return err;
         })).subscribe(() => {
           this.router.navigateByUrl("/Events");
@@ -100,17 +113,49 @@ export class EventDetailComponent implements OnInit {
       this._api.getReservationTypes(),
       this._api.getPrCustomers()
     ]
+    
+    if (!this.user.userIsAuthenticated()) {
+      this.initLoginModal();
+    } else {
+      forkJoin(calls).pipe(
+        catchError(err => {
+          this.modal.showErrorOrMessageModal(err.message);
+          return err;
+        })).subscribe((data: any) => {
+          this.reservationType = data[0];
+          this.prCustomers = data[1];
 
-    forkJoin(calls).pipe(
+          this.initReservationInput();
+          this.modal.showAddModal(this.onReservationAdded, "PRENOTAZIONE", this.modaViews);
+        })
+    }
+    
+  }
+
+  initLoginModal() {
+    var modalViews: ModalViewGroup[] = [
+      {
+        type: ModalModelEnum.TextBox, viewItems: [
+          { viewId: "txtEmail", label: "Email", referenceId: "email" },
+          { viewId: "txtPassword", label: "Password", referenceId: "password" }]
+      }
+    ];
+
+    this.modal.showAddModal(this.onLogin, "LOGIN", modalViews, ModalType.LOGIN);
+  }
+
+  onLogin = (info: any): void => {
+    var loginReq: LoginRequest = {
+      email: info.get("email"),
+      password: info.get("password")
+    }
+
+    this._api.login(loginReq).pipe(
       catchError(err => {
-        this.modal.showErrorModal(err.message);
+        this.modal.showErrorOrMessageModal(err.message);
         return err;
-      })).subscribe((data: any) => {
-        this.reservationType = data[0];
-        this.prCustomers = data[1];
-
-        this.initReservationInput();
-        this.modal.showAddModal(this.onReservationAdded, "PRENOTAZIONE", this.modaViews);
+      })).subscribe((data:any) => {
+        this.initData();
       })
   }
 
@@ -129,16 +174,15 @@ export class EventDetailComponent implements OnInit {
       ]
       }];
 
-    if (this.prCustomers != null && this.prCustomers.length > 0) {
+    if (this.user.userIsInStaff()) {
       this.modaViews.push({
-        type: ModalModelEnum.Table, viewItems: [{label: "Prenota per", viewId: "tblPrCustomers", referenceId: "customerId", list: this.prCustomers }]
-      })
-    } else {
+        type: ModalModelEnum.Table, selector:"tblCustomer", multiSelect: false, viewItems: [{ label: "Prenota per", viewId: "tblPrCustomers", referenceId: "customerId", list: this.prCustomers }]
+      });
+    } else {      
       this.modaViews.push({
-        type: ModalModelEnum.TextBox, viewItems: [{ label:"Codice pr", viewId: "txtPrCode", referenceId: "userCode" }]
-      })
+        type: ModalModelEnum.TextBox, viewItems: [{ label: "Codice pr", viewId: "txtPrCode", referenceId: "userCode", defaultText: this.user.getCustomerPrCode() }]
+      });
     }
-
   }
 
   onReservationAdded = (newReservation:any): void => {
@@ -159,12 +203,12 @@ export class EventDetailComponent implements OnInit {
 
     this._api.postReservation(reservation).pipe(
       catchError(err => {
-        this.modal.showErrorModal(err.message);
+        this.modal.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((message: any) => {     
         //show success modal
         if (message != null)
-          this.modal.showErrorModal(message.message);
+          this.modal.showErrorOrMessageModal(message.message);
       })
   }
 }

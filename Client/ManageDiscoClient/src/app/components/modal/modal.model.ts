@@ -28,6 +28,7 @@ export interface ViewItem {
   list?: any[],
   mapList?: { [key: string]: number }
   hasNgModel?: boolean;
+  defaultText?: any;
 }
 
 export class ModalModelList implements ModalModelType {
@@ -55,6 +56,8 @@ export class ModalImageBoxList  {
 
 
 export class ModalViewGroup{
+  selector?: string;
+  multiSelect?: boolean = false;
   viewItems: ViewItem[] = [];
   type: ModalModelEnum = ModalModelEnum.TextBox;  
 }

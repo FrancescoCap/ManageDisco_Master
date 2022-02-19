@@ -4,7 +4,7 @@
   3. Breve descrizione
   4. Slider foto eventi passati
   -->
-<div class="col-12 m-0 p-0">
+<div class="col-12 m-0 p-0" *ngIf="!isLoading">
   <swiper [effect]="'slide'"
           [grabCursor]="true"
           [centeredSlides]="true"
@@ -121,3 +121,5 @@
     
   </div>
 </div>
+
+<app-loading [loading]="isLoading"></app-loading>

@@ -25,13 +25,13 @@ export class ModalService {
         this.modalComponentRef.instance.modelValues = ngModel;
   }
 
-  public showErrorModal(message: any) {    
+  public showErrorOrMessageModal(message: any, title?: any) {
     this.initComponentRef();
     
     if (this.modalComponentRef != null) {
       this.modalComponentRef.instance.modalType = ModalType.ERROR;
       this.modalComponentRef.instance.message = message;
-      this.modalComponentRef.instance.header = "Errore";
+      this.modalComponentRef.instance.header = title != null ? title : "Errore";
       this.modalComponentRef.instance.visibile = true;
     }
 
@@ -43,10 +43,16 @@ export class ModalService {
     if (this.modalComponentRef != null) {
       
       for (var i = 0; i < inputs.length; i++) {        
-        this.modalComponentRef.instance.lists.push(inputs[i]);      
+        this.modalComponentRef.instance.lists.push(inputs[i]);
+        inputs[i].viewItems.forEach((x, y) => {
+          if (x.defaultText != null) {
+            this.modalComponentRef?.instance.values.set(x.referenceId, x.defaultText);
+          }
+            
+        });
       }
 
-      this.modalComponentRef.instance.modalType = ModalType.NEW_RESERVATION;  //default selection for map purposes
+      this.modalComponentRef.instance.modalType = modalType != null ? modalType : ModalType.NEW_RESERVATION;  //default selection for map purposes
       this.modalComponentRef.instance.visibile = true;
       this.modalComponentRef.instance.header = title;
       this.modalComponentRef.instance.modalConfirmed.subscribe((event: any) => {

@@ -5,6 +5,7 @@
 .content{
     border:1px solid #333;
     border-radius: 15px;
+   /* height:80px;*/
 }
 
 .content-close{    
@@ -22,4 +23,9 @@ textarea{
 
 #newContactDiv:hover{
   cursor:pointer;
+}
+
+.photo-subtitle {
+  font-family: Britannic;
+  font-size: 26px;
 }

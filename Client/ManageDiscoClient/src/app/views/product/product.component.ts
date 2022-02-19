@@ -53,7 +53,7 @@ export class ProductComponent implements OnInit {
 
     forkJoin(calls).pipe(
       catchError(err => {
-        this._modal.showErrorModal(err.modal);
+        this._modal.showErrorOrMessageModal(err.modal);
         return err;
       })).subscribe((data: any) => {
         this.products = data[0];
@@ -152,7 +152,7 @@ export class ProductComponent implements OnInit {
 
     this._api.postProduct(product).pipe(
       catchError(err => {
-        this._modal.showErrorModal(err.message);
+        this._modal.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe(() => {
         this.selectedCatalog = 0;
@@ -175,7 +175,7 @@ export class ProductComponent implements OnInit {
 
     this._api.postCatalog(catalog).pipe(
       catchError(err => {
-        this._modal.showErrorModal(err.message);
+        this._modal.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe(() => {
         this.initData();

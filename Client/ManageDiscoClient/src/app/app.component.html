@@ -1,12 +1,19 @@
 <header style="z-index:99;position:relative">
-  <ul class="col-12" id="ulmenu">
-    <li *ngFor="let itemMenu Of menu" [class.drpdown]="itemMenu.child != null && itemMenu.child.length > 0">
-      <a [class.dropbtn]="itemMenu.child != null && itemMenu.child.length > 0" [href]="itemMenu.link">{{itemMenu.header}}</a>
-      <div *ngIf="itemMenu.child != null && itemMenu.child.length > 0" class="drpdown-content">
-        <a *ngFor="let subItem of itemMenu.child" [href]="subItem.link">{{subItem.title}}</a>
-      </div>
-    </li>
-  </ul>
+  <div class="row header-bg">
+    <ul class="col-11" id="ulmenu">
+      <li *ngFor="let itemMenu Of menu" [class.drpdown]="itemMenu.child != null && itemMenu.child.length > 0">
+        <a [class.dropbtn]="itemMenu.child != null && itemMenu.child.length > 0" [href]="itemMenu.link">{{itemMenu.header}}</a>
+        <div *ngIf="itemMenu.child != null && itemMenu.child.length > 0" class="drpdown-content">
+          <a *ngFor="let subItem of itemMenu.child" [href]="subItem.link">{{subItem.title}}</a>
+        </div>
+      </li>
+    </ul>
+    <label class="col-1 logout text-end" (click)="logout()">
+      <label class="dropbtn">Logout</label>
+    </label>
+  </div>
+ 
+  
 </header>
 
 <!--<div class="navbar">

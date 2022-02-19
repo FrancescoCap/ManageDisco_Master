@@ -1,4 +1,4 @@
-<div class="col-12" *ngIf="event != null">  
+<div class="col-12" *ngIf="!isLoading && event != null">  
 <div class="col-12 swiper-div">
   <swiper [effect]="'slide'"
           [grabCursor]="true"
@@ -19,6 +19,7 @@
 </div>
 <div class="col-12 row">
   <div class="col-6 justify-content-start mt-5 p-5 text-capitalize">
+    <small class="col-12 event-description-p" style="color:red;font-weight:bold" *ngIf="!event.eventIsEnd">EVENTO TERMINATO</small>
     <div class="col-12">
       <!--Titolo-->
       <label class="fw-bold col-12 event-title">{{event.name}}</label>
@@ -27,12 +28,13 @@
 
     <!--Descrizione-->
     <div class="col-12 m-5 mx-auto" (click)="editDescription = true">
-      <div class="col-12 justify-content-start">
-        <textarea class="col-12" *ngIf="event.userCanEditInfo;else labelDescription" [disabled]="!editDescription" [(ngModel)]="event.description">{{event.description}}</textarea>
-        <ng-template #labelDescription>
-          <p class="col-12  event-description-p" [(ngModel)]="event.description">{{event.description}}</p>
-        </ng-template>
+      <div class="col-12 justify-content-start" *ngIf="event.userCanEditInfo;else labelDescription">
+        <small class="col-12 instructions">(Clicca sul box per moddificare la descrizione)</small>
+        <textarea class="col-12" [disabled]="!editDescription" [(ngModel)]="event.description">{{event.description}}</textarea>
       </div>
+      <ng-template #labelDescription>
+        <p class="col-12  event-description-p" [(ngModel)]="event.description">{{event.description}}</p>
+      </ng-template>
       <div class="col-12 text-end"><button class="col-2 btn btn-primary" *ngIf="editDescription" (click)="editPriceConfirm()">Conferma</button></div>
     </div>
 
@@ -48,26 +50,26 @@
         <li>Omaggio: <label>{{event.freeEntranceDescription }}</label></li>
       </ul>
       <div class="col-12">
-        <button class="col-12 btn btn-primary" (click)="addReservation()"><i class="fa fa-calendar-check-o me-2"></i>PRENOTA</button>
+        <button class="col-12 btn btn-primary" (click)="addReservation()" [disabled]="!event.eventIsEnd"><i class="fa fa-calendar-check-o me-2"></i>PRENOTA</button>
       </div>
       <ng-template #editPriceTemplate>
         <form #editPriceForm="ngForm" (ngSubmit)="editPriceConfirm()">
-          <div class="row">
+          <div class="col-12 row">
             <label for="txtEntrancePrice">Ingresso:</label>
-            <input type="number" class="col-1" required id="txtEntrancePrice" name="entrancePrice" #entrance="ngModel" [(ngModel)]="event.entrancePrice" />
+            <input type="number" class="col-5" required id="txtEntrancePrice" name="entrancePrice" #entrance="ngModel" [(ngModel)]="event.entrancePrice" />
             <small class="col-12 error" *ngIf="entrance.errors?.['required']">Inserire un prezzo valido</small>
           </div>
-          <div class="row">
+          <div class="col-12 row">
             <label for="txtEntrancePrice">Tavolo:</label>
-            <input type="number" required class="col-1" name="tablePrice" #table="ngModel" [(ngModel)]="event.tablePrice" />
+            <input type="number" required class="col-5" name="tablePrice" #table="ngModel" [(ngModel)]="event.tablePrice" />
             <small class="col-12 error" *ngIf="table.errors?.['required']">Inserire un prezzo valido</small>
           </div>
-          <div class="row">
+          <div class="col-12 row">
             <label for="txtEntrancePrice">Condizioni omaggio:</label>
-            <textarea class="col-4" name="tableEntrance" #entrance="ngModel" [(ngModel)]="event.freeEntranceDescription"></textarea>
+            <textarea class="col-12" name="tableEntrance" #entrance="ngModel" [(ngModel)]="event.freeEntranceDescription"></textarea>
           </div>
-          <div class="col-4 text-end p-3">
-            <button class="btn btn-secondary col-4" [disabled]="!editPriceForm.valid">Conferma</button>
+          <div class="col-12 p-3">
+            <button class="btn btn-secondary col-12" [disabled]="!editPriceForm.valid">Conferma</button>
           </div>
         </form>
       </ng-template>
@@ -82,3 +84,4 @@
 </div>
 
 <ng-container #modalContainer></ng-container>
+<app-loading [loading]="isLoading"></app-loading>

@@ -13,7 +13,7 @@ export class GeneralService {
     var formattedDate = "";
     var dateSplit = value.split('/');
     formattedDate = dateSplit[2] + "-" + dateSplit[1] + "-" + dateSplit[0];
-    console.log(formattedDate)
+  
     return formattedDate;
   }
 }

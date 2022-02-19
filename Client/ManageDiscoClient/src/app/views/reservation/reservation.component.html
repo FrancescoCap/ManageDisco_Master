@@ -1,15 +1,19 @@
-<div class="p-3 col-12">
+<div class="p-3 col-12" *ngIf="!isLoading">
   <div class="col-12 text-center">
     <label id="no-data" class="col-12">ELENCO PRENOTAZIONI</label>
   </div>
   
   <div class="row col-12 mx-auto">
     <div class="row p-3">
-      <select class="col-3" (change)="dropEventChange()" [(ngModel)]="eventFilter">
+      <select class="col-3" [(ngModel)]="eventFilter" (change)="onFilterEventChange()">
         <option [value]="0">Filtra per evento</option>
         <option *ngFor="let event of events" [value]="event.id">{{event.name}} - {{event.date | date: 'dd/MM/yyyy'}}</option>
       </select>
+      <div class="col-9 text-end">
+        <button class="col-1 p-2  new-button" (click)="addReservation()"><i class="fa fa-plus me-1"></i>NUOVO</button>
+      </div>
     </div>
+    
     <div class="row col-12 p-2 tblheader-bk" data-value="tblHeader">
       <div class="col-1">Data</div>
       <div class="col-1">Codice prenotazione</div>
@@ -46,32 +50,19 @@
             <i id="btnRefuseReservation_{{reserve.reservationId}}" class="btn-icon fa fa-times col-4" (click)="handleReservation($event)"></i>
           </div>
           <!-- TODO farsi passare gli stati di prenotazione dal server resource e gestirli-->
-          <div class="col-6 m-0 p-0" *ngIf="reserve.reservationStatusId != 3 && !reserve.canAcceptReservation">
+          <div class="col-6 m-0 p-0" *ngIf="reserve.canAcceptBudget">
             <i id="btnConfirmBudget_{{reserve.reservationId}}" *ngIf="reserve.reservationRealBudget == 0" class="btn-icon fa fa-euro col-4 p-2" (click)="handleReservation($event)"></i>
             <i id="btnEditBudget" *ngIf="!editBudget" class="btn-icon col-4 p-2 fa fa-edit" (click)="handleReservation($event)"></i>
             <i id="btnOkEdtBudget_{{reserve.reservationId}}" *ngIf="editBudget" class="btn-icon col-4 fa fa-check" (click)="handleReservation($event)"></i>
           </div>
         </div>
-
       </div>
-
     </div>
     <div class="no-data" *ngIf="reservations == null || reservations.length == 0">
       NON CI SONO PRENOTAZIONI PER QUESTO EVENTO
     </div>
   </div>
-
-  <div class="row text-end mt-3 justify-content-end">
-    <a class="btn btn-secondary col-1" (click)="openNewReservationModal()">INSERISCI</a>
-  </div>
 </div>
 
-
-<!--<app-modal [visibility]="openNewResModal"
-           [title]="newResModaltitle"
-           [lists]="modalModelLists"
-           [textBox]="modalTextBoxLists"
-           (onModalConfirmed)="addReservation($event)"
-           (onModalClose)="onModalClose($event)"
-           [modalType]="modalType"></app-modal>-->
-
+<ng-template #modalContainer></ng-template>
+<app-loading [loading]="isLoading"></app-loading>

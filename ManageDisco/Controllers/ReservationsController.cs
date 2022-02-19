@@ -25,7 +25,7 @@ namespace ManageDisco.Controllers
 
         // GET: api/Reservations
         [HttpGet]
-        public async Task<IActionResult> GetReservation()
+        public async Task<IActionResult> GetReservation([FromQuery] int eventId)
         {
             IQueryable<ReservationView> reservationViews = _db.Reservation
                 .Select(x => new ReservationView()
@@ -43,14 +43,15 @@ namespace ManageDisco.Controllers
                     ReservationStatusId = x.ReservationStatus.ReservationStatusId,
                     ReservationStatus = x.ReservationStatus.ReservationStatusValue,
                     UserId = x.UserId,
+                    UserIdOwner = x.UserIdOwner,
                     CanAcceptReservation = x.ReservationStatusId != ReservationStatusValue.RESERVATIONSTATUS_REJECTED && x.ReservationStatusId != ReservationStatusValue.RESERVATIONSTATUS_APPROVED &&
-                            _user.Roles.Contains(RolesConstants.ROLE_ADMINISTRATOR), //E' concettualmente sbagliato bloccare la funzionalità da qui. Dovrebbe essere un attributo a livello Utente
+                            HelperMethods.UserIsAdministrator(_user), //E' concettualmente sbagliato bloccare la funzionalità da qui. Dovrebbe essere un attributo a livello Utente
                     CanAcceptBudget = x.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_APPROVED &&
-                            DateTime.Compare(x.EventParty.Date, DateTime.Today) > 0,
+                            DateTime.Compare(x.EventParty.Date, DateTime.Today) > 0 && HelperMethods.UserIsInStaff(_user),
                     ReservationName = x.ReservationTableName,
                     TableId = x.TableId != null ? x.TableId : 0
                 });
-
+            
 
             if (_user.Roles.Any(x => x.Contains(RolesConstants.ROLE_PR)))
             {
@@ -61,26 +62,16 @@ namespace ManageDisco.Controllers
             else if (_user.Roles.Any(x => x.Contains(RolesConstants.ROLE_CUSTOMER)))
             {
                 //Se sono un cliente visualizzo le prenotazione associate al mio Id utente
-                reservationViews = reservationViews.Where(x => x.UserId == _user.Id);
+                reservationViews = reservationViews.Where(x => x.UserIdOwner == _user.Id);
             }
+
+            if (eventId != 0)
+                reservationViews = reservationViews.Where(x => x.EventId == eventId);
 
 
             return Ok(await reservationViews.ToListAsync());
         }
 
-        // GET: api/Reservations/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Reservation>> GetReservation(int id)
-        {
-            var reservation = await _db.Reservation.FindAsync(id);
-
-            if (reservation == null)
-            {
-                return NotFound();
-            }
-
-            return reservation;
-        }
         /// <summary>
         /// Get reservations for specific user (PR)
         /// </summary>
@@ -295,11 +286,10 @@ namespace ManageDisco.Controllers
             if (reservationData.ReservationType < 1)
                 return Ok(new ReservationResponse() { Message = "Missing reservation type." });
 
-            ReservationUserCode reservationUserCodeFound = await _db.ReservationUserCode.FirstOrDefaultAsync(x => x.ReservationUserCodeValue == 
-                    (HelperMethods.UserIsPrOrAdministrator(_user) ? _user.UserCode : reservationData.ReservationUserCodeValue));
-
-            if (reservationUserCodeFound == null)
-                return Ok(new ReservationResponse() { Message = "Invalid reservation code." });
+            if (reservationData.ReservationUserCodeValue == null)
+            {
+                reservationData.ReservationUserCodeValue = HelperMethods.UserIsPrOrAdministrator(_user) ? _user.UserCode : reservationData.ReservationUserCodeValue;
+            }
 
             //Check if user already have reservation for the event           
             //if (ReservationExists(reservationData.EventPartyId))
@@ -321,8 +311,9 @@ namespace ManageDisco.Controllers
             };
 
             reservation.UserIdOwner = HelperMethods.UserIsPrOrAdministrator(_user) ? reservationData.ReservationOwnerId : _user.Id;
-            reservation.UserId = HelperMethods.UserIdCustomer(_user) ? _db.ReservationUserCode.FirstOrDefault(x => x.ReservationUserCodeValue == reservationData.ReservationUserCodeValue).UserId :
-                    _user.Id;
+            //Id del pr
+            reservation.UserId = HelperMethods.UserIsPrOrAdministrator(_user) ? _user.Id : 
+                _db.PrCustomer.FirstOrDefaultAsync(x => x.PrCustomerCustomerid == _user.Id).Result.PrCustomerPrId;
 
             if ((reservation.ReservationTypeId == 2 ||
                 reservation.ReservationTypeId == 3) && reservation.ReservationExpectedBudget == 0)
@@ -350,10 +341,10 @@ namespace ManageDisco.Controllers
                 .Where(x => x.UserIdOwner == _user.Id && x.EventPartyId == eventParty.Id)
                 //.Select(x => new Reservation()
                 //{
-                //    EventId = x.EventPartyId,
+                //    EventPartyId = x.EventPartyId,
                 //    ReservationExpectedBudget = x.ReservationExpectedBudget,
                 //    ReservationPeopleCount = x.ReservationPeopleCount,
-                //    ReservationTy
+                //    Reservation
                 //})
                 .FirstOrDefaultAsync();
 

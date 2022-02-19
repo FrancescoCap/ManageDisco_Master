@@ -24,11 +24,8 @@ export class LoginComponent implements OnInit {
       catchError(err => {
         console.log(err);
         return err;
-      })).subscribe((data: AuthResponse) => {
-        if (data.token != null) {
-          document.cookie = "auth_consent=" + data.token;          
-          document.location.href = "http://localhost:4200/Home"         
-        }          
+      })).subscribe((data: AuthResponse) => {       
+        document.location.href = "http://localhost:4200/Home"
     });
   }
 

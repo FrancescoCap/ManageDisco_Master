@@ -1,16 +1,16 @@
-<div class="col-11 mx-auto p-5">
+<div class="p-3 col-12" *ngIf="!isLoading">
   <div class="col-12 text-center">
     <label id="no-data" class="col-12">PROGRAMMAZIONE EVENTI</label>
   </div>
   <div class="row pe-3">
-    <div class="col-6 p-4">
-      <form (ngSubmit)="filterEventsForName()">
-        <input name="txtEvtFilter" class="col-6" placeholder="Cerca evento" #evtFilter="ngModel" [(ngModel)]="eventFilterValue" />
-        <input type="submit" class="col-3 btn btn-info ms-3" value="CERCA" />
-      </form>
-    </div>
-    <div class="col-12 text-end">
-      <i class="mt-5 fa fa-plus" (click)="openNewEventModal()" *ngIf="events?.userCanAddEvent"></i>
+    <div class="row p-3">
+      <div class="col-6">
+        <input type="text" class="col-6" placeholder="Cerca evento" [(ngModel)]="eventFilterValue" />
+        <button class="col-3 btn btn-info ms-2" (click)="filterEventsForName()">CERCA</button>
+      </div>     
+      <div class="col-6 text-end">
+        <button class="col-2 p-2  new-button" (click)="openNewEventModal()" *ngIf="events?.userCanAddEvent"><i class="fa fa-plus me-1"></i>NUOVO</button>
+      </div>
     </div>
   </div>
   <div class="row p-2" *ngFor="let e of events!.events">
@@ -20,7 +20,7 @@
     <div class="col-8 p-3">
       <h2 class="col-12 event-title">{{e.name}}</h2>
       <h6 class="col-12 event-date">{{e.date | date: 'dd/MM/yyyy'}}</h6>
-      <h5 class="col-12 event-description">{{e.description}}</h5>
+      <h5 class="col-12 event-description" style="white-space: pre-line">{{e.description}}</h5>
       <div class="row pb-3 pt-3">
         <h5 class="col-1">Stato: </h5>
         <h5 class="col-3" style="background-color:#ec842a">{{e.eventPartyStatusDescription}}</h5>
@@ -38,6 +38,8 @@
     NON CI SONO EVENTI IN PROGRAMMA
   </div>
 </div>
+
+<app-loading [loading]="isLoading"></app-loading>
 
 <ng-container #modalContainer></ng-container>
 

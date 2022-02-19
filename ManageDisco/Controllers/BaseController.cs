@@ -52,20 +52,22 @@ namespace ManageDisco.Controllers
         {
             var claims = HttpContext.User.Claims;
             _user = new UserRoles();
-            
-            string email = claims.Where(x => x.Type == ClaimTypes.Email).FirstOrDefault().Value;
-            string name = claims.Where(x => x.Type == ClaimTypes.Name).FirstOrDefault().Value;
-            string id = claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value;
-            string userCode = claims.Where(x => x.Type == CustomClaim.CLAIM_USERCODE).FirstOrDefault().Value;
-            string username = claims.Where(x => x.Type == CustomClaim.CLAIM_USERNAME).FirstOrDefault().Value;
-            string[] role = claims.Where(x => x.Type == ClaimTypes.Role).Select(x => x.Value).ToArray();
-
-            _user.Id = id;
-            _user.Email = email;
-            _user.Name = name;
-            _user.Roles.AddRange(role);
-            _user.UserCode = userCode;
-            _user.UserName = username;
+            if (claims.Any())
+            {
+                string email = claims.Where(x => x.Type == ClaimTypes.Email).FirstOrDefault().Value;
+                string name = claims.Where(x => x.Type == ClaimTypes.Name).FirstOrDefault().Value;
+                string id = claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value;
+                string userCode = claims.Where(x => x.Type == CustomClaim.CLAIM_USERCODE).FirstOrDefault().Value;
+                string username = claims.Where(x => x.Type == CustomClaim.CLAIM_USERNAME).FirstOrDefault().Value;
+                string[] role = claims.Where(x => x.Type == ClaimTypes.Role).Select(x => x.Value).ToArray();
+                
+                _user.Id = id;
+                _user.Email = email;
+                _user.Name = name;
+                _user.Roles.AddRange(role);
+                _user.UserCode = userCode;
+                _user.UserName = username;
+            }           
             
         }
     }

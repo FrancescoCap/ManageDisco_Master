@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { ViewContainerRef } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { catchError, forkJoin, Observable } from 'rxjs';
 import { ApiCaller } from '../../api/api';
-import { ModalModelList, ModalTextBoxList } from '../../components/modal/modal.model';
-import { EventParty, ModalType, Reservation, ReservationPost, ReservationType } from '../../model/models';
+import { ModalModelEnum, ModalModelList, ModalTextBoxList, ModalViewGroup } from '../../components/modal/modal.model';
+import { EventParty, ModalType, PrCustomerView, Reservation, ReservationPost, ReservationType } from '../../model/models';
 import { ModalService } from '../../service/modal.service';
+import { UserService } from '../../service/user.service';
 
 @Component({
   selector: 'app-reservation',
@@ -12,6 +14,9 @@ import { ModalService } from '../../service/modal.service';
 })
 export class ReservationComponent implements OnInit {
 
+  @ViewChild("modalContainer", { read: ViewContainerRef, static: false }) modalContainer?: ViewContainerRef;
+
+  isLoading = false;
   openNewResModal = false;
   newResModaltitle = "Nuova prenotazione";
   editBudget: boolean = false;
@@ -19,7 +24,8 @@ export class ReservationComponent implements OnInit {
   reservations?: Reservation[];
   events?: EventParty[];
   reservationTypes?: ReservationType[];
-  newReservation: ReservationPost = {eventPartyId:0, reservationPeopleCount: 0, reservationExpectedBudget: 0, reservationUserCodeValue: ""};
+  newReservation: ReservationPost = { eventPartyId: 0, reservationPeopleCount: 0, reservationExpectedBudget: 0, reservationUserCodeValue: "" };
+  prCustomers?: PrCustomerView[];
 
   modalModelLists: ModalModelList[] = [];
   modalTextBoxLists: ModalTextBoxList[] = [
@@ -32,20 +38,24 @@ export class ReservationComponent implements OnInit {
 
   eventFilter = 0;
 
-  constructor(private api: ApiCaller,
-        private _modalService:ModalService) {
+  constructor(private _api: ApiCaller,
+    private _modal: ModalService,
+    private _user:UserService  ) {
   }
 
   ngOnInit(): void {
     this.initData();
   }
 
-  public initData() {
+  ngAfterViewInit() {
+    this._api.setModalContainer(this.modalContainer!);
+  }
 
+  public initData() {
+    this.isLoading = true;
     var calls: Observable<any>[] = [
-      this.api.getReservations(this.eventFilter,0),//no filter
-      this.api.getEvents(),
-      this.api.getReservationTypes()
+      this._api.getReservations(this.eventFilter, 0),//no filter
+      this._api.getEvents()
     ];
 
     forkJoin(calls).pipe(
@@ -53,31 +63,13 @@ export class ReservationComponent implements OnInit {
       .subscribe((data: any) => {
         this.reservations = data[0];        
         this.events = data[1].events;
-        this.reservationTypes = data[2];
+
         this.editBudget = false;
-        this.initModalDropDown();
+        this.isLoading = false;
       });
   }
 
-  addReservation(event: Map<string,string>) {
-    this.newReservation.reservationName = event.get("reservationName");
-    this.newReservation.reservationPeopleCount = Number.parseInt(event.get("reservationPeopleCount") || "1");
-    this.newReservation.reservationExpectedBudget = Number.parseFloat(event.get("reservationExpectedBudget") || "0");;
-    this.newReservation.reservationUserCodeValue = event.get("reservationUserCodeValue");
-    this.newReservation.reservationType = Number.parseInt(event.get("reservationTypeId") || "1");
-    this.newReservation.eventPartyId = Number.parseInt(event.get("eventId") || "0");
-
-    this.modalType = ModalType.NEW_RESERVATION;
-    this.api.postReservation(this.newReservation).pipe(
-      catchError(err => {
-        console.log(err);
-        return err;
-      })).subscribe(data => {
-        this.openNewResModal = false;        
-        this.initData();
-      })
-  }
-
+  
   handleReservation(evt:any) {
     var button = evt.target;
     var status = 1;
@@ -93,9 +85,9 @@ export class ReservationComponent implements OnInit {
         status = 3;
         reserveId = reserveId;
       }
-      this.api.acceptReservation(reserveId, status).pipe(
+      this._api.acceptReservation(reserveId, status).pipe(
         catchError(err => {
-          console.log(err);
+          this._modal.showErrorOrMessageModal(err.message);
           return err;
         }))
         .subscribe(data => {
@@ -125,7 +117,7 @@ export class ReservationComponent implements OnInit {
 
   confirmBudget(reserveId: number, budget: number) {
 
-    this.api.confirmReservationBudget(reserveId, budget).pipe(
+    this._api.confirmReservationBudget(reserveId, budget).pipe(
       catchError(err => {
         console.log(err);
         return err;
@@ -134,37 +126,98 @@ export class ReservationComponent implements OnInit {
       });
   }
 
-  openNewReservationModal() {
-    this.initModalDropDown();
-    //this._modalService.showAddModal()
+  addReservation() {
+    this.getReservationData();
   }
 
-  initModalDropDown() {
-    //Rinizializzo ogni volta la lista a vuota perchè altrimenti le dropdown nuove si aggiungono a quelle vecchie
-    this.modalModelLists = [];
-    var modalListEvents = new ModalModelList();
-    modalListEvents.dropId = "drpEvent";
-    modalListEvents.label = "Evento";
-    modalListEvents.id = "eventId";
-    modalListEvents.valueDisplay = "name";
-    modalListEvents.list?.push(this.events);
+  //Get data for useful for new reservation
+  getReservationData() {
+    const calls: Observable<any>[] = [
+      this._api.getPrCustomers(),      
+      this._api.getReservationTypes()
+    ]
 
-    var modalListResTypes = new ModalModelList();
-    modalListResTypes.dropId = "drpResType";
-    modalListResTypes.label = "Tipo prenotazione";
-    modalListResTypes.id = "reservationTypeId";
-    modalListResTypes.valueDisplay = "reservationTypeString";
-    modalListResTypes.list?.push(this.reservationTypes);
-
-    this.modalModelLists?.push(modalListEvents);
-    this.modalModelLists?.push(modalListResTypes);
+    forkJoin(calls).pipe(
+      catchError(err => {
+        this._modal.showErrorOrMessageModal(err.message);
+        return err;
+      })).subscribe((data: any) => {
+        this.prCustomers = data[0];
+        this.reservationTypes = data[1];
+        this.initReservationInput();
+        
+      })
   }
 
-  onModalClose(event:any) {
-    this.openNewResModal = event;
+  initReservationInput() {
+    var modaViews: ModalViewGroup[] = [
+      {
+        type: ModalModelEnum.Dropdown, viewItems: [{
+          viewId: "drpEvent", referenceId:"eventId", list: this.events, label: "Evento"
+        }]
+      },
+      {
+        type: ModalModelEnum.TextBox, viewItems: [
+          { label: "Nome prenotazione", viewId: "txtReservationName", referenceId: "reservationName" },
+          { label: "Nr. persone", viewId: "txtPeopleCount", referenceId: "peopleCount" },
+          { label: "Budget (previsto)", viewId: "txtExpectedBudget", referenceId: "expectedBudget" },
+          { label: "Note", viewId: "txtReservationNote", referenceId: "reservationNote" }
+      ],
+    },
+    {
+      type: ModalModelEnum.Dropdown, viewItems: [
+        { label: "Tipo prenotazione", viewId: "drpreservationTypes", referenceId: "reservationTypes", list: this.reservationTypes }
+      ]
+    }];
+
+    if (this._user.userIsInStaff()) {
+      modaViews.push({
+        type: ModalModelEnum.Table, viewItems: [{ label: "Prenota per", viewId: "tblPrCustomers", referenceId: "customerId", list: this.prCustomers }]
+      })
+    } else {
+      modaViews.push({
+        type: ModalModelEnum.TextBox, viewItems: [{ label: "Codice pr", viewId: "txtPrCode", referenceId: "userCode", defaultText: this._user.getCustomerPrCode() }]
+      })
+    }
+    this._modal.showAddModal(this.onReservationAdded, "PRENOTAZIONE", modaViews);
   }
 
-  dropEventChange() {
-    this.initData();
+  onReservationAdded = (newReservation: any): void => {
+    var reservation: ReservationPost = {
+      eventPartyId: newReservation.get("eventId"),
+      reservationExpectedBudget: newReservation.get("expectedBudget"),
+      reservationPeopleCount: newReservation.get("peopleCount"),
+      reservationName: newReservation.get("reservationName"),
+      reservationUserCodeValue: newReservation.get("userCode"),
+      reservationType: newReservation.get("reservationTypes")
+    };
+
+    if (newReservation.get("customerId") != null)
+      //qui il discorso è leggermente diverso. Qui passo alla modal una lista di dati da selezionare quindi devo indicare che valore voglio
+      //all'interno della lista. Siccome in questa casistica la prenotazione sarà effettuata sempre e SOLO per un utente, posso indicare manualmente
+      //l'index 0, tanto ci sarà sempre solo una selezione
+      reservation.reservationOwnerId = newReservation.get("customerId")![0];
+
+    this._api.postReservation(reservation).pipe(
+      catchError(err => {
+        this._modal.showErrorOrMessageModal(err.message);
+        return err;
+      })).subscribe((message: any) => {
+        //show success modal
+        if (message != null)
+          this._modal.showErrorOrMessageModal(message.message);
+
+        this.initData();
+      })
+  }
+
+  onFilterEventChange() {
+    this._api.getReservations(this.eventFilter).pipe(
+      catchError(err => {
+        this._modal.showErrorOrMessageModal(err.message);
+        return err;
+      })).subscribe((data: any) => {
+        this.reservations = data;
+      });
   }
 }

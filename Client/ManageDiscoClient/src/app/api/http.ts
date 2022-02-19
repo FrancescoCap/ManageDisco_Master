@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse, HttpStatusCode } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse, HttpHeaders, HttpStatusCode } from "@angular/common/http";
 import { ComponentRef} from "@angular/core";
 import { ViewContainerRef } from "@angular/core";
 import { Inject } from "@angular/core";
@@ -7,13 +7,13 @@ import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
 import { catchError } from "rxjs";
 import { Observable } from "rxjs";
-import { ModalService } from "../service/modal.service";
 
 @Injectable()
 export class ApiHttpService {
 
   modalType: any;
   viewChild?: ViewContainerRef;
+
   
   constructor(private http: HttpClient,
         private router: Router,
@@ -21,7 +21,7 @@ export class ApiHttpService {
   }
 
   public getCall(url: string, onErrorCallback?:(status: number) => any): Observable<any> {
-    return this.http?.get(url).pipe(
+    return this.http?.get(url, { withCredentials: true, observe: 'body'}).pipe(
       catchError(err => {
         if (onErrorCallback != null)
           onErrorCallback(err.status);
@@ -30,7 +30,19 @@ export class ApiHttpService {
   }
 
   public postCall(url: string, data: any, onErrorCallBack?:(status:number) => any) {
-    return this.http?.post(url, data).pipe(
+    return this.http?.post(url, data, { withCredentials: true, observe: 'body'}).pipe(
+      catchError(err => {
+        if (err.status == HttpStatusCode.Unauthorized) {
+          if (onErrorCallBack != null)
+            onErrorCallBack(err.status);
+        }
+       
+        return err;
+      }));
+  }
+
+  public postCallWithResponse(url: string, data: any, onErrorCallBack?: (status: number) => any) {
+    return this.http?.post(url, data, { withCredentials: true, observe: 'response' }).pipe(
       catchError(err => {
         if (err.status == HttpStatusCode.Unauthorized) {
           if (onErrorCallBack != null)
@@ -41,7 +53,7 @@ export class ApiHttpService {
   }
 
   public putCall(url: string, data: any, onErrorCallback?:(status:number) => any) {
-    return this.http?.put(url, data).pipe(
+    return this.http?.put(url, data, {withCredentials: true}).pipe(
       catchError(err => {
         if (err.status == HttpStatusCode.Unauthorized) {
           if (onErrorCallback)
@@ -52,21 +64,12 @@ export class ApiHttpService {
   }
 
   public deleteCall(url: string) {
-    return this.http.delete(url).pipe(
+    return this.http.delete(url, {withCredentials: true}).pipe(
       catchError(err => {
         if (err.status == HttpStatusCode.Unauthorized) {
          
         }
         return err;
       }));
-  }
-
-
-  public setModalType<T>(type: T) {
-    this.modalType = type;
-  }
-
-  public setModalContainer(viewChild:ViewContainerRef) {
-    this.viewChild = viewChild;
   }
 }

@@ -1,13 +1,16 @@
 <div class="col-12 tex-center p-2">
+  <div class="col-12 text-center">
+    <label id="no-data" class="col-12">GESTIONE TAVOLI</label>
+  </div>
   <div class="col-12 mb-3">
     <div class="row">
-      <div class="col-3 m-0 p-2" *ngIf="events != null && events.events != null">
+      <div class="col-3 row" *ngIf="events != null && events.events != null">
         <select id="drpEvents" class="col-12" (change)="onEventChange($event)">
           <option [value]="0">Seleziona evento</option>
           <option *ngFor="let ev of events.events" [value]="ev.id">{{ev.name}}</option>
         </select>
       </div>
-      <div class="col-3 m-0 p-2">
+      <div class="col-3 row">
         <select id="drpReservationStatus" class="col-12" (change)="onResStatusChange($event)">
           <option [value]="0">Stato prenotazione</option>
           <option *ngFor="let rs of reservationStatus" [value]="rs.reservationStatusId">{{rs.reservationStatusValue}}</option>
@@ -17,7 +20,7 @@
         <label style="text-decoration:underline; cursor:pointer" for="btnShowMap" class="me-1">Mappa</label>
         <i id="btnShowMap" class=" fa fa-file-pdf-o" (click)="showTableMap()"></i>
       </div>
-    </div>    
+    </div>
   </div>
   <div class="row card-header p-2" data-value="tblHeader" style="background-color:burlywood">
     <div class="col-3">Nome tavolo</div>
@@ -56,4 +59,5 @@
   </ng-template>
 </div>
 
+<app-loading [loading]="isLoading"></app-loading>
 <ng-container #modalContainer></ng-container>

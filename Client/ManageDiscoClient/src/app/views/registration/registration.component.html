@@ -55,12 +55,15 @@
       </div>
       <div class="card-footer">
         <div class="d-flex justify-content-center links">
-          Already have an account?<a href="/Login">Sign In</a>
+          Hai già un account?<a href="/Login">Login</a>
         </div>
         <div class="d-flex justify-content-center">
-          <a href="#">Forgot your password?</a>
+          <a href="#">Password dimenticata?</a>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<app-loading [loading]="isLoading"></app-loading>
+<ng-container #modalTemplate></ng-container>

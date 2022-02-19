@@ -14,6 +14,7 @@ using System.Net;
 using System.IO;
 using System.Configuration;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ManageDisco.Controllers
 {
@@ -25,7 +26,47 @@ namespace ManageDisco.Controllers
             IConfiguration configuration) : base(db, configuration)
         {
         }
-        
+
+        [AllowAnonymous]
+        [HttpGet]
+        [Route("General")]
+        public async Task<ActionResult<EventPartyOverview>> GetEventsGeneral([FromQuery] bool WithReservation)
+        {
+            List<EventPartyList> events = await _db.Events
+                .Where(x => x.Date.Year == DateTime.Today.Year)
+                .Select(x => new EventPartyList()
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Description = x.Description,
+                    MaxAge = x.MaxAge,
+                    Date = x.Date,
+                    //LinkImage = x.LinkImage,
+                    EventPartyStatusDescription = x.Date.CompareTo(DateTime.Today) > 0 ?
+                                    EventStatusConstants.STATUS_SCHEDULED : x.Date.CompareTo(DateTime.Today) == 0 ?
+                                        EventStatusConstants.STATUS_ONGOING : x.Date.Year == DateTime.Today.Year - 100 ? EventStatusConstants.STATUS_CANCELLED : EventStatusConstants.STATUS_END,
+                    UserHasReservation = false
+                }).OrderByDescending(x => x.Date).ToListAsync();
+
+
+            events.ForEach(x =>
+            {
+                var address = _db.EventPhoto.FirstOrDefault(p => p.EventPhotoEventId == x.Id).EventPhotoImagePath;
+                string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPassword)));
+                x.ImagePreview = base64Value;
+
+            });
+
+
+
+            EventPartyOverview partyOverview = new EventPartyOverview();
+            partyOverview.Events = events;
+            partyOverview.UserCanAddEvent = false;
+            partyOverview.UserCanAddReservation = true;
+            partyOverview.UserCanDeleteEvent = false;
+
+            return Ok(partyOverview);
+        }
 
         // GET: api/EventParties
         [HttpGet]
@@ -46,14 +87,12 @@ namespace ManageDisco.Controllers
                                         EventStatusConstants.STATUS_ONGOING : x.Date.Year == DateTime.Today.Year -100 ? EventStatusConstants.STATUS_CANCELLED : EventStatusConstants.STATUS_END,
                     UserHasReservation =  _db.Reservation.Any(r => r.EventPartyId == x.Id && r.UserIdOwner == _user.Id)
                 }).OrderByDescending(x => x.Date).ToListAsync();
-
-            var ftpUser = _configuration["Ftp:User"];
-            var ftpPass = _configuration["Ftp:Pass"];
+                      
 
             events.ForEach(x =>
             {
                 var address = _db.EventPhoto.FirstOrDefault(p => p.EventPhotoEventId == x.Id).EventPhotoImagePath;
-                string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPass)));
+                string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPassword)));
                 x.ImagePreview = base64Value;
 
             });
@@ -67,6 +106,46 @@ namespace ManageDisco.Controllers
             partyOverview.UserCanDeleteEvent = HelperMethods.UserIsAdministrator(_user);
 
             return Ok(partyOverview);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("Details/General")]
+        public async Task<ActionResult<EventParty>> GetEventPartyGeneral([FromQuery] int eventId)
+        {
+            var eventParty = await _db.Events
+                .Where(x => x.Id == eventId)
+                .Select(x => new EventPartyDetail()
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Description = x.Description,
+                    Date = x.Date,
+                    MaxAge = x.MaxAge,
+                    EntrancePrice = x.EntrancePrice,
+                    FreeEntranceDescription = x.FreeEntranceDescription,
+                    TablePrice = x.TablePrice,
+                    UserCanEditInfo = false
+                }).FirstOrDefaultAsync();
+
+            var eventImgs = await _db.EventPhoto.Where(x => x.EventPhotoEventId == eventId &&
+                    x.PhotoType.PhotoTypeDescription.Contains(EventPhotoDescriptionValues.EVENT_IMAGE_TYPE_EVENT_DETAIL)).ToListAsync();
+
+            if (eventImgs != null && eventImgs.Count > 0)
+            {
+                eventImgs.ForEach(x =>
+                {
+                    var imgBytes = HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(x.EventPhotoImagePath, ftpUser, ftpPassword));
+                    eventParty.LinkImage.Add(Convert.ToBase64String(imgBytes));
+                });
+
+            }
+
+            if (eventParty == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(eventParty);
         }
 
         // GET: api/EventParties/5
@@ -84,20 +163,20 @@ namespace ManageDisco.Controllers
                     EntrancePrice = x.EntrancePrice,
                     FreeEntranceDescription = x.FreeEntranceDescription,
                     TablePrice = x.TablePrice,
-                    UserCanEditInfo = HelperMethods.UserIsPrOrAdministrator(_user)                    
+                    UserCanEditInfo = HelperMethods.UserIsAdministrator(_user),
+                    EventIsEnd = x.Date.CompareTo(DateTime.Today) > 0
                 }).FirstOrDefaultAsync();
 
             var eventImgs = await _db.EventPhoto.Where(x => x.EventPhotoEventId == eventId && 
                     x.PhotoType.PhotoTypeDescription.Contains(EventPhotoDescriptionValues.EVENT_IMAGE_TYPE_EVENT_DETAIL)).ToListAsync();
 
-            var ftpUser = _configuration["Ftp:User"];
-            var ftpPass = _configuration["Ftp:Pass"];
+            
 
             if (eventImgs != null && eventImgs.Count > 0)
             {
                 eventImgs.ForEach(x =>
                 {
-                    var imgBytes = HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(x.EventPhotoImagePath, ftpUser, ftpPass));
+                    var imgBytes = HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(x.EventPhotoImagePath, ftpUser, ftpPassword));
                     eventParty.LinkImage.Add(Convert.ToBase64String(imgBytes));
                 });
                 
@@ -124,12 +203,10 @@ namespace ManageDisco.Controllers
 
             _db.Entry(eventParty).State = EntityState.Added;
             await _db.SaveChangesAsync();
-
-            var ftpAddress = _configuration["Ftp:Address"];
-            var user = _configuration["Ftp:User"];
-            var password = _configuration["Ftp:Pass"];
+                       
 
             int photoIndex = 1;
+            int photoTypeIndex = 0;
             //get EventPhotoType to assign to EvenPhoto
             var eventPhotoType = _db.PhotoType.Where(x => x.PhotoTypeDescription.Contains(EventPhotoDescriptionValues.EVENT_IMAGE_FILTER_LIKE)).ToList();
 
@@ -139,16 +216,20 @@ namespace ManageDisco.Controllers
                 var imgContent = s.Split(',').Last();
                 string fileName = photoIndex.ToString() + "_" + eventParty.Id;
                 string fileExtension = "webp";
-                await HelperMethods.UploadFileToFtp(ftpAddress, user, password, $"{fileName}.{fileExtension}", Convert.FromBase64String(imgContent));
+                await HelperMethods.UploadFileToFtp(ftpAddress, ftpUser, ftpPassword, $"{fileName}.{fileExtension}", Convert.FromBase64String(imgContent));
+                //Devo gestire l'index dell'array del tipo di foto. Se entro qui vuol dire che devo inserire le foto del dettaglio
+                if (photoTypeIndex > eventPhotoType.Count - 1)
+                    photoTypeIndex = eventPhotoType.Count-1;
 
                 _db.EventPhoto.Add(new EventPhoto()
                 {
                     EventPhotoEventId = eventParty.Id,
                     EventPhotoImagePath = $"{ftpAddress}/{fileName}.{fileExtension}",
-                    PhotoTypeId = eventPhotoType[photoIndex - 1].PhotoTypeId
+                    PhotoTypeId = eventPhotoType[photoTypeIndex].PhotoTypeId
                 });
                 
                 photoIndex++;
+                photoTypeIndex++;
             }
             //Faccio due saveChanges perchè le foto devono essere caricate solo nel momento in cui l'inserimento dei dati dell'evento è stato effettuato
             await _db.SaveChangesAsync();

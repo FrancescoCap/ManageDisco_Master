@@ -1,70 +1,76 @@
-<div class="col-12 p-5">
+<div class="col-12 p-5" *ngIf="!isLoading">
   <div class="col-12 text-center">
     <label id="no-data">GESTIONE HOMEPAGE</label>
   </div>
   <div class="col-12 p-4 row content" style="border:1px solid #000">
     <div class="col-12 ">
-      <label id="no-data" class="col-11">FOTO GALLERIA PRINCIPALE</label>
+      <label id="" class="col-11 photo-subtitle">FOTO GALLERIA PRINCIPALE</label>
       <img style="width:30px;height:30px" [src]="!settingsSlots[0] ? '../../../assets/down-chevron.png' : '../../../assets/up-chevron.png'" class="col-1 arrow" (click)="settingsSlots[0] = !settingsSlots[0]" />
     </div>
-    <div class="col-4" [ngClass]="!settingsSlots[0] ? 'content-close':'content-open'" *ngFor="let photo Of gallery_main!.homePhoto">
-      <img class="col-12" style="width:280px; height:280px;object-fit:cover" [src]="photo.base64Image" />
-      <input class="col-12 p-3" type="file" accept="image/webp" (change)="onMainGalleryFileChange($event, photo.homePhotoPath!)" />
-    </div>
-    <div class="col-12 text-end">
-      <button class="new-button p-2" (click)="saveHomePhotos()">SALVA</button>
-    </div>
-    <!--<div class="col-4 text-center p-2" *ngFor="let input Of homePhotoMainGalleryInput!">
-    <input class="col-12" type="file" accept="image/webp" (change)="onMainGalleryFileChange($event)" />
-  </div>-->
-  </div>
-  <div class="col-12 p-4 row content" style="border:1px solid #000">
-    <div class="col-12 ">
-      <label id="no-data" class="col-11">FOTO GALLERIA TRASCORSI</label>
-      <img style="width:30px;height:30px" [src]="!settingsSlots[1] ? '../../../assets/down-chevron.png' : '../../../assets/up-chevron.png'" class="col-1 arrow" (click)="settingsSlots[1] = !settingsSlots[1]" />
-    </div>
-    <div class="col-4" [ngClass]="!settingsSlots[1] ? 'content-close':'content-open'" *ngFor="let photo Of gallery_moments!.homePhoto">
-      <img class="col-12" style="width:280px; height:280px;object-fit:cover" [src]="photo.base64Image" />
-      <input class="col-12 p-3" type="file" accept="image/webp" (change)="onGalleryMomentsFileChange($event, photo.homePhotoPath!)" />
-    </div>
-    <div class="col-12 text-end">
-      <button class="new-button p-2" (click)="saveHomePhotos()">SALVA</button>
-    </div>
-    <!--<div class="col-4 text-center p-2" *ngFor="let input Of homePhotoGalleryMomentsInput!">
-    <input class="col-12" type="file" accept="image/webp" (change)="onGalleryMomentsFileChange($event)" />
-  </div>-->
-  </div>
-  <div class="col-12 p-4 row content" style="border:1px solid #000">
-    <div class="col-12 ">
-      <label id="no-data" class="col-11">CONTATTI</label>
-      <img style="width:30px;height:30px" class="col-1 arrow" [src]="!settingsSlots[2] ? '../../../assets/down-chevron.png' : '../../../assets/up-chevron.png'" (click)="settingsSlots[2] = !settingsSlots[2]" />
-    </div>
-    <div class="col-12" [ngClass]="!settingsSlots[2] ? 'content-close':'content-open'">
-      <div class="col-12 p-1 row" *ngFor="let c of contact">
-        <label class="col-8">{{c.contactDescription}} - <b>{{c.contactTypeDescription}}</b></label>      
+    <div class="col-12 row" [ngClass]="!settingsSlots[0] ? 'content-close':'content-open'">
+      <div class="col-4" *ngFor="let photo Of gallery_main!.homePhoto">
+        <img class="col-12" style="width:280px; height:280px;object-fit:cover" [src]="photo.base64Image" />
+        <input class="col-12 p-3" type="file" accept="image/webp" (change)="onMainGalleryFileChange($event, photo.homePhotoPath!)" />
       </div>
-      <div class="col-12" *ngIf="showAddContactTemplate">
-        <div class="col-12 row">
-          <form #frmNewContact="ngForm" (ngSubmit)="confirmNewContact()">
-            <input name="contactDescription" #contactDesc="ngModel" required type="text" class="col-4" [(ngModel)]="newContact.contactDescription" placeholder="Inserisci contatto/i" />
-            <select name="contactType" #ctType="ngModel" required class="col-2 p-1 ms-2" [(ngModel)]="newContact.contactTypeId">
-              <option [value]="0">Tipo contatto</option>
-              <option *ngFor="let ct of contactType" [value]="ct.contactTypeId">{{ct.contactTypeDescription}}</option>
-            </select>
-            <input type="submit" class="col-1 ms-1 new-button" [disabled]="!frmNewContact.valid" value="CONFERMA" />
-            <small class="row" style="color:#ff0000" *ngIf="contactDesc.dirty && contactDesc.invalid">Contatto non valido</small>
-            <small class="row" style="color:#ff0000" *ngIf="ctType.invalid">Tipo contatto non valido</small>
-          </form>         
+      <div class="col-12 text-end">
+        <button class="new-button p-2" (click)="saveHomePhotos()">SALVA</button>
+      </div>
+    </div>     
+      <!--<div class="col-4 text-center p-2" *ngFor="let input Of homePhotoMainGalleryInput!">
+      <input class="col-12" type="file" accept="image/webp" (change)="onMainGalleryFileChange($event)" />
+    </div>-->
+    </div>
+    <div class="col-12 p-4 row content" style="border:1px solid #000">
+      <div class="col-12 ">
+        <label id="" class="col-11 photo-subtitle">FOTO GALLERIA TRASCORSI</label>
+        <img style="width:30px;height:30px" [src]="!settingsSlots[1] ? '../../../assets/down-chevron.png' : '../../../assets/up-chevron.png'" class="col-1 arrow" (click)="settingsSlots[1] = !settingsSlots[1]" />
+      </div>
+      <div class="col-12 row" [ngClass]="!settingsSlots[1] ? 'content-close':'content-open'">
+        <div class="col-4" *ngFor="let photo Of gallery_moments!.homePhoto">
+          <img class="col-12" style="width:280px; height:280px;object-fit:cover" [src]="photo.base64Image" />
+          <input class="col-12 p-3" type="file" accept="image/webp" (change)="onGalleryMomentsFileChange($event, photo.homePhotoPath!)" />
+        </div>
+        <div class="col-12 text-end">
+          <button class="new-button p-2" (click)="saveHomePhotos()">SALVA</button>
         </div>
       </div>
-      <div id="newContactDiv" class="col-12 p-3" (click)="addContact()" *ngIf="!showAddContactTemplate">
-        <i class="fa fa-plus-circle" ></i>
-        Nuovo contatto
-      </div>
-    </div>   
-    <div class="col-12 text-end">
-      <button class="new-button p-2" (click)="saveContact()">SALVA</button>
+      <!--<div class="col-4 text-center p-2" *ngFor="let input Of homePhotoGalleryMomentsInput!">
+      <input class="col-12" type="file" accept="image/webp" (change)="onGalleryMomentsFileChange($event)" />
+    </div>-->
     </div>
+    <div class="col-12 p-4 row content" style="border:1px solid #000">
+      <div class="col-12 ">
+        <label id="" class="col-11 photo-subtitle">CONTATTI</label>
+        <img style="width:30px;height:30px" class="col-1 arrow" [src]="!settingsSlots[2] ? '../../../assets/down-chevron.png' : '../../../assets/up-chevron.png'" (click)="settingsSlots[2] = !settingsSlots[2]" />
+      </div>
+      <div class="col-12" [ngClass]="!settingsSlots[2] ? 'content-close':'content-open'">
+        <div class="col-12 p-1 row" *ngFor="let c of contact">
+          <label class="col-8">{{c.contactDescription}} - <b>{{c.contactTypeDescription}}</b></label>
+        </div>
+        <div class="col-12" *ngIf="showAddContactTemplate">
+          <div class="col-12 row">
+            <form #frmNewContact="ngForm" (ngSubmit)="confirmNewContact(frmNewContact)">
+              <input name="contactDescription" #contactDesc="ngModel" required type="text" class="col-4" [(ngModel)]="newContact.contactDescription" placeholder="Inserisci contatto/i" />
+              <select name="contactType" dropdownValidator #ctType="ngModel" class="col-2 p-1 ms-2" [(ngModel)]="newContact.contactTypeId">
+                <option [value]="0">Tipo contatto</option>
+                <option *ngFor="let ct of contactType" [value]="ct.contactTypeId">{{ct.contactTypeDescription}}</option>
+              </select>
+              <input type="submit" class="col-1 ms-1 new-button" [disabled]="!frmNewContact.valid && ctType.errors?.['invalidSelect']" value="CONFERMA" />
+              <small class="row" style="color:#ff0000" *ngIf="contactDesc.dirty && contactDesc.invalid">Contatto non valido</small>
+              <small class="row" style="color:#ff0000" *ngIf="ctType.touched && ctType.errors?.['invalidSelect']">Tipo contatto non valido</small>
+            </form>
+          </div>
+        </div>
+        <div id="newContactDiv" class="col-12 p-3" (click)="addContact()" *ngIf="!showAddContactTemplate">
+          <i class="fa fa-plus-circle"></i>
+          Nuovo contatto
+        </div>
+        <div class="col-12 text-end">
+          <button class="new-button p-2" (click)="saveContact()">SALVA</button>
+        </div>
+      </div>     
+    </div>
+
   </div>
-  
-</div>
+
+<app-loading [loading]="isLoading"></app-loading>

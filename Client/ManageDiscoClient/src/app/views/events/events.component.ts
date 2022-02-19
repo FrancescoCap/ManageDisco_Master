@@ -17,8 +17,9 @@ import { ModalService } from '../../service/modal.service';
 export class EventsComponent implements OnInit {
 
   @ViewChild("modalContainer", { read: ViewContainerRef, static: false }) modalContainer?:ViewContainerRef;
+  isLoading = false;
 
-  events_full?: EventPartyView;
+  events_full?: EventPartyView = {events:[]};
   events?: EventPartyView;
   eventFilterValue: string = "";
 
@@ -47,21 +48,24 @@ export class EventsComponent implements OnInit {
     private _generalService: GeneralService  ) { }
 
   ngOnInit(): void {
-    this.initData();   
+    this.initData();    
   }
 
   ngAfterViewInit(): void {
     if (this.modalContainer != null) {
       this._api.setModalContainer(this.modalContainer);
-    }
+    }    
   }
 
   initData() {
+    this.isLoading = true;
     this._api.getEvents()
       .subscribe((data: any) => {
+        this.events_full = data;
         this.events = data;
-        this.events_full = data;       
-      });
+
+        this.isLoading = false;
+      });    
   }
     
   openNewEventModal() {
@@ -99,6 +103,7 @@ export class EventsComponent implements OnInit {
   }
 
   onEventAdded = (info: any): void => {
+    this.isLoading = true;
     var eventDate = this._generalService.rewriteDateToISO(info.get("eventDate"));
 
     var newEvent: EventParty = {
@@ -116,7 +121,7 @@ export class EventsComponent implements OnInit {
       info.get("eventImageDetailTwo") == null ||
       info.get("eventImageDetailThree") == null) {
 
-      this._modalService.showErrorModal("Caricare le foto per l'evento.");
+      this._modalService.showErrorOrMessageModal("Caricare le foto per l'evento.");
       return;
     } else {
       newEvent.linkImage = [
@@ -130,6 +135,7 @@ export class EventsComponent implements OnInit {
   
    this._api.postEvent(newEvent)
      .subscribe(() => {
+       this.isLoading = false;
        this.initData();
      })
  }
@@ -138,8 +144,8 @@ export class EventsComponent implements OnInit {
     if (this.eventFilterValue == "") {
       this.events = this.events_full;
       return;
-    }
-    this.events!.events = this.events!.events!.filter(x => x.name?.toLowerCase().includes(this.eventFilterValue));
+    } 
+    this.events!.events!.filter(x => { return x.name?.toLowerCase().includes(this.eventFilterValue) });
   }
 
   openEventDetails(id: any) {
@@ -164,7 +170,7 @@ export class EventsComponent implements OnInit {
 
       this._api.postReservation(reservation).pipe(
         catchError(err => {
-          this._modalService.showErrorModal(err.message);
+          this._modalService.showErrorOrMessageModal(err.message);
           return err;
         })).subscribe((msgResponse:any) => {
           this.initData();
@@ -221,7 +227,7 @@ export class EventsComponent implements OnInit {
 
     forkJoin(observables).pipe(
       catchError(err => {
-        this._modalService.showErrorModal(err.message);
+        this._modalService.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((data:any) => {
         this.initReservationInputsViews(data[0], data[1])
@@ -233,7 +239,7 @@ export class EventsComponent implements OnInit {
 
     this._api.getPrCustomers().pipe(
       catchError(err => {
-        this._modalService.showErrorModal(err.message);
+        this._modalService.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((data: any) => {
         prCustomers.push(data);    
@@ -246,7 +252,7 @@ export class EventsComponent implements OnInit {
     if (!this.showEventReservation) {
       this._api.getReservationEvent(eventId).pipe(
         catchError(err => {
-          this._modalService.showErrorModal(err.message);
+          this._modalService.showErrorOrMessageModal(err.message);
           return err;
         })).subscribe((data: any) => {
           this.eventReservation = data;
@@ -262,13 +268,16 @@ export class EventsComponent implements OnInit {
   }
 
   deleteEvent(eventId: any) {
+    this.isLoading = true;
+
     this._api.deleteEvent(eventId).pipe(
       catchError(err => {
-        this._modalService.showErrorModal(err.message);
+        this._modalService.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((response: any) => {
+        this.isLoading = false;
         if (response != null)
-          this._modalService.showErrorModal(response);
+          this._modalService.showErrorOrMessageModal(response);
         else
           this.initData();
 

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace ManageDisco.Controllers
@@ -21,8 +22,55 @@ namespace ManageDisco.Controllers
         {
         }
 
+        [AllowAnonymous]
         [HttpGet]
-        //[Authorize(Roles = RolesManager.ROLE_ADMINISTRATOR + "," + RolesManager.ROLE_PR + "," + )]
+        [Route("General")]
+        public async Task<IActionResult> GetStandardMenu()
+        {
+            List<HeaderMenu> menu = new List<HeaderMenu>();
+           
+            HeaderMenu home = new HeaderMenu()
+            {
+                Header = "Home",
+                Link = "/Home"
+            };
+
+            HeaderMenu events = new HeaderMenu()
+            {
+                Header = "Eventi",
+                Link = "/Events",
+                child = new List<MenuChild>()
+                {
+                    new MenuChild()
+                    {
+                        Title = "Programmazione eventi",
+                        Link = "/Events"
+                    }
+                }
+            };
+
+            HeaderMenu catalog = new HeaderMenu()
+            {
+                Header = "Listino",
+                Link = "#",
+                child = new List<MenuChild>()
+                {
+                    new MenuChild()
+                    {
+                        Title = "Bottiglie",
+                        Link = "/Product"
+                    }
+                }
+            };
+            menu.Add(home);
+            menu.Add(events);
+            menu.Add(catalog);
+
+            return Ok(menu);
+        }
+
+     
+        [HttpGet]
         public async Task<IActionResult> GetMenu()
         {
             List<HeaderMenu> menu = new List<HeaderMenu>();
@@ -48,20 +96,20 @@ namespace ManageDisco.Controllers
 
             HeaderMenu profile = new HeaderMenu()
             {
-                Header = "Profilo",
-                Link = "MyProfile",
+                Header = "Impostazioni",
+                Link = "/MyProfile",
                 child = new List<MenuChild>()
                 {
-                    new MenuChild()
-                    {
-                        Title ="I miei dati",
-                        Link = "MyProfile"
-                    },
-                    new MenuChild()
-                    {
-                         Title = "Le mie prenotazioni",
-                         Link = "MyProfile/Reservation"
-                    }
+                    //new MenuChild()
+                    //{
+                    //    Title ="I miei dati",
+                    //    Link = "/MyProfile"
+                    //},
+                    //new MenuChild()
+                    //{
+                    //     Title = "Impostazione PR",
+                    //     Link = "/Pr"
+                    //}
                 }
             };
 
@@ -80,6 +128,17 @@ namespace ManageDisco.Controllers
             };
             menu.Add(home);
             menu.Add(events);
+            #region Customer only option
+            if (!HelperMethods.UserIsInStaff(_user))
+            {
+                HeaderMenu customerReservations = new HeaderMenu()
+                {
+                    Header = "Prenotazioni",
+                    Link = "/Reservation"
+                };
+                menu.Add(customerReservations);
+            }
+            #endregion
             menu.Add(catalog);
             #endregion
 
@@ -162,8 +221,7 @@ namespace ManageDisco.Controllers
             }
 
             #endregion
-
-
+            
             menu.Add(profile);
 
             return Ok(menu);

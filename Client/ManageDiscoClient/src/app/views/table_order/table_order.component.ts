@@ -121,7 +121,7 @@ export class TableOrderComponent implements AfterViewInit {
     }
     this._api.putTablOrder(this.tblId, order).pipe(
       catchError(err => {
-        this._modalService.showErrorModal(err.message);
+        this._modalService.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe(x => {
         this.initData();
@@ -161,7 +161,7 @@ export class TableOrderComponent implements AfterViewInit {
     this._api.putTablOrder(this.tableIdNewOrder, orderData).pipe(
       catchError(err => {
         console.log(err);
-        this._modalService.showErrorModal(err.message);
+        this._modalService.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe(() => {
         this.getEventTables(this.selectedEvent);
@@ -232,7 +232,7 @@ export class TableOrderComponent implements AfterViewInit {
 
     forkJoin(observables).pipe(
       catchError(err => {
-        this._modalService.showErrorModal(err.message);
+        this._modalService.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((data: any) => {
         this.productsList = data[0];
@@ -254,7 +254,7 @@ export class TableOrderComponent implements AfterViewInit {
   getOrderHistory(tableId: any) {
     this._api.getTableOrderRows(tableId).pipe(
       catchError(err => {
-        this._modalService.showErrorModal(err.message);
+        this._modalService.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((data: any) => {
         this.openOrderHistoryModal(data.rows, tableId);

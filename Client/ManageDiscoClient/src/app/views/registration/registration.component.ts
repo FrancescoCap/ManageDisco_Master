@@ -1,8 +1,10 @@
+import { ViewChild } from '@angular/core';
+import { ViewContainerRef } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError } from 'rxjs';
 import { ApiCaller } from '../../api/api';
-import { RegistrationRequest } from '../../model/models';
+import { AuthResponse, RegistrationRequest } from '../../model/models';
 import { ModalService } from '../../service/modal.service';
 
 @Component({
@@ -12,8 +14,11 @@ import { ModalService } from '../../service/modal.service';
 })
 export class RegistrationComponent implements OnInit {
 
-  registrationRequest: RegistrationRequest = { email: "", password: "", username: "", surname: "", name: "", prCode: ""};
+  @ViewChild("modalTemplate", { read: ViewContainerRef, static: false }) modalContainer?: ViewContainerRef;
+
+  registrationRequest: RegistrationRequest = { email: "", password: "", username: "", surname: "", name: "", prCode: "", role:3};
   isCustomerRegistration = true;
+  isLoading = false;
 
   constructor(private _api: ApiCaller,
     private _modal: ModalService,
@@ -27,13 +32,29 @@ export class RegistrationComponent implements OnInit {
     })
   }
 
+  ngAfterViewInit() {
+    this._api.setModalContainer(this.modalContainer!);
+  }
+
   register() {
+    this.isLoading = true;
     this._api.register(this.registrationRequest).pipe(
       catchError(err => {
-        this._modal.showErrorModal(err);
+        this._modal.showErrorOrMessageModal("Errore generale");
         return err;
-      })).subscribe(() => {
-        this._router.navigateByUrl("/Login");
+      })).subscribe((data: AuthResponse) => {
+        this.isLoading = false;
+        if (data.operationSuccess) {
+          this._modal.showErrorOrMessageModal("Registrazione avvenuta con successo.");
+
+          setTimeout(function () {
+            document.location.href = "http://localhost:4200/Login";
+          }, 1500);
+
+        } else {
+          this._modal.showErrorOrMessageModal(data.message);
+        }
+          
       })
   }
 }

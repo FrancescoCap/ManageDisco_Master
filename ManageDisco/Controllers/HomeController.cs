@@ -23,11 +23,11 @@ namespace ManageDisco.Controllers
         {
         }
 
-
-
+        
         // GET: api/<HomeController>
         [HttpGet]
         [Route("Info")]
+        [Route("Info/General")]
         public async Task<IActionResult> GetHome()
         {
             Home homeData = new Home();
@@ -162,6 +162,9 @@ namespace ManageDisco.Controllers
                 t.Wait();
             });
             Task.WaitAll(tasks.ToArray());
+
+            if (HttpContext.Request.Path.Value.Contains("General"))
+                HttpContext.Response.Cookies.Append("isAuth", "0");
 
             return Ok(homeData);
         }

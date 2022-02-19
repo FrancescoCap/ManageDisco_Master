@@ -98,6 +98,10 @@ namespace ManageDisco.Model
         /// </summary>
         public string UserId { get; set; }
         /// <summary>
+        /// Utente a cui è riferita la prenotazione
+        /// </summary>
+        public string UserIdOwner { get; set; }
+        /// <summary>
         /// True se l'utente può accettare le richieste di prenotazione
         /// </summary>
         public bool CanAcceptReservation { get; set; }

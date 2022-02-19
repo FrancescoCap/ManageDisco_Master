@@ -16,6 +16,8 @@ SwiperCore.use([EffectCoverflow, Autoplay, Navigation, Scrollbar, Pagination]);
 })
 export class HomeComponent implements OnInit {
 
+  isLoading = false;
+
   homeInfo: HomeInfo = { events: [], homePhoto: [], photoType: [] };
   contacts: Contact[] = [];
 
@@ -37,13 +39,14 @@ export class HomeComponent implements OnInit {
   }
 
   initData() {
+    this.isLoading = true;
     const calls: Observable<any>[] = [
       this._api.getHomeInfo()
     ]
 
     forkJoin(calls).pipe(
       catchError(err => {
-        this._modalService.showErrorModal(err.message);
+        this._modalService.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((data: any): any => {
         this.homeInfo = data[0];
@@ -55,6 +58,8 @@ export class HomeComponent implements OnInit {
 
         this.instagramContactTypeId = this.homeInfo.contacts?.find(x => x.contactTypeDescription?.includes("Instagram"))?.contactTypeId;
         this.facebookContactTypeId = this.homeInfo.contacts?.find(x => x.contactTypeDescription?.includes("Facebook"))?.contactTypeId;
+
+        this.isLoading = false;
       })
   }
 

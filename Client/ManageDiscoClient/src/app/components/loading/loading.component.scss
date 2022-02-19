@@ -1,0 +1,32 @@
+.loading-background-transparent {
+  background: rgb(87,85,85,0.47); 
+  z-index: 1050; 
+  position:absolute;
+  width: 100%;
+  height: 100%;
+  top:0;
+}
+
+.loading-background-transparent div {
+    width:100%;
+    height:100%;
+}
+
+#loading-img {
+  background: rgb(87,85,85,0.47);
+  width: 120px;
+  height: 120px;
+  position: absolute;
+  margin: auto;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.vertical-center {
+ 
+
+  display: flex;
+  align-items: center;
+}

@@ -22,6 +22,7 @@ export class TableComponent implements OnInit {
 
   selectedEventId: number = 0;
   selectedResStatusId: number = 0;
+  isLoading = false;
 
   constructor(private api: ApiCaller,
       private _modal:ModalService  ) { }
@@ -35,6 +36,8 @@ export class TableComponent implements OnInit {
   }
 
   initData() {
+    this.isLoading = true;
+
     const calls: Observable<any>[] = [
       this.api.getEvents(),
       this.api.getReservations(0, 0),
@@ -44,13 +47,14 @@ export class TableComponent implements OnInit {
 
     forkJoin(calls).pipe(
       catchError(err => {
-        this._modal.showErrorModal(err.message);
+        this._modal.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((data: any) => {
         this.events = data[0];
         this.acceptedReservations = data[1];
         this.reservationStatus = data[2];
         this.avaiableTables = data[3];
+        this.isLoading = false;
       })
   }
 

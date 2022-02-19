@@ -1,11 +1,14 @@
 using ManageDisco.Context;
+using ManageDisco.Middleware;
 using ManageDisco.Model.UserIdentity;
+using ManageDisco.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,33 +41,39 @@ namespace ManageDisco
                 options.UseSqlServer(Configuration.GetConnectionString("connString"));              
                
             }, ServiceLifetime.Transient);
+            
             services.AddAntiforgery(options =>
             {
                 options.Cookie.Name = "ATF-F";
                 options.Cookie.HttpOnly = false;
             });
 
-            services.AddAuthentication()
+            services.AddAuthentication()                       
                 .AddJwtBearer(opions => {
                     opions.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
                     {
                         ValidIssuer = Configuration["Jwt:ValidIssuer"],
                         ValidAudience = Configuration["Jwt:ValidAudience"],
                         ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero,
                         ValidateAudience = true,
                         RequireExpirationTime = true, 
                         ValidateIssuer = true,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:SecurityKey"]))
                     };
                 });
+
             services.AddCors(options =>
             {
                 options.AddPolicy("corsPolicy", policy => {
-                    policy.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin();
+                    policy.AllowCredentials();
+                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins(new string[] { "http://localhost:4200"}); 
+                    
                 });
             });
+
             services.AddIdentity<User, IdentityRole>()
-                .AddEntityFrameworkStores<DiscoContext>();
+                .AddEntityFrameworkStores<DiscoContext>();            
 
             services.AddControllers();
             
@@ -78,10 +87,11 @@ namespace ManageDisco
                 app.UseDeveloperExceptionPage();
                
             }
-            app.UseCors("corsPolicy");
-            app.UseHttpsRedirection();
+            
+            app.UseMiddleware<JwtCookieHandler>();
+            app.UseCors("corsPolicy");        
             app.UseRouting();
-            app.UseAuthentication();
+            app.UseAuthentication();            
             app.UseAuthorization();
 
             CreateRoles(service).Wait();           

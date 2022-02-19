@@ -13,7 +13,8 @@ import { PdfViewerModule } from 'ng2-pdf-viewer';
 import { ModalService } from './service/modal.service';
 import { CarouselModule } from './components/carousel/carousel.module';
 import { SwiperModule } from 'swiper/angular';
-import { WarehouseComponent } from './views/warehouse/warehouse.component';
+import { LoadingModule } from './components/loading/loading.module';
+import { UserService } from './service/user.service';
 
 const routes:Routes = [ 
   { path: 'Login', loadChildren: () => import('./views/login/login.module').then(m => m.LoginModule)},
@@ -42,6 +43,7 @@ const routes:Routes = [
     HttpClientModule,
     ReactiveFormsModule,
     CarouselModule,
+    LoadingModule,
     SwiperModule,
     PdfViewerModule,    
     RouterModule.forRoot(routes),
@@ -51,6 +53,7 @@ const routes:Routes = [
     Endpoints,
     ApiHttpService,
     GeneralService,
+    UserService,
     ModalService,
     { provide: "urlRedirect", useValue:"/Login"},
     { provide: HTTP_INTERCEPTORS, useClass: ApiInterceptor, multi: true }

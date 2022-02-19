@@ -19,9 +19,14 @@ namespace ManageDisco.Helper
     {
         public static readonly string NO_IMAGE_PHOTONAME = "no_image.webp";
 
-        public static string GenerateRandomString(int length)
+        public static string GenerateRandomString(int length, bool withSpecialChars = true)
         {
-            string chars = "QWERTYUIOPLKJHGFDSAZXCVBNMqwertyuioplkjhgfdsazxcvbnmèàòùìé123456789";
+            string chars = "";
+            if (withSpecialChars)
+                chars = "QWERTYUIOPLKJHGFDSAZXCVBNMqwertyuioplkjhgfdsazxcvbnmèàòùìé123456789";
+            else
+                chars = "QWERTYUIOPLKJHGFDSAZXCVBNMqwertyuioplkjhgfdsazxcvbnm123456789";
+
             StringBuilder stringBuilder = new StringBuilder();
             Random random = new Random();
             for(int c = 0; c < length; c++)
@@ -41,7 +46,7 @@ namespace ManageDisco.Helper
                 audience: audience,
                 claims: claims,
                 notBefore: null,
-                expires: DateTime.Now.AddMinutes(59),
+                expires: DateTime.UtcNow.AddMinutes(50),                  
                 signingCredentials: credentials);
 
 
@@ -68,14 +73,24 @@ namespace ManageDisco.Helper
 
         }
 
-        public static bool UserIdCustomer(UserRoles user)
+        public static bool UserIsCustomer(UserRoles user)
         {
             return user.Roles.Any(x => x.Contains(RolesConstants.ROLE_CUSTOMER));
         }
+        public static bool UserIsCustomer(List<string> roles)
+        {
+            return roles.Any(x => x.Contains(RolesConstants.ROLE_CUSTOMER));
+        }
+
         public static bool UserIsAdministrator(UserRoles user)
         {
             return user.Roles.Any(x => x.Contains(RolesConstants.ROLE_ADMINISTRATOR));
         }
+
+        public static bool UserIsAdministrator(List<string> roles)
+        {
+            return roles.Any(x => x.Contains(RolesConstants.ROLE_ADMINISTRATOR));
+        }     
 
         public static bool UserIsPrOrAdministrator(UserRoles user)
         {
@@ -95,6 +110,13 @@ namespace ManageDisco.Helper
         public static bool UserIsInStaff(User user, List<string> roles)
         {
             return roles.Any(x => x.Contains(RolesConstants.ROLE_PR) ||
+                x.Contains(RolesConstants.ROLE_ADMINISTRATOR) ||
+                x.Contains(RolesConstants.ROLE_WAREHOUSE_WORKER));
+        }
+
+        public static bool UserIsInStaff(UserRoles user)
+        {
+            return user.Roles.Any(x => x.Contains(RolesConstants.ROLE_PR) ||
                 x.Contains(RolesConstants.ROLE_ADMINISTRATOR) ||
                 x.Contains(RolesConstants.ROLE_WAREHOUSE_WORKER));
         }

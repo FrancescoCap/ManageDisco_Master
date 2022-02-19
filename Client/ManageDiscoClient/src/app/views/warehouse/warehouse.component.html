@@ -1,21 +1,14 @@
 <div class="p-3 col-12">
   <div class="col-12 text-center">
     <label id="no-data">RIFORNIMENTO MAGAZZINO</label>
-  </div>  
+  </div>
+  <div class="col-12 p-1 text-end">
+    <button class="p-2 new-button" (click)="addProductToCatalog()"><i class="fa fa-plus"></i> AGGIUNGI</button>
+  </div>
   <div class="row col-12 mx-auto">
-    <div class="row p-3">
-      <!--<select class="col-3" (change)="dropEventChange()" [(ngModel)]="eventFilter">
-        <option [value]="0">Filtra per evento</option>
-        <option *ngFor="let event of events" [value]="event.id">{{event.name}} - {{event.date | date: 'dd/MM/yyyy'}}</option>
-      </select>-->
-    </div>
+    
     <div class="row col-12 p-2 tblheader-bk" data-value="tblHeader">
-      ="
-      <div class="col-4">-4
-Prodotto
-      as</div>
-      -4
-      as
+      <div class="col-4">Prodotto</div>
       <div class="col-4">Stock</div>
       <div class="col-4"></div>
     </div>

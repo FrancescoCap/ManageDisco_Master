@@ -1,5 +1,8 @@
-<div class="row">
-  <label style="font-family:Britannic; font-size:18px;" class="col-12 mt-5 p-3">STATO PAGAMENTI <small>(Clicca sulla riga per i dettagli)</small></label>
+<div class="p-3 col-12 row" *ngIf="!isLoading">
+  <div class="col-12 text-center">
+    <label id="no-data" class="col-12">PAGAMENTI</label>
+  </div>
+  <label style="font-family:Britannic; font-size:18px;" class="col-12 mt-5 p-3">COLLABORATORI <small>(Clicca sulla riga per i dettagli)</small></label>
   <div class="col-6 p-3">
     <div class="row card-header tblheader-bk p-2" data-value="tblHeader">
       <div class="col-3">Nome</div>
@@ -19,6 +22,9 @@
         <!--<div class="col-1 fa fa-euro" (click)="openModalNewPayment(payment.userId)"></div>-->
       </div>
     </div>
+    <div class="col-12 p-3" *ngIf="paymentDetailsMap.size == 0">
+      NON CI SONO POSIZIONI APERTE
+    </div>
   </div>
 
   <div class="col-6 p-3 d-flex justify-content-center" *ngIf="paymentDetailsMap.get(userIdExpanded)">
@@ -36,13 +42,12 @@
         </div>
       </div>
       <div class="col-12 justify-content-end p-2 text-end">
-        <button class="new-button p-1 mt-3" (click)="addPayment()"><i class="fa fa-money me-1"></i>PAGA</button>
+        <button class="new-button p-1 mt-3" *ngIf="userCanPay" (click)="addPayment()"><i class="fa fa-money me-1"></i>PAGA</button>
       </div>
     </div>
   </div>
-  
 </div>
 
 <ng-container #modalContainer></ng-container>
-
+<app-loading [loading]="isLoading"></app-loading>
 

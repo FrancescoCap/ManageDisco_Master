@@ -1,3 +1,8 @@
+textarea{
+    cursor: pointer;   
+    height: 200px;
+}
+
 swiper{
     height:600px!important;
 }
@@ -12,6 +17,10 @@ swiper{
     text-transform:capitalize;
     font-size:30px;
     font-family:Broadway;
+}
+
+.instructions {
+  font-size: 14px;
 }
 
 .event-description-p{

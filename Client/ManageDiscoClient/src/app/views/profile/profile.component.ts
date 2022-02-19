@@ -2,25 +2,39 @@ import { Component, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { catchError, forkJoin, Observable } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { ModalModelEnum, ModalViewGroup } from '../../components/modal/modal.model';
-import { NavigationLabel, Reservation, UserInfoView } from '../../model/models';
+import { NavigationLabel, RegistrationRequest, Reservation, UserInfoView } from '../../model/models';
 import { ModalService } from '../../service/modal.service';
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss']
+  styleUrls: ['./profile.component.scss', '../../app.component.scss']
 })
 export class ProfileComponent implements OnInit {
 
   @ViewChild("modalContainer", { read: ViewContainerRef, static: false }) modalContainer?: ViewContainerRef;
   user?: UserInfoView;
   userReservation?: Reservation[] = [];
+  registrationRequest?: RegistrationRequest;
 
   userEdit = false;
 
+  PROFILE_VIEW_INDEX = 0;
+  RESERVATION_VIEW_INDEX = 1;
+  COLLABORATORS_VIEW_INDEX = 2;
+
+  pageViews: boolean[] = [
+    true,
+    false,
+    false
+  ]
+
+  isLoading = false;
+
   navigationLabel: NavigationLabel[] = [
-    {label:"I miei dati", isActive: true, link:"#myData"},
-    {label:"Le mie prenotazioni", isActive: false, link:"#myReservation"}
+    {label:"I miei dati", isActive: true, id: "Profile", index: 0},
+    {label:"Le mie prenotazioni", isActive: false, id:"Reservations", index:1},
+    {label:"Nuovo Collaboratore", isActive: false, id:"Collaborators", index:2}
   ]
 
   constructor(private _api: ApiCaller,
@@ -35,7 +49,7 @@ export class ProfileComponent implements OnInit {
   }
 
   initData() {
-
+    this.isLoading = true;
     const calls: Observable<any>[] = [
       this._api.getUserInfo(),
       this._api.getUserReservation()
@@ -43,22 +57,30 @@ export class ProfileComponent implements OnInit {
 
    forkJoin(calls).pipe(
       catchError(err => {
-        this._modalService.showErrorModal(err.message);
+        this._modalService.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((data: any) => {    
         this.user = data[0];
         this.userReservation = data[1];
+
+        this.isLoading = false;
       })
   }
 
   getLabelColor(menuItem:any) {
-    var color: string = menuItem.isActive == true ? "#fdfdfd":"#e9e9e9"; //Bianco : Grigio
+    var color: string = this.pageViews[menuItem] ? "#fdfdfd":"#e9e9e9"; //Bianco : Grigio
     return color;
   }
 
-  onNavigationLabelClick(item:any) {
-    this.navigationLabel.forEach(x => x.isActive = false);
-    this.navigationLabel.find(x => x.label == item.label)!.isActive = true;
+  onNavigationLabelClick(item: any) {
+    this.pageViews.forEach((x,y) => {
+      this.pageViews[y] = false;
+    })
+    this.pageViews[item] = true;
+
+    if (item == this.COLLABORATORS_VIEW_INDEX)
+      this.registrationRequest = { email: "", password: "", name: "", surname: "", username: "", role:0 };
+
   }
 
   userInfoEnableEdit() {
@@ -70,7 +92,7 @@ export class ProfileComponent implements OnInit {
 
     this._api.putUserInfo(userData).pipe(
       catchError(err => {
-        this._modalService.showErrorModal(err.message);
+        this._modalService.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((data: any) => {
         this.userEdit = false;
@@ -89,13 +111,29 @@ export class ProfileComponent implements OnInit {
   onPrChanged = (info: any): void => {
     this._api.putChangePrCustomer(info.get("prCode")).pipe(
       catchError(err => {
-        this._modalService.showErrorModal(err.message);
+        this._modalService.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((response: any) => {
         if (response != null)
-          this._modalService.showErrorModal(response);
+          this._modalService.showErrorOrMessageModal(response);
         else
           this.initData();
+      })
+  }
+
+  onCollaboratorRegistered(event: any) {
+    this.isLoading = true;
+    this._api.register(this.registrationRequest).pipe(
+      catchError(err => {
+        this._modalService.showErrorOrMessageModal(err.message);
+        return err;
+      })).subscribe((data: any) => {
+        if (data.message.includes("success"))
+          this._modalService.showErrorOrMessageModal("Registrazione avvenuta con successo", "ESITO");
+
+        this.initData();
+        this.registrationRequest = { name: "", surname:"", email:"", password:"", role:0, username:""}
+        this.isLoading = false;
       })
   }
 }

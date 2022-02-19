@@ -7,6 +7,7 @@ import { ModalModelEnum, ModalViewGroup } from '../../components/modal/modal.mod
 import { ModalType, PaymentOverview, PaymentPost, ReservationPayments } from '../../model/models';
 import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
+import { UserService } from '../../service/user.service';
 
 @Component({
   selector: 'app-payments',
@@ -14,6 +15,8 @@ import { ModalService } from '../../service/modal.service';
   styleUrls: ['./payments.component.scss', '../../app.component.scss']
 })
 export class PaymentsComponent implements OnInit {
+
+  isLoading = false;
 
   @ViewChild("modalContainer", { read: ViewContainerRef, static: false }) modalContainer?: ViewContainerRef;
 
@@ -29,6 +32,7 @@ export class PaymentsComponent implements OnInit {
   newPaymentTitle = "NUOVO PAGAMENTO";
 
   newPaymentAmount = 0;
+  userCanPay = false;
 
   paymentDetailsMap: Map<any, boolean> = new Map<any, boolean>();
   selectedPayment?: any;
@@ -36,7 +40,8 @@ export class PaymentsComponent implements OnInit {
 
   constructor(private _api: ApiCaller,
     private _services: GeneralService,
-    private _modal:ModalService) { }
+    private _modal: ModalService,
+    private _user:UserService  ) { }
 
   ngOnInit(): void {
     this.initData();
@@ -47,6 +52,8 @@ export class PaymentsComponent implements OnInit {
   }
 
   initData() {
+    this.isLoading = true;
+
     this._api.getPaymentsOverview().pipe(
       catchError(err => {
         console.log(err);
@@ -54,6 +61,13 @@ export class PaymentsComponent implements OnInit {
       })).subscribe((data:any) => {
         this.payments = data;
         this.initDetailsFlags();
+
+        this.userCanPay = this._user.userIdAdminstrator();
+
+        setTimeout(() => {
+          this.isLoading = false;
+        }, 1000)
+       
       })
   }
 

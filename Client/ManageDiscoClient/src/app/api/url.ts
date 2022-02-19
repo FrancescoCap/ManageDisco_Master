@@ -2,6 +2,10 @@ export class Endpoints {
  
   private base_url = "http://localhost:5000/api/"
 
+  public logout() {
+    return this.base_url + "User/Logout";
+  }
+
   public postContact() {
     return this.base_url + "Contacts"
   }
@@ -55,8 +59,10 @@ export class Endpoints {
   }
 
   public getReservations(eventId: number, reserveStatus?:number): string {
-    if (eventId > 0)
+    if (eventId > 0 && reserveStatus != null)
       return this.base_url + `Reservations/Filter/Event?eventId=${eventId}&resStatus=${reserveStatus == null ? 2 : reserveStatus}`;
+    else if (eventId > 0)
+      return this.base_url + `Reservations?eventId=${eventId}`;
     else
       return this.base_url + "Reservations";
   }

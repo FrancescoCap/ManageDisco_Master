@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { ModalModelList } from "../../components/modal/modal.model";
+import { LoadingModule } from "../../components/loading/loading.module";
 import { ModalModule } from "../../components/modal/modal.module";
 import { ProductComponent } from "./product.component";
 import { ProductsRoutes } from "./product.routes";
@@ -10,6 +10,7 @@ import { ProductsRoutes } from "./product.routes";
   imports: [
     CommonModule,
     FormsModule,
+    LoadingModule,
     ModalModule,
     ProductsRoutes
   ],declarations:[ProductComponent]

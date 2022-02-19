@@ -1,7 +1,7 @@
 <div class="p-3 col-12">
   <div class="row col-12 mx-auto">
     <h3 class="col-12 text-center" style="font-family:Britannic; font-size:36px">CATALOGO</h3>
-    <div class="col-12 text-end p-3"><button class="col-1 p-2 new-button" *ngIf="catalogView.userCanEditCatalog" (click)="addNewCatalog()">NUOVO</button></div>
+    <div class="col-12 text-end p-3"><button class="col-1 p-2 new-button" *ngIf="catalogView.userCanEditCatalog" (click)="addNewCatalog()"><i class="fa fa-plus me-1"></i>NUOVO</button></div>
     <div class="row justify-content-center p-3">
       <div class=" col-3 m-5"
            (click)="onCatalogClick(catalog.catalogId)"
@@ -11,9 +11,9 @@
           <div class="col-12 text-center mx-auto" [class.catalog-container]="!showShieldBack.get(catalog.catalogId)">
             <label class="col-12 my-auto catalog-title" *ngIf="!showShieldBack.get(catalog.catalogId); else shieldBackTemplate">{{catalog.catalogName}}</label>
             <ng-template #shieldBackTemplate>
-              <div class="col-12 text-end p-1">
+              <!--<div class="col-12 text-end p-1">
                 <button class="p-1 new-button" *ngIf="catalogView.userCanEditCatalog" (click)="addProductToCatalog(catalog.catalogId)">Aggiungi</button>
-              </div>
+              </div>-->
               <div class="col-12 ps-4 unordered-list-container">
                 <ul class="col-12">
                   <li class="col-12 text-start products" *ngFor="let product Of productsFiltered">{{product.productName}} {{product.productPrice|currency:'EUR'}}</li>

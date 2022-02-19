@@ -55,6 +55,10 @@ export class ModalComponent implements OnInit {
     this.selectedValueChange.emit(e);
   }
 
+  onTxtChange(referenceId: any, value:any) {
+    this.values.set(referenceId, value)
+  }
+
   onConfirmModal() {
     //var output;
     switch (this.modalType) {
@@ -65,13 +69,9 @@ export class ModalComponent implements OnInit {
         }
         this.modalConfirmed.emit(this.values);
         break;
-      case ModalType.NEW_PAYMENT:
-        this.modalConfirmed.emit(this.input);
-        break;
-      case ModalType.NEW_TABLEORDER:
-        this.setDataForOrder();
-        this.orderConfirmed.emit(this.productSelected);
-        break;
+      case ModalType.LOGIN:
+        this.modalConfirmed.emit(this.values);
+        break; 
     }
     this.visibile = false;
   }
@@ -110,8 +110,10 @@ export class ModalComponent implements OnInit {
     return controlsCount;
   }
 
-  onCheckboxChangeState(keyRef: any, product: any, event:any) {
-    
+  onCheckboxChangeState(keyRef: any, product: any, event:any, tableSelector:any) {
+
+    this.removeChecked(tableSelector, keyRef);
+
     if (this.values.get(keyRef) == null) {
       this.values.set(keyRef, [product._dropId]);    
     } else {
@@ -143,6 +145,16 @@ export class ModalComponent implements OnInit {
       this.modelOut = this.modelOut == null ? product._valueOut : (addValue ? this.modelOut + product._valueOut : this.modelOut - product._valueOut);
       var ngModelReference = this.modelValues?.get(keyRef);
       this.values.set(ngModelReference, this.modelOut);
+    }
+  }
+
+  removeChecked(tableSelector:any, keyRef:any) {
+    var table = this.lists.find(x => x.selector == tableSelector);
+    if (!table?.multiSelect) {      
+      table?.viewItems[0].list?.forEach((x, y) => {
+        this.values.set(keyRef, []);
+      });
+      console.log(this.values)
     }
   }
 

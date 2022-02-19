@@ -44,6 +44,7 @@ namespace ManageDisco.Model
 
     public class EventPartyDetail : EventParty
     {
+        public bool EventIsEnd { get; set; }
         public bool UserCanEditInfo { get; set; }
         /// <summary>
         /// Lista con tutte le immagini in base64

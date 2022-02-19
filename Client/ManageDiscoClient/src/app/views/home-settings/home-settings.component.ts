@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { catchError, Observable } from 'rxjs';
 import { ApiCaller } from '../../api/api';
-import { Contact, ContactType, HomeInfo, HomePhotoPost, HomePhotoPut, PhotoType } from '../../model/models';
+import { Contact, ContactType, HomeInfo, HomePhotoPost, HomePhotoPut } from '../../model/models';
 import { ModalService } from '../../service/modal.service';
 
 @Component({
@@ -11,6 +11,8 @@ import { ModalService } from '../../service/modal.service';
   styleUrls: ['./home-settings.component.scss', '../../app.component.scss']
 })
 export class HomeSettingsComponent implements OnInit {
+
+  isLoading = false;
 
   readonly HOME_GALLERY_MAIN = "Home_Galleria";
   readonly HOME_GALLERY_MOMENTS = "Home_Momenti";
@@ -46,6 +48,7 @@ export class HomeSettingsComponent implements OnInit {
   }
 
   initData() {
+    this.isLoading = true;
     const calls: Observable<any>[] = [
       this._api.getHomeInfo(),
       this._api.getContact(),
@@ -54,7 +57,7 @@ export class HomeSettingsComponent implements OnInit {
 
     forkJoin(calls).pipe(
       catchError(err => {
-        this._modal.showErrorModal(err.message);
+        this._modal.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((data: any) => {       
         this.homeInfo = data[0];
@@ -71,6 +74,8 @@ export class HomeSettingsComponent implements OnInit {
         this.showAddContactTemplate = false;
         this.newContact = { contactTypeId: 0 };
         this.homePhotoPost = [];
+
+        this.isLoading = false;
       })
   }
 
@@ -112,7 +117,7 @@ export class HomeSettingsComponent implements OnInit {
   saveHomePhotos() {
     this._api.postHomePhoto(this.homePhotoPost).pipe(
       catchError(err => {
-        this._modal.showErrorModal(err.message);
+        this._modal.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe(() => {
         this.initData();
@@ -127,10 +132,10 @@ export class HomeSettingsComponent implements OnInit {
     this.showAddContactTemplate = true;
   }
 
-  confirmNewContact() {
+  confirmNewContact(data: any) {
     this._api.postContact(this.newContact).pipe(
       catchError(err => {
-        this._modal.showErrorModal(err.message);
+        this._modal.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((data: any) => {
         this.initData();

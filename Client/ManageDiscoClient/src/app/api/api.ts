@@ -20,8 +20,6 @@ export class ApiCaller {
     private http: ApiHttpService,
     private modalService: ModalService,
     private router: Router) {
-
-    this.http.setModalType(ModalComponent);
     
   }
 
@@ -32,10 +30,14 @@ export class ApiCaller {
 
   onApiError = (status: number):void => {
     if (status == 0) {  //Unable to connect to server
-      this.modalService.showErrorModal("Impossibile raggiungere il server.");
+      this.modalService.showErrorOrMessageModal("Impossibile raggiungere il server.");
     }else if (status == HttpStatusCode.Unauthorized) {
       this.router.navigateByUrl("/Login");     
     }
+  }
+
+  public logout() {
+    return this.http.postCall(this.url.logout(), null);
   }
 
   public postContact(contact: any): Observable<any>{
@@ -116,7 +118,7 @@ export class ApiCaller {
   }
 
   public login(data: any): Observable<any> {
-    return this.http.postCall(this.url.login(), data);
+    return this.http.postCallWithResponse(this.url.login(), data);
   }
   //eventId optional for filtering purposes
   public getReservations(eventId: number, reserveStatus?: number): Observable<Reservation[]> {
@@ -146,6 +148,7 @@ export class ApiCaller {
           item._showDate = new Date(item.date!).getFullYear() > 2020;
           item._dropId = item.id;
           item._modalDropText = item.name;
+          //item.description = item.description?.replace('\n', '<br/>');
           item.imagePreview = GeneralMethods.normalizeBase64(item.imagePreview);
           return item;
         })        

@@ -1,6 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { LoadingModule } from "../../components/loading/loading.module";
 import { ModalModule } from "../../components/modal/modal.module";
 import { ReservationComponent } from "./reservation.component";
 import { reservationRoutes } from "./reservation.routes";
@@ -10,6 +11,7 @@ import { reservationRoutes } from "./reservation.routes";
     CommonModule,
     FormsModule,
     ModalModule,
+    LoadingModule,
     reservationRoutes
   ],
   declarations: [ReservationComponent]

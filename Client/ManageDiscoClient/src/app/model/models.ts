@@ -6,7 +6,9 @@ export enum ModalType {
   NEW_PRODUCT = 3,
   NEW_TABLEORDER = 4,
   ERROR = 5,
-  LISTVIEW = 6
+  LISTVIEW = 6,
+  LOGIN = 7,
+  MESSAGE = 8
 }
 
 export interface DiscoEntity {
@@ -81,9 +83,11 @@ export interface PhotoType {
  * Oggetto di test per impostazione menu locale senza riceverlo dal server
  ********/
 export interface NavigationLabel {
+  index?: number;
   label?: string;
   isActive?: boolean;
   link?: string;
+  id?: string;
 }
 
 export interface UserInfoView {
@@ -122,7 +126,8 @@ export interface RegistrationRequest {
   username: string;
   name: string;
   surname: string;
-  prCode: string;
+  prCode?: string;
+  role: number;
 }
 
 export interface LoginRequest {
@@ -134,6 +139,7 @@ export interface AuthResponse {
   token?: string;
   refreshToken?: string;
   message?: string;
+  operationSuccess?: boolean;
 }
 
 export interface Reservation {
@@ -211,6 +217,7 @@ export interface EventParty {
   freeEntranceDescription?: any;
   userHasReservation?: boolean;
   userCanEditInfo?: boolean;
+  eventIsEnd?: boolean;
 }
 
 export interface ReservationType {

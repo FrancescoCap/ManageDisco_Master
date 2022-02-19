@@ -51,6 +51,7 @@ namespace ManageDisco.Model.UserIdentity
         public string Token { get; set; }
         public string RefreshToken { get; set; }
         public string Message { get; set; }
+        public bool OperationSuccess { get; set; }
     }
 
     public class CollaboratorView
