@@ -25,7 +25,15 @@ div#navigationLabelContainer div label:hover {
   width: 50px!important;
   height: 50px!important;
   transition: .6s ease-in;
+ }
+
+
+
+img:hover, i:hover {
+    cursor:pointer;
 }
-.errors-div label{
-    color: red;
+
+.div-container{
+    height:800px;
+    overflow:auto;
 }

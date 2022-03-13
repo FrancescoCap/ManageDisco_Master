@@ -96,7 +96,7 @@ namespace ManageDisco.Controllers
 
             HeaderMenu profile = new HeaderMenu()
             {
-                Header = "Impostazioni",
+                Header = "Gestione generale",
                 Link = "/MyProfile",
                 child = new List<MenuChild>()
                 {
@@ -167,7 +167,7 @@ namespace ManageDisco.Controllers
 
                 HeaderMenu m3 = new HeaderMenu()
                 {
-                    Header = "Gestione generale",
+                    Header = "Strumenti",
                     Link = "/Payments",
                     child = new List<MenuChild>()
                     {

@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BarCode" Version="2021.12.21" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.15.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.12" />
@@ -24,6 +25,8 @@
     <PackageReference Include="System.Linq" Version="4.3.0" />
     <PackageReference Include="System.Net.FtpClient" Version="1.0.5824.34026" />
     <PackageReference Include="System.Text.Json" Version="5.0.2" />
+    <PackageReference Include="Twilio" Version="5.71.0" />
+    <PackageReference Include="Twilio.AspNet.Core" Version="5.68.3" />
   </ItemGroup>
 
 </Project>

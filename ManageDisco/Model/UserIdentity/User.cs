@@ -18,6 +18,7 @@ namespace ManageDisco.Model.UserIdentity
         public string UserCode { get; set; } 
         public string DiscoEntityId { get; set; }
         public DiscoEntity DiscoEntity { get; set; }
+        public string Gender { get; set; }
     }
 
     public class UserRoles: User
@@ -31,6 +32,7 @@ namespace ManageDisco.Model.UserIdentity
         public string Email { get; set; }
         [Required]
         public string Password { get; set; }
+        public bool TokenEncrypted { get; set; }
     }
 
     public class RegisterRequest: LoginRequest
@@ -42,8 +44,13 @@ namespace ManageDisco.Model.UserIdentity
         [Required]
         public string Surname { get; set; }
         [Required]
+        public string PhoneNumber { get; set; }
+        [Required]
         public int Role { get; set; }
+        
         public string PrCode { get; set; }
+        [Required]
+        public string Gender { get; set; }
     }
 
     public class AuthenticationResponse
@@ -79,11 +86,14 @@ namespace ManageDisco.Model.UserIdentity
         public string UserName { get; set; }
         public string UserSurname { get; set; }
         public string UserEmail { get; set; }
+        public string UserPhoneNumber { get; set; }
         public bool IsCustomer { get; set; }
+        public bool IsPhoneNumberConfirmed { get; set; }
         //PR INFO
         public string PrName { get; set; }
         public string PrSurname { get; set; }
         public string PrEmail { get; set; }
         public string PrCode { get; set; }
+        public string Gender { get; set; }
     }
 }

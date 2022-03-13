@@ -1,10 +1,9 @@
-import { HttpErrorResponse, HttpStatusCode } from "@angular/common/http";
+import { HttpStatusCode } from "@angular/common/http";
 import { Injectable, Input, ViewContainerRef } from "@angular/core";
 import { Router } from "@angular/router";
 import { catchError, map, Observable, pipe } from "rxjs";
-import { ModalComponent } from "../components/modal/modal.component";
 import { GeneralMethods } from "../helper/general";
-import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartyView, PrCustomerView, HomeInfo, TableOrderRow, CatalogView, HomePhotoPost } from "../model/models";
+import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartyView, PrCustomerView, HomeInfo, CatalogView, HomePhotoPost, Role, TranslatedRolesEnum, ReservationStatus, TranslatedReservationStatusEnum } from "../model/models";
 import { ModalService } from "../service/modal.service";
 
 import { ApiHttpService } from "./http";
@@ -34,6 +33,43 @@ export class ApiCaller {
     }else if (status == HttpStatusCode.Unauthorized) {
       this.router.navigateByUrl("/Login");     
     }
+  }
+
+  public getRoles() {
+    return this.http.getCall(this.url.getRoles()).pipe(
+      map((roles: Role[]) => {
+        roles.forEach(x => {
+          //index 0 è la chiave dell'enum e 1 il valore
+         x._translatedRole = Object.entries(TranslatedRolesEnum).find(k => k[0] == x.name)?.[1];
+        });
+        return roles;
+      }));
+  }
+
+  public getStatisticsForEvent(eventId:any) {
+    return this.http.getCall(this.url.getStatistics(eventId), this.onApiError);
+  }
+
+  public confirmUserPhoneNumber(refer:any): Observable<any> {
+    return this.http.postCall(this.url.confirmUserPhoneNumber(refer), null);
+  }
+
+  //API per la ricezione del messaggio whatsapp dell'omaggio
+  public getSubscription(eventId?:any) {
+    return this.http.postCall(this.url.getSubscription(eventId), null);
+  }
+
+  //Api per la richiesta dell'omaggio
+  public getFreeEntrance(eventId:any): Observable<any> {
+    return this.http.getCall(this.url.getFreeEntrance(eventId));
+  }
+
+  public getCoupon(refer:any):Observable<any>{
+    return this.http.getCall(this.url.getCoupon(refer));
+  }
+
+  public getCouponInfo(refer: any): Observable<any> {
+    return this.http.postCall(this.url.getCouponInfo(refer), null);
   }
 
   public logout() {
@@ -104,6 +140,10 @@ export class ApiCaller {
     return this.http.getCall(this.url.getUserReservation(), this.onApiError);
   }
 
+  public getUserInfoFromId(userId: any) {
+    return this.http.getCall(this.url.getUserInfoFromId(userId));
+  }
+
   public getUserInfo(): Observable<any> {
     return this.http.getCall(this.url.getUserInfo(), this.onApiError);
   }
@@ -127,7 +167,14 @@ export class ApiCaller {
 
 
   public getReservationStatus() {
-    return this.http.getCall(this.url.getReservationStatus());
+    return this.http.getCall(this.url.getReservationStatus(), this.onApiError).pipe(
+      map((status: ReservationStatus[]) => {
+        status.forEach((x, y) => {
+          x._translatedStatus = Object.entries(TranslatedReservationStatusEnum).find(k => k[0] == x.reservationStatusValue?.toUpperCase())?.[1];
+          console.log(x.reservationStatusValue);
+        })
+        return status;
+      }));
   }
 
   //eventId optional for filtering purposes

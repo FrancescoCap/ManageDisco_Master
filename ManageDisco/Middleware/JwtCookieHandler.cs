@@ -36,7 +36,9 @@ namespace ManageDisco.Middleware
 
                 //Per API Login e Register non devo reindirizzare il path
                 bool isLoginRequest = context.Request.Path.Value.Contains("Login") || context.Request.Path.Value.Contains("Register");
-                context.Request.Path = !isLoginRequest ? $"{context.Request.Path}/General": context.Request.Path;
+                bool isWhatsappRequest = context.Request.Path.Value.Contains("Whatsapp");
+                bool isCouponRequest = context.Request.Path.Value.Contains("Coupon");
+                context.Request.Path = !isLoginRequest && !isWhatsappRequest && !isCouponRequest ? $"{context.Request.Path}/General": context.Request.Path;
             }           
 
            await _next.Invoke(context);

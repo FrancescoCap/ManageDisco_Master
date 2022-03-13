@@ -3,7 +3,7 @@ import { NgModel } from "@angular/forms";
 import { ModalType, NewTableOrderData } from "../../model/models";
 import { ModalService } from "../../service/modal.service";
 
-import { ModalImageBoxList, ModalModelEnum, ModalModelList, ModalTextBoxList, ModalViewGroup } from "./modal.model";
+import { ModalModelEnum, ModalModelList, ModalTextBoxList, ModalViewGroup } from "./modal.model";
 
 @Component({
   selector: 'app-modal',
@@ -111,7 +111,7 @@ export class ModalComponent implements OnInit {
   }
 
   onCheckboxChangeState(keyRef: any, product: any, event:any, tableSelector:any) {
-
+    
     this.removeChecked(tableSelector, keyRef);
 
     if (this.values.get(keyRef) == null) {
@@ -121,7 +121,7 @@ export class ModalComponent implements OnInit {
       var keyValueList = this.values.get(keyRef);
 
       var valueExist = keyValueList?.includes(product._dropId,0);
-    
+      
       if (valueExist) {
         var valueIndex = keyValueList?.findIndex(x => x == product._dropId, 0);
         keyValueList!.splice(valueIndex!, 1);
@@ -129,7 +129,7 @@ export class ModalComponent implements OnInit {
         keyValueList!.push(product._dropId);       
       }      
       
-      this.values.set(keyRef, keyValueList!);      
+      this.values.set(keyRef, keyValueList!);     
     }
     /*
      * Se _valueOut della lista è diverso da null significa che c'è un valore che deve essere letto da un'altra view.
@@ -145,16 +145,17 @@ export class ModalComponent implements OnInit {
       this.modelOut = this.modelOut == null ? product._valueOut : (addValue ? this.modelOut + product._valueOut : this.modelOut - product._valueOut);
       var ngModelReference = this.modelValues?.get(keyRef);
       this.values.set(ngModelReference, this.modelOut);
+     
     }
   }
 
   removeChecked(tableSelector:any, keyRef:any) {
     var table = this.lists.find(x => x.selector == tableSelector);
+   
     if (!table?.multiSelect) {      
       table?.viewItems[0].list?.forEach((x, y) => {
         this.values.set(keyRef, []);
-      });
-      console.log(this.values)
+      });      
     }
   }
 
@@ -202,9 +203,9 @@ export class ModalComponent implements OnInit {
 
     if (this.table != null /*&& this.table.viewItems[0].mapList != null*/) {      
       //Fare ciclo un ciclo per rendere la parte di table più scalabile. Non posso in automatico prendere sempre l'index 0 perchè potrei avere più oggetti di tipo table
-      console.log(this.table.viewItems)
+      
       this.table.viewItems.forEach((k, l) => {                
-       console.log(k.mapList![k.referenceId])
+      //console.log(k.mapList![k.referenceId])
       })
     
       //var key = this.table.viewItems[0].referenceId;

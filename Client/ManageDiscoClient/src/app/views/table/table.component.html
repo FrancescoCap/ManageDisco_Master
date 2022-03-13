@@ -13,7 +13,7 @@
       <div class="col-3 row">
         <select id="drpReservationStatus" class="col-12" (change)="onResStatusChange($event)">
           <option [value]="0">Stato prenotazione</option>
-          <option *ngFor="let rs of reservationStatus" [value]="rs.reservationStatusId">{{rs.reservationStatusValue}}</option>
+          <option *ngFor="let rs of reservationStatus" [value]="rs.reservationStatusId">{{rs._translatedStatus}}</option>
         </select>
       </div>
       <div class="col-6 m-0 p-2 text-end">

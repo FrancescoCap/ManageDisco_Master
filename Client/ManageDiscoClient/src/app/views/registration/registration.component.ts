@@ -1,7 +1,7 @@
 import { ViewChild } from '@angular/core';
 import { ViewContainerRef } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { catchError } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { AuthResponse, RegistrationRequest } from '../../model/models';
@@ -16,25 +16,25 @@ export class RegistrationComponent implements OnInit {
 
   @ViewChild("modalTemplate", { read: ViewContainerRef, static: false }) modalContainer?: ViewContainerRef;
 
-  registrationRequest: RegistrationRequest = { email: "", password: "", username: "", surname: "", name: "", prCode: "", role:3};
+  registrationRequest: RegistrationRequest = { email: "", password: "", username: "", surname: "", name: "", prCode: "",phoneNumber: "+39", role:3, gender: ""};
   isCustomerRegistration = true;
   isLoading = false;
+  repeatedPassword = "";
 
   constructor(private _api: ApiCaller,
     private _modal: ModalService,
-    private _router: Router,
     private _route: ActivatedRoute  ) { }
 
   ngOnInit(): void {
     this._route.queryParams.subscribe(params => {
       if (params["type"] != null)
         this.isCustomerRegistration = true;
-    })
+    })    
   }
 
   ngAfterViewInit() {
     this._api.setModalContainer(this.modalContainer!);
-  }
+  } 
 
   register() {
     this.isLoading = true;

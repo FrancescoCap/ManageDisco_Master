@@ -10,19 +10,24 @@
         </div>
       </div>
       <div class="card-body">
-        <form (ngSubmit)="register()">
+        <form name="registrationForm" (ngSubmit)="register()">
           <div class="input-group form-group pt-2 pb-2">
-            <div class="input-group-prepend ">
+            <div class="input-group-prepend">
               <span class="input-group-text h-100" style="padding-top:15%"></span>
             </div>
-            <input name="email" type="text" class="form-control h-25" placeholder="email" [(ngModel)]="registrationRequest.email">
-
+            <input name="email" type="text" class="form-control h-25" #email="ngModel" emailValidator placeholder="Email" [(ngModel)]="registrationRequest.email">
           </div>
           <div class="input-group form-group pt-2 pb-2">
             <div class="input-group-prepend">
               <span class="input-group-text h-100" style="padding-top:15%"></span>
             </div>
-            <input name="password" type="password" class="form-control h-25" placeholder="password" [(ngModel)]="registrationRequest.password">
+            <input name="password" passwordValidator parent="true" compare-password="confirmPassword" required #password="ngModel" type="password" class="form-control h-25" placeholder="Password" [(ngModel)]="registrationRequest.password">
+          </div>
+          <div class="input-group form-group pt-2 pb-2">
+            <div class="input-group-prepend">
+              <span class="input-group-text h-100" style="padding-top:15%"></span>
+            </div>
+            <input name="confirmPassword" passwordValidator compare-password="password" required #confirmPassword="ngModel" [(ngModel)]="repeatedPassword" type="password" class="form-control h-25" placeholder="Conferma password">
           </div>
           <div class="input-group form-group pt-2 pb-2">
             <div class="input-group-prepend">
@@ -46,7 +51,30 @@
             <div class="input-group-prepend">
               <span class="input-group-text h-100" style="padding-top:15%"></span>
             </div>
+            <input name="txtPhoneNumber" class="form-control h-25" placeholder="Phone number" [(ngModel)]="registrationRequest.phoneNumber">
+          </div>
+          <div class="input-group form-group pt-2 pb-2">
+            <div class="input-group-prepend">
+              <span class="input-group-text h-100" style="padding-top:15%"></span>
+            </div>
+            <select name="drpGender" class="form-control h-25 dropdown" [(ngModel)]="registrationRequest.gender">
+              <option value="">Seleziona sesso</option>
+              <option value="Male">Maschio</option>
+              <option value="Famale">Femmina</option>
+            </select>
+          </div>
+          <div class="input-group form-group pt-2 pb-2">
+            <div class="input-group-prepend">
+              <span class="input-group-text h-100" style="padding-top:15%"></span>
+            </div>
             <input name="txtPrCode" class="form-control h-25" placeholder="Codice PR" [(ngModel)]="registrationRequest.prCode">
+          </div>
+          <div class="col-12">
+            <label class="col-12" style="color:red" *ngIf="password.dirty && password.errors?.['passwordFormat']">
+              La password deve essere lunga almeno 7 caratteri, contenere almeno un numero, un carattere maiuscolo e un carattere speciale fra @, !, $, %, &, #
+            </label>
+            <label class="col-12" style="color:red" *ngIf="password.dirty && confirmPassword.dirty && password.errors?.['passwordMismatch']">Le password non corrispondono</label>
+            <label class="col-12" style="color:red" *ngIf="email.dirty && email.errors?.['invalidEmail']">Email non valida</label>
           </div>
           <div class="form-group">
             <input type="submit" value="Registrati" class="btn float-right login_btn">

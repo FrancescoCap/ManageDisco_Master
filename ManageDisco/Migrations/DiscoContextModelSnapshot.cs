@@ -69,6 +69,31 @@ namespace ManageDisco.Migrations
                     b.ToTable("ContactType");
                 });
 
+            modelBuilder.Entity("ManageDisco.Model.Coupon", b =>
+                {
+                    b.Property<int>("CouponId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<bool>("CouponValidated")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("CouponId");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Coupon");
+                });
+
             modelBuilder.Entity("ManageDisco.Model.DiscoEntity", b =>
                 {
                     b.Property<string>("DiscoId")
@@ -517,6 +542,9 @@ namespace ManageDisco.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Gender")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -749,6 +777,23 @@ namespace ManageDisco.Migrations
                         .IsRequired();
 
                     b.Navigation("ContactType");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.Coupon", b =>
+                {
+                    b.HasOne("ManageDisco.Model.EventParty", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ManageDisco.Model.UserIdentity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Event");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ManageDisco.Model.EventPhoto", b =>

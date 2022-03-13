@@ -46,6 +46,7 @@ namespace ManageDisco.Model
     {
         public bool EventIsEnd { get; set; }
         public bool UserCanEditInfo { get; set; }
+        public bool UserCanEnrollFreeEntrance { get; set; }
         /// <summary>
         /// Lista con tutte le immagini in base64
         /// </summary>

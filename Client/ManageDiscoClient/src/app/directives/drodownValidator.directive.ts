@@ -6,14 +6,13 @@ import { AbstractControl,  NG_VALIDATORS, ValidationErrors, Validator, Validator
   providers: [{
     provide: NG_VALIDATORS,
     useExisting: DropdownValidator,
-    multi: true
-   
+    multi: true   
   }]
 })
 export class DropdownValidator implements Validator {
 
   validate(control: AbstractControl): ValidationErrors | null {
-      return control.value == 0? { "invalidSelect": true } : null;
+      return control.value == 0 ? { "invalidSelect": true } : null;
   } 
 
 

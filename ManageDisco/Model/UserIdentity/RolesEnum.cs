@@ -26,6 +26,13 @@ namespace ManageDisco.Model.UserIdentity
     {
         public const string CLAIM_USERCODE = "UserCode";
         public const string CLAIM_USERNAME = "Username";
+        public const string CLAIM_GENDER = "Gender";
+    }
+
+    public class GenderCostants
+    {
+        public const string GENDER_MALE = "Male";
+        public const string GENDER_FEMALE = "Famale";        
     }
 
 }

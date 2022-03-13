@@ -17,6 +17,14 @@ body {
   padding: 0;
 }
 
+.errors-div label {
+  color: red;
+}
+
+select {
+    cursor:pointer;
+}
+
 .new-button {
   border: 1px solid #fff;
   border-radius: 15%;

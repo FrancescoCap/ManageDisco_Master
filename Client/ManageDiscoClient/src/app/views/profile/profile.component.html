@@ -1,6 +1,6 @@
 <div class="col-12 p-4 row">
   <h3 class="col-12 text-center" style="font-family:Britannic; font-size:36px">IMPOSTAZIONI</h3>
-  <div id="navigationLabelContainer" class="col-2 p-0" style="position:static" *ngIf="!user!.isCustomer">    
+  <div id="navigationLabelContainer" class="col-2 p-0 div-container" style="position:static" *ngIf="!user!.isCustomer">
     <div class="col-12 p-2" *ngFor="let m Of navigationLabel" [style.background-color]="getLabelColor(m.index)">
       <div class="col-12">
         <a style="text-decoration:unset; color:#000"><label (click)="onNavigationLabelClick(m.index)">{{m.label}}</label></a>
@@ -8,7 +8,8 @@
     </div>
   </div>
 
-  <div class="col-10 p-5 mx-auto" style="border:1px solid #000" *ngIf="user != null && pageViews[PROFILE_VIEW_INDEX] && !isLoading">
+
+  <div class="col-10 p-5 mx-auto div-container" style="border:1px solid #000" *ngIf="user != null && pageViews[PROFILE_VIEW_INDEX] && !isLoading">
     <div class="col-12">
       <label id="no-data" class="col-12">Riepilogo dati</label>
       <small id="col-12">Visualizza i tuoi dati.</small>
@@ -24,13 +25,16 @@
         <div class="col-12">Cognome: {{user!.userSurname}}</div>
         <div class="col-12">Data di nascita:</div>
         <div class="col-12">Email: {{user!.userEmail}}</div>
+        <div class="col-12">Cellulare: {{user!.userPhoneNumber}} <i (click)="onPhoneNumberClicked()" *ngIf="user!.isPhoneNumberConfirmed" style="color:yellow" class="fa fa-exclamation-triangle"></i></div>
       </div>
       <ng-template #edtEmail>
         <div class="row col-8">
           <div class="col-8">Nome: <input type="text" class="col-12" [(ngModel)]="user!.userName" /></div>
           <div class="col-8">Cognome: <input type="text" class="col-12" [(ngModel)]="user!.userSurname" /></div>
           <div class="col-8">Email: <input type="text" class="col-12" [(ngModel)]="user!.userEmail" /></div>
-          <button class="col-12 mt-2" (click)="confirmUserEdit()">Conferma</button>
+          <div class="col-8">Cellulare: <input type="text" class="col-12" [(ngModel)]="user!.userPhoneNumber" /></div>
+          <div class="col-8"><button class="col-4 p-2 btn btn-info mt-2" (click)="confirmUserEdit()">Conferma</button></div>
+
         </div>
 
       </ng-template>
@@ -57,7 +61,7 @@
     </div>
   </div>
 
-  <div class="col-10 p-5 mx-auto" style="border:1px solid #000" *ngIf="pageViews[RESERVATION_VIEW_INDEX] && !isLoading">
+  <div class="col-10 p-5 mx-auto div-container" style="border:1px solid #000" *ngIf="pageViews[RESERVATION_VIEW_INDEX] && !isLoading">
     <!-- User reservation -->
     <div class="col-12 p-">
       <div class="col-12">
@@ -73,9 +77,9 @@
         </div>
         <div *ngIf="userReservation != null && userReservation.length > 0">
           <div class="col-12 row card-body" *ngFor="let r Of userReservation">
-            <div class="col-3 text-center">{{r.reservationDate | date: 'dd/MM/yyyy'}}</div>
-            <div class="col-3 text-center">{{r.reservationName}}</div>
-            <div class="col-3 text-center">{{r.eventName}}</div>
+            <div class="col-3 text-start">{{r.reservationDate | date: 'dd/MM/yyyy'}}</div>
+            <div class="col-3 text-start">{{r.reservationName}}</div>
+            <div class="col-3 text-start">{{r.eventName}}</div>
             <div class="col-3 text-end">{{r.reservationRealBudget | currency: 'EUR'}}</div>
           </div>
         </div>
@@ -83,9 +87,10 @@
       </div>
     </div>
   </div>
-    
 
-    <div class="col-10 p-5 mx-auto" style="border:1px solid #000" *ngIf="pageViews[COLLABORATORS_VIEW_INDEX] && !isLoading">
+
+  <div class="col-10 p-5 mx-auto div-container" style="border:1px solid #000" *ngIf="pageViews[COLLABORATORS_VIEW_INDEX] && !isLoading">
+    <div *ngIf="userIsAdministrator;else notAllowed">
       <div class="col-12">
         <label id="no-data" class="col-12">Nuovo collaboratore</label>
         <small id="col-12">Abilita un nuovo collaboratore alla vendita. Il nuovo utente dovrà accettare l'email di verifica.</small>
@@ -95,10 +100,17 @@
           <div class="col-7 m-0">
             <div class="col-8">Nome (*): <input type="text" required #nameValue="ngModel" name="name" class="col-12" [(ngModel)]="registrationRequest!.name" /></div>
             <div class="col-8">Cognome (*): <input type="text" required #surnameValue="ngModel" name="surname" class="col-12" [(ngModel)]="registrationRequest!.surname" /></div>
+            <div class="col-8">
+              Ruolo (*):
+              <select name="drpGender" class="form-control h-25 dropdown" [(ngModel)]="registrationRequest!.role">
+                <option *ngFor="let role Of roles" [value]="role.id">{{role._translatedRole}}</option>
+              </select>
+            </div>
             <div class="col-8">Username (*): <input type="text" required #usernameValue="ngModel" name="username" class="col-12" [(ngModel)]="registrationRequest!.username" /></div>
             <div class="col-8">Email (*): <input type="email" emailValidator required #emailValue="ngModel" name="email" class="col-12" [(ngModel)]="registrationRequest!.email" /></div>
             <div class="col-8">Password (*): <input type="password" required #passwordValue="ngModel" name="password" class="col-12" [(ngModel)]="registrationRequest!.password" /></div>
             <div class="col-8">Conferma password (*): <input type="password" required name="passwordConfirm" class="col-12" /></div>
+            <div class="col-8">Cellulare (*): <input type="tel" required name="phoneNumber" class="col-12" [(ngModel)]="registrationRequest!.phoneNumber" /></div>
             <div class="mt-2 col-12"><button class="col-2 btn btn-success" [disabled]="!frmSignUp.valid" type="submit">REGISTRA</button></div>
             <div class="col-12 errors-div">
               <label class="col-12" *ngIf="nameValue.dirty && nameValue.errors?.['required']">Nome non valido</label>
@@ -114,9 +126,81 @@
         </form>
       </div>
     </div>
+    <ng-template #notAllowed>
+      <div class="col-10 p-5 mx-auto div-container" style="border:1px solid #000">
+        <div class="col-12">
+          <label id="no-data" class="col-12">Nuovo collaboratore</label>
+          <small id="col-12">Non sei abilitato per l'aggiunta di un nuovo collaboratore.</small>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+ 
 
+  <div class="col-10 p-5 mx-auto div-container" style="border:1px solid #000" *ngIf="pageViews[STATISTICS_VIEW_INDEX] && !isLoading">
+    <div class="col-12">
+      <label id="no-data" class="col-12">Statistiche</label>
+      <small class="col-12">Visualizza le statistiche per evento.</small>
+    </div>
+    <div class="row col-12">
+      <div class="row">
+        <select class="col-4" [(ngModel)]="selectedEvent" (change)="eventStatChange()">
+          <option [value]="0">Filtra per evento</option>
+          <option *ngFor="let event Of events" [value]="event.id">{{event.name}} - {{event.date | date: 'dd/MM/yyyy'}}</option>
+        </select>
+      </div>
+    </div>
+    <div class="row mt-3" *ngIf="statistics != null">
+      <div class="col-12" *ngIf="statistics.eventTable != null">
+        <div class="col-12">
+          <label>Numero tavoli: {{statistics.eventTable.tableCount}}</label>
+        </div>
+        <div class="col-12">
+          <label>Totale incasso da tavoli: {{statistics.eventTable.totalOrderTable | currency:'EUR'}}</label>
+        </div>
+        <div class="col-12">
+          <label>Totale exit cambiati: {{statistics.eventTable.peopleCountFromTable}}</label>
+        </div>
+      </div>
+      <div class="col-12" *ngIf="statistics.freeEntrance != null">
+        <div class="col-12">
+          <label>Coupon inviati: {{statistics.freeEntrance.couponSent}}</label>
+        </div>
+        <div class="col-12">
+          <label>Coupon confermati: {{statistics.freeEntrance.couponValidated}}%</label>
+        </div>
+      </div>
+    </div>
+    <!--TABELLA OMAGGI-->
+    <div class="row col-12 p-2 mt-3 tblheader-bk" data-value="tblHeader">
+      <div class="col-4">Nome</div>
+      <div class="col-4">Cognome</div>
+      <div class="col-4">Validato</div>
+    </div>
+    <div class="row" data-value="tblBody" *ngIf="statistics != null && statistics.freeEntrance != null">
+      <div class="row p-2" data-value=tblRow *ngFor="let freeEntrance Of statistics.freeEntrance.couponList | slice:freeEntranceVisibleItems-10:freeEntranceVisibleItems">
+        <div class="col-4">{{freeEntrance.name}}</div>
+        <div class="col-4">{{freeEntrance.surname}}</div>
+        <div class="col-4">
+          <img style="width:20px;height:20px" [src]="freeEntrance.validated == false ? '../../../assets/circle_red_full.png': '../../../assets/circle_green_full.png'" />
+        </div>
+      </div>
+      <div class="row justify-content-end">
+        <div class="col-auto text-end">
+          <label class="p-2 text-decoration-underline"
+                 (click)="freeEntranceChangePage(number)"
+                 style="color:blue;cursor:pointer;"
+                 [ngStyle]="{'background-color': number == freeEntranceSelectedPage ? 'blue' : '#fff'}"
+                 [style.color]="number == freeEntranceSelectedPage ? '#fff' : 'blue'"
+                 *ngFor="let number Of freeEntrancePagesCollection">{{number}}</label>
+        </div>
+      </div>
+    </div>
 
   </div>
+
+
+</div>
 
   <app-loading [loading]="isLoading"></app-loading>
   <ng-template #modalContainer></ng-template>

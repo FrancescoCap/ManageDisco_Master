@@ -27,9 +27,9 @@
     </div>
 
     <!--Descrizione-->
-    <div class="col-12 m-5 mx-auto" (click)="editDescription = true">
+    <div class="col-12 m-5 mx-auto" (click)="startEditDesctiption()">
       <div class="col-12 justify-content-start" *ngIf="event.userCanEditInfo;else labelDescription">
-        <small class="col-12 instructions">(Clicca sul box per moddificare la descrizione)</small>
+        <small class="col-12 instructions">(Clicca sul box per modificare la descrizione)</small>
         <textarea class="col-12" [disabled]="!editDescription" [(ngModel)]="event.description">{{event.description}}</textarea>
       </div>
       <ng-template #labelDescription>
@@ -41,40 +41,49 @@
   </div>
   
   <!--Prezzi-->
-  <div class="col-5 justify-content-end row">
-    <div class="col-6 align-content-end mt-5 p-5 price-div">
-      <label class="fw-bold col-12 event-title event-price-title">Prezzi:<i class="ms-3 fa fa-edit" *ngIf="event.userCanEditInfo" (click)="editPrice()"></i></label>
-      <ul class="p-0 ul-price" *ngIf="!editPriceMode; else editPriceTemplate">
-        <li>Ingresso: <label>{{event.entrancePrice | currency: 'EUR'}}</label></li>
-        <li>Tavolo: <label>{{event.tablePrice | currency: 'EUR'}}</label></li>
-        <li>Omaggio: <label>{{event.freeEntranceDescription }}</label></li>
-      </ul>
-      <div class="col-12">
-        <button class="col-12 btn btn-primary" (click)="addReservation()" [disabled]="!event.eventIsEnd"><i class="fa fa-calendar-check-o me-2"></i>PRENOTA</button>
+  <div class="col-5 justify-content-end">
+    <div class="col-10" style="margin-left:50%">
+      <div class="align-content-end mt-5 p-5 price-div" [ngClass]="editPriceMode ? 'col-8' : 'col-6'">
+        <label class="fw-bold col-12 event-title event-price-title">Prezzi:<i class="ms-3 fa fa-edit" style="cursor:pointer" *ngIf="event.userCanEditInfo" (click)="editPrice()"></i></label>
+        <ul class="p-0 ul-price" *ngIf="!editPriceMode; else editPriceTemplate">
+          <li>Ingresso: <label>{{event.entrancePrice | currency: 'EUR'}}</label></li>
+          <li>Tavolo: <label>{{event.tablePrice | currency: 'EUR'}}</label></li>
+          <li>
+            Omaggio: <label *ngIf="event.freeEntranceDescription">
+              {{event.freeEntranceDescription }}
+              <label (click)="onFreeEntraceRequest()"
+                     style="font-style:italic; cursor:pointer; color: blue; text-decoration:underline"
+                     *ngIf="event.userCanEnrollFreeEntrance">CLICCA QUI</label>
+            </label>
+          </li>
+        </ul>
+        <div class="col-12">
+          <button class="col-12 btn btn-primary" (click)="addReservation()" [disabled]="!event.eventIsEnd"><i class="fa fa-calendar-check-o me-2"></i>PRENOTA</button>
+        </div>
+        <ng-template #editPriceTemplate>
+          <form #editPriceForm="ngForm" (ngSubmit)="editPriceConfirm()">
+            <div class="col-12 row">
+              <label for="txtEntrancePrice">Ingresso:</label>
+              <input type="number" class="col-5" required id="txtEntrancePrice" name="entrancePrice" #entrance="ngModel" [(ngModel)]="event.entrancePrice" />
+              <small class="col-12 error" *ngIf="entrance.errors?.['required']">Inserire un prezzo valido</small>
+            </div>
+            <div class="col-12 row">
+              <label for="txtEntrancePrice">Tavolo:</label>
+              <input type="number" required class="col-5" name="tablePrice" #table="ngModel" [(ngModel)]="event.tablePrice" />
+              <small class="col-12 error" *ngIf="table.errors?.['required']">Inserire un prezzo valido</small>
+            </div>
+            <div class="col-12 row">
+              <label for="txtEntrancePrice">Condizioni omaggio:</label>
+              <textarea class="col-12" name="tableEntrance" #entrance="ngModel" [(ngModel)]="event.freeEntranceDescription"></textarea>
+            </div>
+            <div class="col-12 p-3">
+              <button class="btn btn-secondary col-12" [disabled]="!editPriceForm.valid">Conferma</button>
+            </div>
+          </form>
+        </ng-template>
       </div>
-      <ng-template #editPriceTemplate>
-        <form #editPriceForm="ngForm" (ngSubmit)="editPriceConfirm()">
-          <div class="col-12 row">
-            <label for="txtEntrancePrice">Ingresso:</label>
-            <input type="number" class="col-5" required id="txtEntrancePrice" name="entrancePrice" #entrance="ngModel" [(ngModel)]="event.entrancePrice" />
-            <small class="col-12 error" *ngIf="entrance.errors?.['required']">Inserire un prezzo valido</small>
-          </div>
-          <div class="col-12 row">
-            <label for="txtEntrancePrice">Tavolo:</label>
-            <input type="number" required class="col-5" name="tablePrice" #table="ngModel" [(ngModel)]="event.tablePrice" />
-            <small class="col-12 error" *ngIf="table.errors?.['required']">Inserire un prezzo valido</small>
-          </div>
-          <div class="col-12 row">
-            <label for="txtEntrancePrice">Condizioni omaggio:</label>
-            <textarea class="col-12" name="tableEntrance" #entrance="ngModel" [(ngModel)]="event.freeEntranceDescription"></textarea>
-          </div>
-          <div class="col-12 p-3">
-            <button class="btn btn-secondary col-12" [disabled]="!editPriceForm.valid">Conferma</button>
-          </div>
-        </form>
-      </ng-template>
-    </div>   
-  </div>
+    </div>
+  </div>  
   
   <div class="col-12 text-end p-3" id="divButtons">
     <button id="events" class="btn btn-primary" (click)="goTo($event.target)"><i class="me-2 fa fa-arrow-circle-o-left"></i>Eventi</button>

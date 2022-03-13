@@ -1,4 +1,42 @@
-import { Data } from "@angular/router";
+export enum TranslatedRolesEnum {
+  WAREHOUSE_WORKER = "Magazziniere",
+  PR = "Pr",
+  ADMINISTRATOR = "Amministratore"
+}
+
+export enum TranslatedReservationStatusEnum {
+  REJECTED = "Riufiutata",
+  APPROVED = "Approvata",
+  PENDING = "In attesa"
+}
+
+export interface Role {
+  _translatedRole?: string;
+  id: string;
+  name: string;
+}
+
+export interface Statistics {
+  freeEntrance?: FreeEntrancePercentage;
+  eventTable?: EventTableOrder;
+}
+
+export interface FreeEntrancePercentage {
+  couponSent?: number;
+  couponValidated?: number;
+  couponList?: FreeEntrance[];
+}
+export interface FreeEntrance {
+  name?: string;
+  surname?: string;
+  validated?: boolean;
+}
+
+export interface EventTableOrder {
+  totalOrderTable?: number;
+  tableCount?: number;
+  peopleCountFromTable?: number;
+}
 
 export enum ModalType {
   NEW_RESERVATION = 1,
@@ -8,7 +46,9 @@ export enum ModalType {
   ERROR = 5,
   LISTVIEW = 6,
   LOGIN = 7,
-  MESSAGE = 8
+  MESSAGE = 8,
+  SUCCESS = 9,
+  INFO = 10
 }
 
 export interface DiscoEntity {
@@ -99,6 +139,8 @@ export interface UserInfoView {
   prSurname?: string;
   prEmail?: string;
   prCode?: string;
+  userPhoneNumber?: string;
+  isPhoneNumberConfirmed?: string;
 }
 
 export interface HeaderMenu {
@@ -126,8 +168,10 @@ export interface RegistrationRequest {
   username: string;
   name: string;
   surname: string;
+  phoneNumber: any;
   prCode?: string;
-  role: number;
+  gender?: any;
+  role?: any;
 }
 
 export interface LoginRequest {
@@ -195,7 +239,7 @@ export interface PrCustomerView {
 export interface EventPartyView {
   userCanAddReservation?: boolean;
   userCanAddEvent?: boolean;
-  userCanDeleteEvent?: boolean;
+  userCanDeleteEvent?: boolean;  
   events?: EventParty[];
 }
 
@@ -217,6 +261,7 @@ export interface EventParty {
   freeEntranceDescription?: any;
   userHasReservation?: boolean;
   userCanEditInfo?: boolean;
+  userCanEnrollFreeEntrance?: boolean;
   eventIsEnd?: boolean;
 }
 
@@ -248,6 +293,7 @@ export interface ReservationPayments {
 }
 
 export interface ReservationStatus {
+  _translatedStatus?: string;
   reservationStatusId?: number;
   reservationStatusValue?: string;
 }

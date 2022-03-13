@@ -1,6 +1,6 @@
 import { ComponentFactoryResolver, ComponentRef, Input, ViewChild, ViewContainerRef } from "@angular/core";
 import { Injectable } from "@angular/core";
-import { map, Observable, Subject } from "rxjs";
+import { map } from "rxjs";
 import { ModalComponent } from "../components/modal/modal.component";
 import { ModalViewGroup } from "../components/modal/modal.model";
 import { ModalType } from "../model/models";
@@ -25,16 +25,35 @@ export class ModalService {
         this.modalComponentRef.instance.modelValues = ngModel;
   }
 
-  public showErrorOrMessageModal(message: any, title?: any) {
+  public showErrorOrMessageModal(message: any, title?: any, isMessageModal?:boolean) {
     this.initComponentRef();
     
     if (this.modalComponentRef != null) {
-      this.modalComponentRef.instance.modalType = ModalType.ERROR;
+      this.modalComponentRef.instance.modalType = isMessageModal != null && isMessageModal ? ModalType.INFO : ModalType.ERROR;
       this.modalComponentRef.instance.message = message;
       this.modalComponentRef.instance.header = title != null ? title : "Errore";
       this.modalComponentRef.instance.visibile = true;
     }
 
+  }
+
+  public showOperationResponseModal(message: string, title: string, isErrorOperation?: boolean, views?: ModalViewGroup[], onCloseModal?: (info: any) => any) {
+    this.initComponentRef();
+    if (this.modalComponentRef != null) {
+      this.modalComponentRef.instance.modalType = !isErrorOperation ? ModalType.SUCCESS : ModalType.ERROR;
+
+      if (views != null)
+        this.modalComponentRef.instance.lists = views;
+
+      this.modalComponentRef.instance.header = title;
+      this.modalComponentRef.instance.message = message;
+      this.modalComponentRef.instance.modalClose.subscribe(event => {
+        if (onCloseModal != null)
+          onCloseModal(event);
+      })
+       
+      this.modalComponentRef.instance.visibile = true;
+    }
   }
 
   public showAddModal<T>(confirmCallback: (...info: any) => any, title: string, inputs: ModalViewGroup[], modalType?:ModalType) {

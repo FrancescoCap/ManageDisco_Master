@@ -62,7 +62,7 @@ export class PaymentsComponent implements OnInit {
         this.payments = data;
         this.initDetailsFlags();
 
-        this.userCanPay = this._user.userIdAdminstrator();
+        this.userCanPay = this._user.userIsAdminstrator();
 
         setTimeout(() => {
           this.isLoading = false;

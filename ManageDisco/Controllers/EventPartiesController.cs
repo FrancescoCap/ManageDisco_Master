@@ -164,7 +164,8 @@ namespace ManageDisco.Controllers
                     FreeEntranceDescription = x.FreeEntranceDescription,
                     TablePrice = x.TablePrice,
                     UserCanEditInfo = HelperMethods.UserIsAdministrator(_user),
-                    EventIsEnd = x.Date.CompareTo(DateTime.Today) > 0
+                    EventIsEnd = x.Date.CompareTo(DateTime.Today) > 0,  //la data dell'evento NON è precedente alla data odierna
+                    UserCanEnrollFreeEntrance = _user.Gender == GenderCostants.GENDER_FEMALE
                 }).FirstOrDefaultAsync();
 
             var eventImgs = await _db.EventPhoto.Where(x => x.EventPhotoEventId == eventId && 

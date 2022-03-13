@@ -41,6 +41,7 @@ namespace ManageDisco.Context
         public DbSet<Warehouse> Warehouse { get; set; }
         public DbSet<Contact> Contact { get; set; }
         public DbSet<ContactType> ContactType { get; set; }
+        public DbSet<Coupon> Coupon { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseLoggerFactory(loggerFactory);

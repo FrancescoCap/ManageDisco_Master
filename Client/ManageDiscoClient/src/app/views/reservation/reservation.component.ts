@@ -54,14 +54,14 @@ export class ReservationComponent implements OnInit {
   public initData() {
     this.isLoading = true;
     var calls: Observable<any>[] = [
-      this._api.getReservations(this.eventFilter, 0),//no filter
+      this._api.getReservations(this.eventFilter,  0),//no filter
       this._api.getEvents()
     ];
 
     forkJoin(calls).pipe(
       catchError(err => { console.log(err); return err; }))
       .subscribe((data: any) => {
-        this.reservations = data[0];        
+        this.reservations = data[0].reservations;        
         this.events = data[1].events;
 
         this.editBudget = false;
@@ -205,7 +205,7 @@ export class ReservationComponent implements OnInit {
       })).subscribe((message: any) => {
         //show success modal
         if (message != null)
-          this._modal.showErrorOrMessageModal(message.message);
+          this._modal.showErrorOrMessageModal(message.message, "Prenotazione effettuata", true);
 
         this.initData();
       })

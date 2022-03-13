@@ -63,19 +63,23 @@ namespace ManageDisco
                     };
                 });
 
+            string ngRokClientRewrite = Configuration["NgRok:Client"];
             services.AddCors(options =>
             {
                 options.AddPolicy("corsPolicy", policy => {
                     policy.AllowCredentials();
-                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins(new string[] { "http://localhost:4200"}); 
+                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins().WithOrigins(new string[] { "http://localhost:4200", ngRokClientRewrite }); 
                     
                 });
             });
 
+            services.AddSingleton<Encryption>();
+            services.AddSingleton<TwilioService>();
+
             services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<DiscoContext>();            
 
-            services.AddControllers();
+            services.AddControllers();           
             
         }
 
@@ -87,10 +91,11 @@ namespace ManageDisco
                 app.UseDeveloperExceptionPage();
                
             }
-            
+            //app.UseMiddleware<EncryptionMiddleware>();
             app.UseMiddleware<JwtCookieHandler>();
             app.UseCors("corsPolicy");        
             app.UseRouting();
+            
             app.UseAuthentication();            
             app.UseAuthorization();
 

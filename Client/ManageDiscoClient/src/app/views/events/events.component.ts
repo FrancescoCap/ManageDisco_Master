@@ -20,7 +20,7 @@ export class EventsComponent implements OnInit {
   isLoading = false;
 
   events_full?: EventPartyView = {events:[]};
-  events?: EventPartyView;
+  events?: EventPartyView = {events:[]};
   eventFilterValue: string = "";
 
   txtListModal: ModalViewGroup = {type: ModalModelEnum.TextBox, viewItems:[]};
@@ -62,7 +62,8 @@ export class EventsComponent implements OnInit {
     this._api.getEvents()
       .subscribe((data: any) => {
         this.events_full = data;
-        this.events = data;
+        
+        this.events!.events = this.events_full?.events;
 
         this.isLoading = false;
       });    
@@ -142,10 +143,10 @@ export class EventsComponent implements OnInit {
 
   filterEventsForName() {
     if (this.eventFilterValue == "") {
-      this.events = this.events_full;
+      this.events!.events = this.events_full!.events;
       return;
     } 
-    this.events!.events!.filter(x => { return x.name?.toLowerCase().includes(this.eventFilterValue) });
+    this.events!.events = this.events_full!.events!.filter(x => { return x.name?.toLowerCase().includes(this.eventFilterValue) });
   }
 
   openEventDetails(id: any) {

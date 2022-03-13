@@ -65,9 +65,9 @@
                     <!--qui ho la lista dati-->
                     <input class="col-1"
                            type="checkbox"
-                           [checked]="values.get(viewItem.referenceId) != []"
-                           (change)="onCheckboxChangeState(viewItem.referenceId, listData, $event, viewGroup.selector)" />                   
-                    {{listData._modalDropText}} - {{listData._valueOut | currency: 'EUR'}}                   
+                           [checked]="this.values.get(viewItem.referenceId)?.includes(listData._dropId)"
+                           (change)="onCheckboxChangeState(viewItem.referenceId, listData, $event, viewGroup.selector)" />
+                    {{listData._modalDropText}} - {{listData._valueOut | currency: 'EUR'}}
                   </div>
                 </div>
               </div>
@@ -102,7 +102,7 @@
     </div>
   </div>
   <!--LOGIN-->
-  <div *ngIf="modalType == 7" class="col-5 modal-border m-auto mt-5">
+  <div *ngIf="modalType == 7" class="col-lg-5 col-12 modal-border m-auto mt-5">
     <div class="modal-header-bg title-bg header-round-border p-3">
       <h3>{{header}}</h3>
     </div>
@@ -113,7 +113,7 @@
           <div class="col-12 text-center">
             <small class="col-5" style="color:red; font-size: 12px" *ngIf="email.touched && email.errors?.['required']">Inserire un indirizzo email</small>
           </div>
-        </div>      
+        </div>
         <div class="col-12 text-center p-3">
           <input type="password" name="password" #password="ngModel" required class="col-5" placeholder="Password" [ngModel]="values.get(lists[0].viewItems[1].referenceId)" (ngModelChange)="onTxtChange(lists[0].viewItems[1].referenceId, $event)" />
         </div>
@@ -123,11 +123,11 @@
         <button class="col-2 btn btn-primary m-1" [disabled]="frmLogin.invalid" type="submit">OK</button>
       </div>
     </form>
-    
+
   </div>
 
   <!--Error dialog-->
-  <div *ngIf="modalType == 5 || modalType == 8" class="col-8 modal-border m-auto mt-5" style="max-width:30%;width:100%;">
+  <!--<div *ngIf="modalType == 5 || modalType == 8" class="col-8 modal-border m-auto mt-5" style="max-width:30%;width:100%;">
     <div class="col-12 card-header" data-value="">
       {{header}}
       <i class="fa fa-close" style="float:right" (click)="onCloseModal()"></i>
@@ -135,5 +135,32 @@
     <div class="card-body" style="background-color:white">
       <label>{{message}}</label>
     </div>
+  </div>-->
+
+  <!--Success dialog-->
+  <div *ngIf="modalType == 9 || modalType == 5 || modalType == 10" class="col-4 modal-border m-auto mt-5" >
+    <div class="col-12 card-header" data-value="">
+      {{header}}
+      <i class="fa fa-close" style="float:right" (click)="onCloseModal()"></i>
+    </div>
+    <div class="card-body" style="background-color:white">
+      <div class="row">
+        <div class="col-3 text-center">
+          <img
+               [src]="modalType == 9 ? '../../../assets/success.png' : modalType == 10 ? '../../../assets/exclamation_mark.png' : '../../../assets/error.png'"
+               style="width:60px"
+               class="col-12"/>
+        </div>
+        <div class="col-9 text-center row">
+          <label class="col-12 align-self-center">{{message}}</label>
+          <div class="col-12" *ngFor="let item of lists">
+            <div class="col-12 text-start" *ngFor="let view of item.viewItems">
+              <label>{{view.label}} : {{view.defaultText}}</label>
+            </div>
+          </div>
+        </div>
+      </div>     
+    </div>
   </div>
+
 </div>

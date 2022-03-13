@@ -8,8 +8,8 @@ import SwiperCore, { EffectFade, Autoplay, Pagination, Navigation, Scrollbar } f
 import { ModalModelEnum, ModalViewGroup } from '../../../components/modal/modal.model';
 import { Observable } from 'rxjs';
 import { forkJoin } from 'rxjs';
-import { HttpStatusCode } from '@angular/common/http';
 import { UserService } from '../../../service/user.service';
+import { GeneralMethods } from '../../../helper/general';
 
 SwiperCore.use([EffectFade, Autoplay, Pagination, Navigation, Scrollbar]);
 
@@ -47,7 +47,7 @@ export class EventDetailComponent implements OnInit {
     this.route.activatedRoute.queryParams.subscribe(params => {
       this.eventId = params["eventId"];
       if (params["editable"] == "true")
-        this.areDetailsEditableFromUser = this.user.userIdAdminstrator();
+        this.areDetailsEditableFromUser = this.user.userIsAdminstrator();
 
     })
     this.initData();
@@ -141,7 +141,7 @@ export class EventDetailComponent implements OnInit {
       }
     ];
 
-    this.modal.showAddModal(this.onLogin, "LOGIN", modalViews, ModalType.LOGIN);
+    this.modal.showAddModal(this.onLogin, "LOGIN", GeneralMethods.getLoginModalViews() , ModalType.LOGIN);
   }
 
   onLogin = (info: any): void => {
@@ -210,5 +210,38 @@ export class EventDetailComponent implements OnInit {
         if (message != null)
           this.modal.showErrorOrMessageModal(message.message);
       })
+  }
+
+  onFreeEntraceRequest() {
+    //Non apro una modal perchè per richiedere l'omaggio necessito di essere registrato, quindi ho già tutte le info che mi servono
+    this.isLoading = true;
+    this._api.getFreeEntrance(this.eventId).pipe(
+      catchError((err:any) => {
+        this.isLoading = false;
+        this.modal.showErrorOrMessageModal(err.message);
+        return err;
+      })).subscribe((data: any) => {
+        this.isLoading = false;
+        this.onFreeEntranceSubscription();
+        //SPostare questo messaggio sulla subscribe dell'API Che fa partire il messaggio whatsapp
+       
+      })
+  }
+
+  onFreeEntranceSubscription() {
+    const formData = new FormData();
+
+    this._api.getSubscription(formData).pipe(
+      catchError(err => {
+        this.modal.showErrorOrMessageModal(err.message);
+        return err;
+      })).subscribe((data:any) => {
+        this.modal.showErrorOrMessageModal("La richiesta è avvenuta con successo. Controlla il tuo cellulare per il link al QR code da esibire all'ingresso", "OMAGGIO");
+      })
+  }
+
+  startEditDesctiption() {
+    if (this.user.userIsAdminstrator())
+      this.editDescription = true;
   }
 }

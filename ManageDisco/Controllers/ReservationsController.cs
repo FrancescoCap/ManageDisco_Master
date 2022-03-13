@@ -157,6 +157,7 @@ namespace ManageDisco.Controllers
         {
             if (eventId <= 0)
                 return NotFound("");
+
             ReservationViewTable reservationViewTable = new ReservationViewTable();
 
             reservationViewTable.Reservations = _db.Reservation.Where(x => x.EventPartyId == eventId)
@@ -176,9 +177,9 @@ namespace ManageDisco.Controllers
                     ReservationStatus = x.ReservationStatus.ReservationStatusValue,
                     ReservationTablAssigned = x.Table.TableNumber,
                     UserId = x.UserId,
-                    CanAcceptReservation = x.ReservationStatusId != ReservationStatusValue.RESERVATIONSTATUS_REJECTED && x.ReservationStatusId != ReservationStatusValue.RESERVATIONSTATUS_APPROVED &&
-                            _user.Roles.Contains(RolesConstants.ROLE_ADMINISTRATOR), //E' concettualmente sbagliato bloccare la funzionalità da qui. Dovrebbe essere un attributo a livello Utente
-                    CanAcceptBudget = x.ReservationStatusId != ReservationStatusValue.RESERVATIONSTATUS_REJECTED &&
+                    CanAcceptReservation = x.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_PENDING && _user.Roles.Contains(RolesConstants.ROLE_ADMINISTRATOR), 
+                    //E' concettualmente sbagliato bloccare la funzionalità da qui. Dovrebbe essere un attributo a livello Utente
+                    CanAcceptBudget = x.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_APPROVED &&
                             DateTime.Compare(x.EventParty.Date, DateTime.Today) > 0,
                     ReservationName = x.ReservationTableName,
                     TableId = x.TableId != 0 ? x.TableId.Value : 0
@@ -188,11 +189,11 @@ namespace ManageDisco.Controllers
             if (resStatus > 0)
                 reservationViewTable.Reservations = reservationViewTable.Reservations.Where(x => x.ReservationStatusId == resStatus);
 
-            if (_user.Roles.Contains(RolesConstants.ROLE_PR) || _user.Roles.Contains(RolesConstants.ROLE_ADMINISTRATOR))
+            if (HelperMethods.UserIsPrOrAdministrator(_user))
             {
                 reservationViewTable.Reservations = reservationViewTable.Reservations.Where(x => x.EventId == eventId);
-                //Se è un pr visualizzo solo le sue prenotazioni per quell'evento
-                if (_user.Roles.Contains(RolesConstants.ROLE_PR))
+                //Se è un pr visualizzo solo le sue prenotazioni per quel pr
+                if (HelperMethods.UserIsPr(_user))
                     reservationViewTable.Reservations = reservationViewTable.Reservations.Where(p => p.UserId == _user.Id);
             }
             reservationViewTable.CanAssignTable = HelperMethods.UserIsAdministrator(_user);

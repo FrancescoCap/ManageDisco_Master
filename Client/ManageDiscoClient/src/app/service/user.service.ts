@@ -7,7 +7,7 @@ export class UserService {
     return document.cookie.includes("isAuth=1");
   }
 
-  public userIdAdminstrator() {
+  public userIsAdminstrator() {
     return document.cookie.includes("authorization_full=True");
   }
 

@@ -136,7 +136,7 @@ export class TableOrderComponent implements AfterViewInit {
 
     this.modalNewOrderViews.push(
       {
-        type: ModalModelEnum.Table, viewItems: [
+        type: ModalModelEnum.Table, multiSelect:true, viewItems: [
           { viewId: "tblProducts", referenceId: "productsId", list: this.productsList, label: "Prodotti" }
         ]        
       },
@@ -248,6 +248,7 @@ export class TableOrderComponent implements AfterViewInit {
     this.initNewOrderModalViews();
     const tableName = this.eventTables.tables.find(x => x.tableId == tableId)?.tableName;
     this._modalService.showAddModal(this.onOrderAdded, `Nuovo ordine per ${tableName}`, this.modalNewOrderViews);
+    console.log(this.modalNewOrderNgModel)
     this._modalService.setModelView(this.modalNewOrderNgModel);
   }
 

@@ -5,8 +5,7 @@
   <div class="row pe-3">
     <div class="row p-3">
       <div class="col-6">
-        <input type="text" class="col-6" placeholder="Cerca evento" [(ngModel)]="eventFilterValue" />
-        <button class="col-3 btn btn-info ms-2" (click)="filterEventsForName()">CERCA</button>
+        <input type="text" class="col-6" placeholder="Cerca evento" (input)="filterEventsForName()" [(ngModel)]="eventFilterValue" />
       </div>     
       <div class="col-6 text-end">
         <button class="col-2 p-2  new-button" (click)="openNewEventModal()" *ngIf="events?.userCanAddEvent"><i class="fa fa-plus me-1"></i>NUOVO</button>
@@ -28,7 +27,7 @@
     </div>
     <div class="col-1">
       <div class="col-12 p-2"> <button class="col-12 p-1 btn btn-secondary" (click)="goToEvent(e.id)">DETTAGLI</button></div>
-      <div class="col-12 p-2"><button class="col-12 p-1 btn btn-danger" *ngIf="events!.userCanDeleteEvent" (click)="deleteEvent(e.id)">ELIMINA</button></div>
+      <div class="col-12 p-2"><button class="col-12 p-1 btn btn-danger" *ngIf="events_full!.userCanDeleteEvent" (click)="deleteEvent(e.id)">ELIMINA</button></div>
 
     </div>
     <div class="dropdown-divider"></div>

@@ -1,6 +1,38 @@
+import { server_URL } from "../app.module";
+
 export class Endpoints {
- 
-  private base_url = "http://localhost:5000/api/"
+
+  private base_url = server_URL;// "http://localhost:5000/api/
+
+  getRoles() {
+    return this.base_url + `User/Roles`;
+  }
+
+  getStatistics(eventId: any): string {
+    return this.base_url + `Statistics?eventId=${eventId}`;
+  } 
+
+  public confirmUserPhoneNumber(refer:any) {
+    return this.base_url + `User/ConfirmPhoneNumber?refer=${refer}`;
+  }
+
+  public getSubscription(eventId: any) {   
+      return this.base_url + `Whatsapp`;
+  }
+
+  public getFreeEntrance(eventId:any) {
+    
+      return this.base_url + `Coupon/Request?eventId=${eventId}`;
+  }
+
+  public getCoupon(refer: any) {   
+      return this.base_url + `Coupon?refer=${refer}"`;
+  }
+
+
+  public getCouponInfo(refer: any) {    
+    return this.base_url + `Coupon/Validate?couponUserId=${refer}`;
+  }
 
   public logout() {
     return this.base_url + "User/Logout";
@@ -42,6 +74,10 @@ export class Endpoints {
     return this.base_url + `User/Reservation`;
   }
 
+  public getUserInfoFromId(userId:any) {
+    return this.base_url + `Coupon?userId=${userId}`;
+  }
+
   public getUserInfo(): string {
     return this.base_url + `User/Profile`;
   }
@@ -54,8 +90,8 @@ export class Endpoints {
     return this.base_url + "User/Register";
   }
 
-  public login(): string {
-    return this.base_url + "User/Login"
+  public login(): string {   
+      return this.base_url + "User/Login"
   }
 
   public getReservations(eventId: number, reserveStatus?:number): string {

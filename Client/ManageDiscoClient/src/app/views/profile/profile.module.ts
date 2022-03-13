@@ -4,18 +4,18 @@ import { ProfileComponent } from "./profile.component";
 import { ProfileRoutes } from "./profile.rouote";
 import { CommonModule } from "@angular/common";
 import { LoadingModule } from "../../components/loading/loading.module";
-import { EmailValidatorCustom } from "../../directives/emailValidator.directive";
+import { DirectivesModule } from "../../directives/directive.module";
 
 @NgModule({
   imports: [
     FormsModule,
     CommonModule,
     LoadingModule,   
-    ProfileRoutes
+    ProfileRoutes,
+    DirectivesModule
   ],
   declarations: [
-    ProfileComponent,
-    EmailValidatorCustom
+    ProfileComponent
   ]
 })
 export class ProfileModule {}

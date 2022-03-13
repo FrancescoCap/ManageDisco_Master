@@ -42,7 +42,7 @@ export class ApiHttpService {
   }
 
   public postCallWithResponse(url: string, data: any, onErrorCallBack?: (status: number) => any) {
-    return this.http?.post(url, data, { withCredentials: true, observe: 'response' }).pipe(
+    return this.http?.post(url, data, {withCredentials:true, observe: 'response' }).pipe(
       catchError(err => {
         if (err.status == HttpStatusCode.Unauthorized) {
           if (onErrorCallBack != null)

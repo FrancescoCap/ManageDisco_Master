@@ -30,8 +30,12 @@ const routes:Routes = [
   { path: 'Events/Details', loadChildren: () => import('./views/events/event-detail/event-detail.module').then(m => m.EventDetailModule)},
   { path: 'MyProfile', loadChildren: () => import('./views/profile/profile.module').then(m => m.ProfileModule)},
   { path: 'HomeSettings', loadChildren: () => import('./views/home-settings/home-settings.module').then(m => m.HomeSettingsModule)},
-  { path: 'Warehouse', loadChildren: () => import('./views/warehouse/warehouse.module').then(m => m.WarehouseModule)}
+  { path: 'Warehouse', loadChildren: () => import('./views/warehouse/warehouse.module').then(m => m.WarehouseModule)},
+  { path: 'Coupon', loadChildren: () => import('./views/coupon/coupon.module').then(m => m.CouponModule)},
+  { path: 'PhoneNumber', loadChildren: () => import('./views/coupon/coupon.module').then(m => m.CouponModule)}
 ]
+export const server_URL = "http://localhost:5000/api/";
+export const client_URL = "http://localhost:4200";
 
 @NgModule({
   declarations: [
@@ -46,7 +50,7 @@ const routes:Routes = [
     LoadingModule,
     SwiperModule,
     PdfViewerModule,    
-    RouterModule.forRoot(routes),
+    RouterModule.forRoot(routes)
   ],
   providers: [
     ApiCaller,
