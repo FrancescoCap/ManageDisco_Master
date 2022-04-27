@@ -62,8 +62,16 @@ namespace ManageDisco.Controllers
                     }
                 }
             };
+
+            HeaderMenu shop = new HeaderMenu()
+            {
+                Header = "Shop",
+                Link = "Shop"
+            };
+
             menu.Add(home);
             menu.Add(events);
+            menu.Add(shop);
             menu.Add(catalog);
 
             return Ok(menu);
@@ -78,26 +86,30 @@ namespace ManageDisco.Controllers
             HeaderMenu home = new HeaderMenu()
             {
                 Header = "Home",
-                Link = "/Home"
+                Link = "/Home",
+                Icon = "fa fa-home"
             };
             HeaderMenu events = new HeaderMenu()
             {
                 Header = "Eventi",
                 Link = "/Events",
+                Icon = "far fa-calendar-alt",
                 child = new List<MenuChild>()
                 {
                     new MenuChild()
                     {
                         Title = "Programmazione eventi",
-                        Link = "/Events"
+                        Link = "/Events",
+                        Icon = "far fa-calendar-alt"
                     }
-                }
+                }                
             };
 
             HeaderMenu profile = new HeaderMenu()
             {
                 Header = "Gestione generale",
                 Link = "/MyProfile",
+                Icon = "fas fa-cogs",
                 child = new List<MenuChild>()
                 {
                     //new MenuChild()
@@ -110,31 +122,42 @@ namespace ManageDisco.Controllers
                     //     Title = "Impostazione PR",
                     //     Link = "/Pr"
                     //}
-                }
+                }               
             };
 
             HeaderMenu catalog = new HeaderMenu()
             {
                 Header = "Listino",
-                Link = "#",
+                Link = "/Product",
+                Icon = "fas fa-list",
                 child = new List<MenuChild>()
                 {
                     new MenuChild()
                     {
                         Title = "Bottiglie",
-                        Link = "/Product"
+                        Link = "/Product",
+                        Icon = "fas fa-wine-bottle"
                     }
                 }
             };
+            HeaderMenu shop = new HeaderMenu()
+            {
+                Header = "Shop",
+                Link = "Shop",
+                Icon = "fa fa-shopping-cart"
+            };
+
             menu.Add(home);
             menu.Add(events);
+            menu.Add(shop);
             #region Customer only option
             if (!HelperMethods.UserIsInStaff(_user))
             {
                 HeaderMenu customerReservations = new HeaderMenu()
                 {
                     Header = "Prenotazioni",
-                    Link = "/Reservation"
+                    Link = "/Reservation",
+                    Icon = "fas fa-receipt"
                 };
                 menu.Add(customerReservations);
             }
@@ -149,17 +172,20 @@ namespace ManageDisco.Controllers
                 {
                     Header = "Prenotazioni",
                     Link = "/Reservation",
+                    Icon = "fas fa-receipt",
                     child = new List<MenuChild>()
                     {
                         new MenuChild()
                         {
                             Title = "Elenco prenotazioni",
-                            Link = "/Reservation"
+                            Link = "/Reservation",
+                            Icon = "fas fa-receipt"
                         },
                         new MenuChild()
                         {
                             Title = "Gestione tavoli",
-                            Link = "/Table"
+                            Link = "/Table",
+                            Icon = "fas fa-clipboard"
                         }
                     }
                 };
@@ -169,12 +195,14 @@ namespace ManageDisco.Controllers
                 {
                     Header = "Strumenti",
                     Link = "/Payments",
+                    Icon = "fas fa-toolbox",
                     child = new List<MenuChild>()
                     {
                         new MenuChild()
                         {
                             Title = "Pagamenti",
-                            Link = "/Payments"
+                            Link = "/Payments",
+                            Icon = "fas fa-cash-register"
                         }
                     }
                 };
@@ -183,12 +211,14 @@ namespace ManageDisco.Controllers
                     m3.child.Add(new MenuChild()
                     {
                         Title = "Home",
-                        Link = "/HomeSettings"
+                        Link = "/HomeSettings",
+                        Icon = "fas fa-hammer"
                     });
                     m3.child.Add(new MenuChild()
                     {
                         Title = "Magazzino-bottiglie",
-                        Link = "/Warehouse"
+                        Link = "/Warehouse",
+                        Icon = "fas fa-boxes"               
                     });
                 }
                 menu.Add(m3);
@@ -196,25 +226,28 @@ namespace ManageDisco.Controllers
             #endregion
 
             #region WAREHOUSEWORKER menu
-            if (_user.Roles.Contains(RolesConstants.ROLE_WAREHOUSE_WORKER))
+            if (_user.Roles.Contains(RolesConstants.ROLE_WAREHOUSE_WORKER) || _user.UserCanHandleWarehouse)
             {
                 HeaderMenu order = new HeaderMenu()
                 {
                     Header = "Ordini",
                     Link = "#",
+                    Icon = "fad fa-tasks",
                     child = new List<MenuChild>()
                 {
                     new MenuChild()
                     {
                         Title = "Tavoli-bottiglie",
-                        Link = "/TableOrder"
+                        Link = "/TableOrder",
+                        Icon = "fas fa-wine-bottle"
                     }
                 }
                 };
                 HeaderMenu warehouse = new HeaderMenu()
                 {
                     Header = "Magazzino",
-                    Link = "/Warehouse"
+                    Link = "/Warehouse",
+                    Icon = "far fa-inventory"
                 };
                 menu.Add(order);
                 menu.Add(warehouse);

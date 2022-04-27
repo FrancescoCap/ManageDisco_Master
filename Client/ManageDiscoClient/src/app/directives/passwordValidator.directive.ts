@@ -67,7 +67,7 @@ export class PasswordValidator implements Validator {
 
   validate(control: AbstractControl): ValidationErrors | null {
     const compare_password = control.root.get(this.comparer);
-    const password = control.value;
+    const password = control.value;    
 
     if (control.value == null)
       return { 'passwordValue': true };
@@ -78,8 +78,10 @@ export class PasswordValidator implements Validator {
       !this.passwordHasNumber(password))
       return { 'passwordFormat': true };    
    
-    if (!this.passwordMatch(password, compare_password?.value))
+    if (!this.passwordMatch(password, compare_password?.value)) {
+      console.log("mismatch")
       return { 'passwordMismatch': true };
+    }
     
     return null;
   }
@@ -101,7 +103,11 @@ export class PasswordValidator implements Validator {
     return hasNumber;
   }
 
-  passwordMatch(password:string, password_compare:string) {
+  passwordMatch(password: string, password_compare: string) {
+    //console.log(password == null)
+    //console.log(password_compare == null)
+    //console.log(password != password_compare)
+
     if (password == null)
       return false;
     if (password_compare == null)

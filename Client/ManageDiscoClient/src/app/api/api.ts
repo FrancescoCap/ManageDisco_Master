@@ -1,9 +1,9 @@
 import { HttpStatusCode } from "@angular/common/http";
 import { Injectable, Input, ViewContainerRef } from "@angular/core";
 import { Router } from "@angular/router";
-import { catchError, map, Observable, pipe } from "rxjs";
+import { map, Observable, pipe } from "rxjs";
 import { GeneralMethods } from "../helper/general";
-import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartyView, PrCustomerView, HomeInfo, CatalogView, HomePhotoPost, Role, TranslatedRolesEnum, ReservationStatus, TranslatedReservationStatusEnum } from "../model/models";
+import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartyView, PrCustomerView, HomeInfo, CatalogView, HomePhotoPost, Role, TranslatedRolesEnum, ReservationStatus, TranslatedReservationStatusEnum, ProductShopHeader, ProductShopType, UserPermissionCell, UserPermissionTable, UserPermissionPut } from "../model/models";
 import { ModalService } from "../service/modal.service";
 
 import { ApiHttpService } from "./http";
@@ -27,12 +27,86 @@ export class ApiCaller {
     this.modalService.setContainer(container);
   }
 
-  onApiError = (status: number):void => {
-    if (status == 0) {  //Unable to connect to server
+  onApiError = (status: number, message: string): void => {
+    if (status == 0) {  //Unable to connect to server      
       this.modalService.showErrorOrMessageModal("Impossibile raggiungere il server.");
-    }else if (status == HttpStatusCode.Unauthorized) {
-      this.router.navigateByUrl("/Login");     
+    } else if (status == HttpStatusCode.Unauthorized) {
+      console.log(this.router.url)
+      if (!this.router.url.includes("Login")) {
+        //this.getRefreshToken().subscribe(() => {
+        //    console.log(this.router.url)
+        //    //this.router.navigateByUrl('http://192.168.1.69:4200/Events');
+        //  });
+      }     
+    } else if (status == HttpStatusCode.BadRequest) {
+      this.modalService.showErrorOrMessageModal(message, "ERRORE");
     }
+  }
+
+  public putUserPermission(data: UserPermissionPut) {
+    return this.http.putCall(this.url.putUserPermission(), data, this.onApiError);
+  }
+
+  public getUserPermission() {
+    return this.http.getCall(this.url.getUserPermission(), this.onApiError);
+  }
+
+  public getPermissionAction() {
+    return this.http.getCall(this.url.getPermissionAction(), this.onApiError);
+  }
+
+  private checkTokenValidation() {
+    return this.http.getCall(this.url.getEvents(), this.onApiError)
+  }
+
+  public getRefreshToken() {
+    return this.http.getCall(this.url.getRefreshToken());
+  }
+
+  public closeFreeEntrance(eventId:any) {
+    return this.http.putCall(this.url.closeFreeEntrance(eventId), this.onApiError)
+  }
+
+  public checkCouponValidation(code:string) {
+    return this.http.getCall(this.url.checkCouponValidation(code), this.onApiError);
+  }
+
+  public getUserAwards() {
+    return this.http.getCall(this.url.getUserAwards(), this.onApiError);
+  }
+
+  public purchaseProduct(productId:any) {
+    return this.http.postCall(this.url.purchaseProduct(productId),null, this.onApiError)
+  }
+
+  public postShop(data:ProductShopHeader) {
+    return this.http.postCall(this.url.getShop(), data, this.onApiError);
+  }
+
+  public getProductShopType() {
+    return this.http.getCall(this.url.getProductShopType(), this.onApiError).pipe(
+      map(data => {
+        data.map((productType: ProductShopType) => {
+          productType._dropId = productType.productShopTypeId;
+          productType._modalDropText = productType.productShopTypeDescription;
+        })        
+
+        return data;
+      }));
+  }
+
+  public getShop() {
+    return this.http.getCall(this.url.getShop(), this.onApiError).pipe(
+      map((data: ProductShopHeader[]) => {
+        data.forEach((o, i) => {
+          data[i].productShopBase64Image = GeneralMethods.normalizeBase64(o.productShopBase64Image!);
+        })
+        return data;
+      }));
+  }
+
+  public getCollaborators() {
+    return this.http.getCall(this.url.getCollaborators(), this.onApiError);
   }
 
   public getRoles() {
@@ -51,17 +125,17 @@ export class ApiCaller {
   }
 
   public confirmUserPhoneNumber(refer:any): Observable<any> {
-    return this.http.postCall(this.url.confirmUserPhoneNumber(refer), null);
+    return this.http.postCall(this.url.confirmUserPhoneNumber(refer), this.onApiError);
   }
 
   //API per la ricezione del messaggio whatsapp dell'omaggio
   public getSubscription(eventId?:any) {
-    return this.http.postCall(this.url.getSubscription(eventId), null);
+    return this.http.postCall(this.url.getSubscription(eventId), this.onApiError);
   }
 
   //Api per la richiesta dell'omaggio
   public getFreeEntrance(eventId:any): Observable<any> {
-    return this.http.getCall(this.url.getFreeEntrance(eventId));
+    return this.http.getCall(this.url.getFreeEntrance(eventId), this.onApiError);
   }
 
   public getCoupon(refer:any):Observable<any>{
@@ -69,7 +143,7 @@ export class ApiCaller {
   }
 
   public getCouponInfo(refer: any): Observable<any> {
-    return this.http.postCall(this.url.getCouponInfo(refer), null);
+    return this.http.postCall(this.url.getCouponInfo(refer), this.onApiError);
   }
 
   public logout() {
@@ -81,7 +155,7 @@ export class ApiCaller {
   }
 
   public getContact() {
-    return this.http.getCall(this.url.getContact());
+    return this.http.getCall(this.url.getContact(), this.onApiError);
   }
 
   public getContactTypes() {
@@ -93,7 +167,7 @@ export class ApiCaller {
   }
 
   public getWarehouse(): Observable<any> {
-    return this.http.getCall(this.url.getWarehouse());
+    return this.http.getCall(this.url.getWarehouse(), this.onApiError);
   }
 
   public postHomePhoto(data:HomePhotoPost[]) {
@@ -108,8 +182,8 @@ export class ApiCaller {
     return this.http.postCall(this.url.getCatalog(), catalogData);
   }
 
-  public putChangePrCustomer(prCode:any) {
-    return this.http.putCall(this.url.getPrCustomers(), prCode);
+  public putChangePrCustomer(prCode: any) {
+    return this.http.putCall(this.url.getPrCustomers(prCode),null, this.onApiError);
   }
 
   public getHomeInfo():Observable<any> {
@@ -149,16 +223,15 @@ export class ApiCaller {
   }
 
   public getMenu(): Observable<any> {
-    return this.http.getCall(this.url.getMenu());
+    return this.http.getCall(this.url.getMenu(), this.onApiError);
   }
 
-
   public register(data: any):Observable<any> {
-    return this.http.postCall(this.url.register(), data);
+    return this.http.postCall(this.url.register(), data, this.onApiError);
   }
 
   public login(data: any): Observable<any> {
-    return this.http.postCallWithResponse(this.url.login(), data);
+    return this.http.postCallWithResponse(this.url.login(), data, this.onApiError);
   }
   //eventId optional for filtering purposes
   public getReservations(eventId: number, reserveStatus?: number): Observable<Reservation[]> {
@@ -171,7 +244,6 @@ export class ApiCaller {
       map((status: ReservationStatus[]) => {
         status.forEach((x, y) => {
           x._translatedStatus = Object.entries(TranslatedReservationStatusEnum).find(k => k[0] == x.reservationStatusValue?.toUpperCase())?.[1];
-          console.log(x.reservationStatusValue);
         })
         return status;
       }));
@@ -204,7 +276,7 @@ export class ApiCaller {
   }
 
   public getEventDetail(id: number) {
-    return this.http.getCall(this.url.getEventDetail(id)).pipe(
+    return this.http.getCall(this.url.getEventDetail(id), this.onApiError).pipe(
       map((data:EventParty) => {
         data.linkImage?.forEach((x, y) => {
           x = GeneralMethods.normalizeBase64(x);
@@ -247,7 +319,7 @@ export class ApiCaller {
       map((data:PrCustomerView[]) => {
         data.map((item: PrCustomerView) => {
           item._dropId = item.customerId;
-          item._modalDropText = item.name + " - " + item.surname;
+          item._modalDropText = item.surname != null ? item.name + " - " + item.surname : item.name;
           return item;
         })
         return data;
@@ -263,23 +335,23 @@ export class ApiCaller {
   }
 
   public confirmReservationBudget(reservationId:number, euro: number): Observable<any> {
-   return this.http.putCall(this.url.confirmBudget() + `?reservationId=${reservationId}&euro=${euro}`, null);
+    return this.http.putCall(this.url.confirmBudget() + `?reservationId=${reservationId}&euro=${euro}`, null, this.onApiError);
   }
 
-  public getPaymentsOverview(): Observable<PaymentOverview[]> {
-    return this.http.getCall(this.url.paymentOverview()).pipe(
-      map((data:PaymentOverview[]) => {
-        data.map((item:PaymentOverview) => {
-          item.userIdView = "btnDetails_" + item.userId;
-          return item;
+  public getPaymentsOverview(userId?: string): Observable<PaymentOverview[]> {
+      return this.http.getCall(this.url.paymentOverview(userId), this.onApiError).pipe(
+        map((data: PaymentOverview[]) => {
+          data.map((item: PaymentOverview) => {
+            item.userIdView = "btnDetails_" + item.userId;
+            return item;
+          })
+          return data;
         })
-        return data;
-      })
-    );
+      );        
   }
 
   public getPaymentsOverviewDetails(userId:string) {
-    return this.http.getCall(this.url.paymentOverviewDetails(userId));
+    return this.http.getCall(this.url.paymentOverviewDetails(userId), this.onApiError);
   }
 
   public postPayment(newPayment: PaymentPost) {
@@ -313,8 +385,8 @@ export class ApiCaller {
       }));
   }
 
-  public getProducts(catalogId?:number): Observable<Product[]> {
-    return this.http.getCall(this.url.getProducts(catalogId)).pipe(
+  public getProducts(catalogId?:number, isShopProduct:boolean = false): Observable<Product[]> {
+    return this.http.getCall(this.url.getProducts(catalogId, isShopProduct), this.onApiError).pipe(
       map(data => {
         data.map((item: Product) => {
           item._dropId = item.productId;

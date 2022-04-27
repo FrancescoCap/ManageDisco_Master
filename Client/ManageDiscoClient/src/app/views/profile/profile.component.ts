@@ -2,7 +2,8 @@ import { Component, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { catchError, forkJoin, Observable } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { ModalModelEnum, ModalViewGroup } from '../../components/modal/modal.model';
-import { EventParty, FreeEntrance, NavigationLabel, RegistrationRequest, Reservation, Role, Statistics, UserInfoView } from '../../model/models';
+import { EventParty, UserPermissionPut, NavigationLabel, RegistrationRequest, Reservation, Role, Statistics, User, UserInfoView, UserPermission, UserPermissionCell, UserPermissionTable, UserProduct } from '../../model/models';
+import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 import { UserService } from '../../service/user.service';
 
@@ -18,6 +19,8 @@ export class ProfileComponent implements OnInit {
   userReservation?: Reservation[] = [];
   registrationRequest?: RegistrationRequest;
   events?: EventParty[];
+  userPermission?: UserPermissionTable;
+
   selectedEvent?: any = 0;
 
   statistics?: Statistics;
@@ -31,6 +34,11 @@ export class ProfileComponent implements OnInit {
   RESERVATION_VIEW_INDEX = 1;
   COLLABORATORS_VIEW_INDEX = 2;
   STATISTICS_VIEW_INDEX = 3;
+  PERMISSION_VIEW_INDEX = 4;
+
+  /*CHILD LABEL INDEX*/
+  PROFILE_MYDATA_VIEW_INDEX = 0;
+  PROFILE_AWARDS_VIEW_INDEX = 1;
 
   pageViews: boolean[] = [
     true,
@@ -42,17 +50,28 @@ export class ProfileComponent implements OnInit {
   userIsAdministrator = false;
 
   navigationLabel: NavigationLabel[] = [
-    {label:"I miei dati", isActive: true, id: "Profile", index: 0},
-    {label:"Le mie prenotazioni", isActive: false, id:"Reservations", index:1},
-    {label:"Nuovo Collaboratore", isActive: false, id:"Collaborators", index:2},
-    {label:"Statistiche", isActive: false, id:"Collaborators", index:3}
+    {
+      label: "I miei dati", isActive: true, id: "Profile", index: this.PROFILE_VIEW_INDEX, child: [
+        { label: "I MIEI DATI", isActive: true, index: this.PROFILE_MYDATA_VIEW_INDEX },
+        { label: "PREMI", isActive: false, index: this.PROFILE_AWARDS_VIEW_INDEX }
+      ]
+    },
+    { label: "Le mie prenotazioni", isActive: false, id: "Reservations", index: this.RESERVATION_VIEW_INDEX, child:[]},
+    { label: "Nuovo Collaboratore", isActive: false, id: "Collaborators", index: this.COLLABORATORS_VIEW_INDEX, child: []},
+    { label: "Statistiche", isActive: false, id: "Collaborators", index: this.STATISTICS_VIEW_INDEX, child: []},
+    { label: "Permessi", isActive: false, id: "Permissions", index: this.PERMISSION_VIEW_INDEX, child: []}
   ]
 
+  userProducts?: UserProduct[];
+
   roles: Role[] = [];
+  isMobileView = false;
+  isTabletView = false;
 
   constructor(private _api: ApiCaller,
     private _modalService: ModalService,
-    private _user:UserService  ) { }
+    private _user: UserService,
+    private _generalService: GeneralService  ) { }
 
   ngOnInit(): void {
     this.initData();
@@ -61,6 +80,8 @@ export class ProfileComponent implements OnInit {
 
   ngAfterViewInit() {    
     this._modalService.setContainer(this.modalContainer!);
+    this.isMobileView = this._generalService.isMobileView();
+    this.isTabletView = this._generalService.isTabletView();
   }
 
   initData() {
@@ -93,17 +114,41 @@ export class ProfileComponent implements OnInit {
     })
     this.pageViews[item] = true;
 
-    if (item == this.COLLABORATORS_VIEW_INDEX) {
-
-      if (this.userIsAdministrator)
-        this.getAvaiableRoles();
+    switch (item) {
+      case this.COLLABORATORS_VIEW_INDEX:
+        if (this.userIsAdministrator)
+          this.getAvaiableRoles();
+        break;
+      case this.STATISTICS_VIEW_INDEX:
+        this.getEvents();
+        break;
+      case this.PERMISSION_VIEW_INDEX:
+        this.getPermissionActions();
+        break;
     }
       this.registrationRequest = { email: "", password: "", name: "", surname: "", username: "", phoneNumber: "", role: this.registrationRequest?.role, gender:"Male" };
+  }
 
-    if (item == this.STATISTICS_VIEW_INDEX) {
-      this.getEvents();
+  onChildLabelClick(lblMasterIndex: any, lblChildIndex: any) {
+    this.navigationLabel[lblMasterIndex].child.forEach((x, y) => {
+      x.isActive = false;
+    })
+    this.navigationLabel[lblMasterIndex].child[lblChildIndex].isActive = true;
+    this.getChildData(lblChildIndex);
+  }
+
+  getChildData(index: any) {
+    switch (index) {
+      case this.PROFILE_AWARDS_VIEW_INDEX:
+        this.getUserAwards();
+        break;
     }
+  }
 
+  getUserAwards() {
+    this._api.getUserAwards().subscribe((data: any) => {
+      this.userProducts = data;
+    })
   }
 
   getAvaiableRoles() {
@@ -144,7 +189,6 @@ export class ProfileComponent implements OnInit {
   onPrChanged = (info: any): void => {
     this._api.putChangePrCustomer(info.get("prCode")).pipe(
       catchError(err => {
-        this._modalService.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((response: any) => {
         if (response != null)
@@ -158,11 +202,10 @@ export class ProfileComponent implements OnInit {
     this.isLoading = true;
     this._api.register(this.registrationRequest).pipe(
       catchError(err => {
-        this._modalService.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe((data: any) => {
         if (data.message.includes("success"))
-          this._modalService.showErrorOrMessageModal("Registrazione avvenuta con successo", "ESITO");
+          this._modalService.showErrorOrMessageModal("Registrazione avvenuta con successo", "ESITO", true);
 
         this.initData();
         this.registrationRequest = { name: "", surname:"", email:"", password:"", role:0, phoneNumber:"", username:"", gender: "Male"}
@@ -183,6 +226,17 @@ export class ProfileComponent implements OnInit {
       })).subscribe((data: any) => {
         this.events = data.events;
       })
+  }
+
+  getPermissionActions() {
+    var calls: Observable<any>[] = [
+      this._api.getUserPermission()
+    ]
+
+    forkJoin(calls).subscribe((data: any) => {
+      this.userPermission = data[0];
+    })
+
   }
 
   eventStatChange() {
@@ -219,5 +273,18 @@ export class ProfileComponent implements OnInit {
   freeEntranceChangePage(text:any) {
     this.freeEntranceVisibleItems = 10 * text;
     this.freeEntranceSelectedPage = text;
+  }
+
+  onPermissionStateChange(memberId?:string, permId?:number) {
+
+    var putPermission: UserPermissionPut = {
+      permissionId: permId,
+      userId: memberId
+    }
+
+    this._api.putUserPermission(putPermission)
+      .subscribe(() => {
+        this.getPermissionActions();
+      })
   }
 }

@@ -23,5 +23,9 @@ namespace ManageDisco.Model
         /// </summary>
         public DateTime ReservationPaymentDate { get; set; } = DateTime.Now;
         public List<Reservation> Reservations { get; set; }
+        /// <summary>
+        /// Causale
+        /// </summary>
+        public string ReservationPaymentDescription { get; set; }
     }    
 }

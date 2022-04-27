@@ -26,5 +26,9 @@ namespace ManageDisco.Model
         public Dictionary<int,int> ProductsId { get; set; }
         public decimal ProductsSpendingAmount { get; set; }
         public int ExitChanged { get; set; }
+        /// <summary>
+        /// Reppresenta un coupon per omaggi tavolo acquistati dallo shop
+        /// </summary>
+        public string ShopCoupon { get; set; }
     }
 }

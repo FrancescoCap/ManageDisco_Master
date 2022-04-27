@@ -2,7 +2,51 @@ import { server_URL } from "../app.module";
 
 export class Endpoints {
 
-  private base_url = server_URL;// "http://localhost:5000/api/
+  private base_url = server_URL;
+
+  putUserPermission() {
+    return this.base_url + `UserPermission`;
+  }
+
+  getUserPermission() {
+    return this.base_url + `UserPermission/UserPermissionView`;
+  }
+
+  getPermissionAction() {
+    return this.base_url + `UserPermission/PermissionAction`;
+  }
+
+  getRefreshToken() {
+    return this.base_url + `User/RefreshToken`;
+  }
+
+  closeFreeEntrance(eventId:any) {
+    return this.base_url + `EventParties/FreeEntrance?eventId=${eventId}`;
+  }
+
+  checkCouponValidation(code:string) {
+    return this.base_url + `Coupon/Validation?couponCode=${code}`;
+  }
+
+  getUserAwards() {
+    return this.base_url + `ProductShop/UserAwards`;
+  }
+
+  purchaseProduct(productId:any) {
+    return this.base_url + `ProductShop/Purchase?productId=${productId}`;
+  }
+
+  getProductShopType() {
+    return this.base_url + `ProductShopTypes`;
+  }
+
+  getShop() {
+    return this.base_url + `ProductShop`;
+  }
+
+  getCollaborators() {
+    return this.base_url + `User/Collaborators`;
+  }
 
   getRoles() {
     return this.base_url + `User/Roles`;
@@ -107,8 +151,8 @@ export class Endpoints {
     return this.base_url + `Reservations/Event?eventId=${eventId}`
   }
 
-  public getPrCustomers() {
-    return this.base_url + `PrCustomers`;
+  public getPrCustomers(prCode?:string) {
+    return this.base_url + `PrCustomers?prCode=${prCode}`;
   }
 
   public getAcceptedReservations(eventId:number): string {
@@ -142,8 +186,8 @@ export class Endpoints {
     return this.base_url + `Reservations/Budget/Confirm`;
   }
 
-  public paymentOverview() {
-    return this.base_url + `PaymentOverviews`;
+  public paymentOverview(userId?:string) {
+    return this.base_url + `PaymentOverviews?UserId=${userId}`;
   }
 
   public paymentOverviewDetails(userId:string) {
@@ -178,11 +222,11 @@ export class Endpoints {
     return this.base_url + "Catalogs";
   }
 
-  public getProducts(catalogId?: number) {
+  public getProducts(catalogId?: number, isShopProduct?:boolean) {
     if (catalogId != null && catalogId > 0)
-      return this.base_url + `Products?catalogId=${catalogId}`;
+      return this.base_url + `Products?catalogId=${catalogId}&shop=${isShopProduct}`;
     else
-      return this.base_url + `Products`;
+      return this.base_url + `Products?shop=${isShopProduct}`;
   }
 
   public deleteProduct(productId:number) {

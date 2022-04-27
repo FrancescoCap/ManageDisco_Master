@@ -42,6 +42,13 @@ namespace ManageDisco.Context
         public DbSet<Contact> Contact { get; set; }
         public DbSet<ContactType> ContactType { get; set; }
         public DbSet<Coupon> Coupon { get; set; }
+        public DbSet<ProductShopHeader> ProductShopHeader { get; set; }
+        public DbSet<UserProduct> UserProduct { get; set; }
+        public DbSet<ProductShopType> ProductShopType { get; set; }
+        public DbSet<ProductShopRow> ProductShopRow { get; set; }
+        public DbSet<RefreshToken> RefreshToken { get; set; }
+        public DbSet<PermissionAction> PermissionAction { get; set; }
+        public DbSet<UserPermission> UserPermission { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseLoggerFactory(loggerFactory);

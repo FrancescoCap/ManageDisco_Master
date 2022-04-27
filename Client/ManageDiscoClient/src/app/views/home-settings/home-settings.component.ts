@@ -3,6 +3,7 @@ import { forkJoin } from 'rxjs';
 import { catchError, Observable } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { Contact, ContactType, HomeInfo, HomePhotoPost, HomePhotoPut } from '../../model/models';
+import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 
 @Component({
@@ -39,11 +40,14 @@ export class HomeSettingsComponent implements OnInit {
     false,
     false
   ]
+  isMobileView = false;
 
   constructor(private _api: ApiCaller,
-        private _modal:ModalService) { }
+    private _modal: ModalService,
+    private _generalService:GeneralService  ) { }
 
   ngOnInit(): void {
+    this.isMobileView = this._generalService.isMobileView();
     this.initData();
   }
 
@@ -85,10 +89,10 @@ export class HomeSettingsComponent implements OnInit {
     this.homePhotoPost.push({
       photoTypeId: typePhotoId,
       homePhotoBase64: "",
-      photoName: homePhotoPath
+      photoName: event.target.files[0].name
     });
-
-    //qui gli passo sempre l'index dell'ultima foto aggiunta così da associare il codice base64 estrapolato dalla funzione, sempre all'ultima immagine
+    console.log(event.target.files[0].name)
+    //qui gli passo sempre l'index dell'ultima foto aggiunta così da associare il codice base64 estrapolato dalla funzione sempre all'ultima immagine
     this.convertFileToBase64(event.target.files[0], this.HOME_GALLERY_MAIN, this.homePhotoPost.length);
   }
 
@@ -98,30 +102,32 @@ export class HomeSettingsComponent implements OnInit {
     this.homePhotoPost.push({
       photoTypeId: typePhotoId,
       homePhotoBase64: "",
-      photoName: homePhotoPath
+      photoName: event.target.files[0].name
     });
 
-    //qui gli passo sempre l'index dell'ultima foto aggiunta così da associare il codice base64 estrapolato dalla funzione, sempre all'ultima immagine
+    //qui gli passo sempre l'index dell'ultima foto aggiunta così da associare il codice base64 estrapolato dalla funzione sempre all'ultima immagine
     this.convertFileToBase64(event.target.files[0], this.HOME_GALLERY_MAIN, this.homePhotoPost.length);
   }
 
   convertFileToBase64(blob:Blob, group:any, index?:number) {
-
+    
     var fileReader = new FileReader();
     fileReader.onload = (event: any) => {
-      this.homePhotoPost[index!-1].homePhotoBase64 = event.target.result;
+      this.homePhotoPost[index! - 1].homePhotoBase64 = event.target.result;
+      console.log(this.homePhotoPost)
     }
     fileReader.readAsDataURL(blob);
   }
 
   saveHomePhotos() {
+    console.log(this.homePhotoPost)
     this._api.postHomePhoto(this.homePhotoPost).pipe(
       catchError(err => {
         this._modal.showErrorOrMessageModal(err.message);
         return err;
       })).subscribe(() => {
         this.initData();
-      })
+    })
   }
 
   saveContact() {

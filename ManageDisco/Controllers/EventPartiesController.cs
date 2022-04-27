@@ -15,6 +15,7 @@ using System.IO;
 using System.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace ManageDisco.Controllers
 {
@@ -23,7 +24,8 @@ namespace ManageDisco.Controllers
     public class EventPartiesController : BaseController
     {
         public EventPartiesController(DiscoContext db,
-            IConfiguration configuration) : base(db, configuration)
+            IConfiguration configuration,
+            UserManager<User> userManager) : base(db, configuration, userManager)
         {
         }
 
@@ -94,16 +96,13 @@ namespace ManageDisco.Controllers
                 var address = _db.EventPhoto.FirstOrDefault(p => p.EventPhotoEventId == x.Id).EventPhotoImagePath;
                 string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPassword)));
                 x.ImagePreview = base64Value;
-
-            });
-           
-
+            });       
 
             EventPartyOverview partyOverview = new EventPartyOverview();
             partyOverview.Events = events;
-            partyOverview.UserCanAddEvent = _user.Roles.Contains(RolesConstants.ROLE_ADMINISTRATOR);
-            partyOverview.UserCanAddReservation = _user.Roles.Contains(RolesConstants.ROLE_CUSTOMER);
-            partyOverview.UserCanDeleteEvent = HelperMethods.UserIsAdministrator(_user);
+            partyOverview.UserCanAddEvent = HelperMethods.UserIsAdministrator(_user) || _user.UserCanHandleEvents;
+            partyOverview.UserCanAddReservation = HelperMethods.UserIsCustomer(_user);
+            partyOverview.UserCanDeleteEvent = HelperMethods.UserIsAdministrator(_user) || _user.UserCanHandleEvents;
 
             return Ok(partyOverview);
         }
@@ -124,6 +123,7 @@ namespace ManageDisco.Controllers
                     EntrancePrice = x.EntrancePrice,
                     FreeEntranceDescription = x.FreeEntranceDescription,
                     TablePrice = x.TablePrice,
+                    EventIsEnd = x.Date.CompareTo(DateTime.Today) < 0,  //la data dell'evento NON è precedente alla data odierna
                     UserCanEditInfo = false
                 }).FirstOrDefaultAsync();
 
@@ -164,13 +164,16 @@ namespace ManageDisco.Controllers
                     FreeEntranceDescription = x.FreeEntranceDescription,
                     TablePrice = x.TablePrice,
                     UserCanEditInfo = HelperMethods.UserIsAdministrator(_user),
-                    EventIsEnd = x.Date.CompareTo(DateTime.Today) > 0,  //la data dell'evento NON è precedente alla data odierna
-                    UserCanEnrollFreeEntrance = _user.Gender == GenderCostants.GENDER_FEMALE
+                    EventIsEnd = x.Date.CompareTo(DateTime.Today) < 0,  //la data dell'evento è precedente alla data odierna 
+                    UserCanEnrollFreeEntrance = _user.Gender == GenderCostants.GENDER_FEMALE,
+                    FreeEntranceEnabled = x.FreeEntranceEnabled,
+                    EventPartyStatusDescription = x.Date.CompareTo(DateTime.Today) > 0 ?
+                                    EventStatusConstants.STATUS_SCHEDULED : x.Date.CompareTo(DateTime.Today) == 0 ?
+                                        EventStatusConstants.STATUS_ONGOING : x.Date.Year == DateTime.Today.Year - 100 ? EventStatusConstants.STATUS_CANCELLED : EventStatusConstants.STATUS_END
                 }).FirstOrDefaultAsync();
 
             var eventImgs = await _db.EventPhoto.Where(x => x.EventPhotoEventId == eventId && 
                     x.PhotoType.PhotoTypeDescription.Contains(EventPhotoDescriptionValues.EVENT_IMAGE_TYPE_EVENT_DETAIL)).ToListAsync();
-
             
 
             if (eventImgs != null && eventImgs.Count > 0)
@@ -253,6 +256,26 @@ namespace ManageDisco.Controllers
                 return NotFound();
 
             ev.Date = DateTime.Today.AddYears(-100);
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [Authorize(Roles = RolesConstants.ROLE_ADMINISTRATOR)]
+        [HttpPut]
+        [Route("FreeEntrance")]
+        public async Task<IActionResult> ChangeFreeEntranceStatus([FromQuery]int eventId)
+        {
+            if (eventId == 0)
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Evento non valido." });
+
+            EventParty eventParty = await _db.Events.FirstOrDefaultAsync(x => x.Id == eventId);
+            if (eventParty == null)
+                return BadRequest("Evento non valido.");
+
+            eventParty.FreeEntranceEnabled = !eventParty.FreeEntranceEnabled;
+
+            _db.Entry(eventParty).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
             return Ok();

@@ -25,7 +25,9 @@ namespace ManageDisco.Controllers
     [ApiController]
     public class CouponController : BaseController
     {
-        public CouponController(DiscoContext db, IConfiguration configuration, TwilioService twilioService) : base(db, configuration, twilioService)
+        public CouponController(DiscoContext db, 
+            IConfiguration configuration, 
+            TwilioService twilioService) : base(db, configuration, twilioService)
         {
         }
 
@@ -35,7 +37,52 @@ namespace ManageDisco.Controllers
             refer = refer.Replace("\"", ""); //Perchè quando riceve il parametro aggiunge in automatico " in fondo?
             return Ok(new { value = HelperMethods.GetBase64Image($"{ftpAddress}/Coupons/{refer}_coupon.webp", ftpUser, ftpPassword) });
         }
-       
+        /// <summary>
+        /// Validazione coupon acquistato dallo shop
+        /// </summary>
+        /// <param name="couponCode"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("Validation")]
+        public async Task<IActionResult> ValidateCouponShop([FromQuery]string couponCode)
+        {           
+
+            if (String.IsNullOrEmpty(couponCode))
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Coupon non valido."});
+            
+            //if (_db.UserProduct.Any(x => x.UserProductCode == couponCode && x.UserProductUsed == true))
+            //    return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Coupon già utilizzato." });
+
+            //UserProduct userProduct = await _db.UserProduct
+            //    .Where(x => x.UserProductUsed == false && x.UserProductCode == couponCode)
+            //    .Select(x => new UserProduct() {
+            //       // ProductShopId = x.ProductShopId,
+            //        UserId = x.UserId,
+            //        UserProductCode = x.UserProductCode,
+            //        //ProductShop = new ProductShopHeader()
+            //        //{
+            //        //    //ProductShopProductId = x.ProductShop.ProductShopId,
+            //        //    ProductShopName = x.ProductShop.ProductShopName,
+            //        //    ProductShopDescription = x.ProductShop.ProductShopDescription
+            //        //}
+            //    }).FirstOrDefaultAsync();
+
+            //if (userProduct == null)
+            //    return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Coupon non valido." });
+
+
+
+            CouponValidation couponValidation = new CouponValidation();
+            //couponValidation.Products.Add(userProduct.ProductShop.ProductShopName, userProduct.ProductShop.ProductShopProductQuantity);
+
+            return Ok(couponValidation);
+        }
+        
+        /// <summary>
+        /// Validazione coupon omaggio
+        /// </summary>
+        /// <param name="couponUserId"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("Validate")]
         public async Task<IActionResult> ValidateCoupon([FromQuery] string couponUserId)
@@ -77,9 +124,10 @@ namespace ManageDisco.Controllers
             if (eventId == 0)
                 return BadRequest();
             if (_user.Gender != GenderCostants.GENDER_FEMALE)
-                return BadRequest();
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Coupon valido solo per le donne." });
             if (_db.Coupon.Any(x => x.UserId == _user.Id && x.EventId == eventId))
                 return BadRequest(new GeneralReponse() { Message = "Hai già ricevuto un coupon per questo evento.", OperationSuccess = false});
+           
 
             //TODO Fare tutti i controlli del caso
             //1. controllo che l'utente non abbia già un coupon

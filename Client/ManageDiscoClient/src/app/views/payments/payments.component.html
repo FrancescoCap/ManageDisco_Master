@@ -1,24 +1,24 @@
-<div class="p-3 col-12 row" *ngIf="!isLoading">
-  <div class="col-12 text-center">
+<div class="body-container col-lg-12 col-12 row" *ngIf="!isLoading && !isMobileView && !isTabletView; else mobileTemplate">
+  <div class="col-lg-12 col-12 text-center">
     <label id="no-data" class="col-12">PAGAMENTI</label>
   </div>
-  <label style="font-family:Britannic; font-size:18px;" class="col-12 mt-5 p-3">COLLABORATORI <small>(Clicca sulla riga per i dettagli)</small></label>
-  <div class="col-6 p-3">
+  <div class="col-12"><label style="font-family:Britannic; font-size:18px;" class="col-lg-12 mt-5 p-3">COLLABORATORI <small>(Clicca sulla riga per i dettagli)</small></label></div>
+  <div class="col-lg-6 col-12 p-3">
     <div class="row card-header tblheader-bk p-2" data-value="tblHeader">
-      <div class="col-3">Nome</div>
-      <div class="col-3">Cognome</div>
-      <div class="col-2 text-end">Tot. incassato</div>
-      <div class="col-2 text-end">Tot. pagato</div>
-      <div class="col-2 text-end">Da pagare</div>
+      <div class="col-lg-3 col-2 p-lg-0 p-3">Nome</div>
+      <div class="col-lg-3 col-2 p-lg-0 p-3">Cognome</div>
+      <div class="col-lg-2 col-2 p-lg-0 p-3 text-end">Tot. incassato</div>
+      <div class="col-lg-2 col-2 p-lg-0 p-3 text-end">Tot. pagato</div>
+      <div class="col-lg-2 col-2 p-lg-0 p-3 text-end">Da pagare</div>
     </div>
     <div class="row card-body main-table p-2 " data-value="tblBody" (click)="loadPaymentsDetail(payment.userId)" *ngFor="let payment Of payments;let idx = index">
       <div class="row" [class.selected-row]="paymentDetailsMap.get(payment.userId)" data-value="tblRow">
         <!--<i [id]="payment.userIdView" style="background-color:transparent" [ngClass]="{'fa-chevron-up': showDetails[idx],'fa-chevron-down': !showDetails[idx]}" class="fa btn-icon col-1" (click)="expandRow($event,idx)"></i>-->
-        <div class="col-3">{{payment.name}}</div>
-        <div class="col-3">{{payment.surname}}</div>
-        <div class="col-2 text-end">{{payment.totalIncoming | currency: 'EUR'}}</div>
-        <div class="col-2 text-end">{{payment.totalPayed | currency: 'EUR'}}</div>
-        <div class="col-2 text-end">{{payment.resumeCredit | currency: 'EUR'}}</div>
+        <div class="col-lg-3 col-2 p-lg-0 p-3">{{payment.name}}</div>
+        <div class="col-lg-3 col-2 p-lg-0 p-3">{{payment.surname}}</div>
+        <div class="col-lg-2 col-2 p-lg-0 p-3 text-end">{{payment.totalIncoming | currency: 'EUR'}}</div>
+        <div class="col-lg-2 col-2 p-lg-0 p-3 text-end">{{payment.totalPayed | currency: 'EUR'}}</div>
+        <div class="col-lg-2 col-2 p-lg-0 p-3 text-end">{{payment.resumeCredit | currency: 'EUR'}}</div>
         <!--<div class="col-1 fa fa-euro" (click)="openModalNewPayment(payment.userId)"></div>-->
       </div>
     </div>
@@ -27,11 +27,11 @@
     </div>
   </div>
 
-  <div class="col-6 p-3 d-flex justify-content-center" *ngIf="paymentDetailsMap.get(userIdExpanded)">
-    <div class="col-4">
+  <div class="col-lg-6 col-12 p-3 d-flex justify-content-center" *ngIf="paymentDetailsMap.get(userIdExpanded)">
+    <div class="col-lg-4 col-12">
       <div class="row card-header tblheader-bk p-2" data-value="tblHeader">
-        <div class="col-6">Importo</div>
-        <div class="col-6 text-end">Data</div>
+        <div class="col-lg-6 col-12">Importo</div>
+        <div class="col-lg-6 col-12 text-end">Data</div>
       </div>
       <div class="row card-body main-table p-2" data-value="tblBody" *ngFor="let pDetails Of paymentsDetails">
         <div class="row" data-value="tblRow">
@@ -42,11 +42,45 @@
         </div>
       </div>
       <div class="col-12 justify-content-end p-2 text-end">
-        <button class="new-button p-1 mt-3" *ngIf="userCanPay" (click)="addPayment()"><i class="fa fa-money me-1"></i>PAGA</button>
+        <button class="new-button btn p-1 mt-3" *ngIf="userCanPay" (click)="addPayment()"><i class="fa fa-money me-1"></i>NUOVO</button>
       </div>
     </div>
   </div>
 </div>
+
+
+<ng-template #mobileTemplate>
+  <div class="body-container" *ngIf="!isLoading">
+    <div class="col-lg-12 col-12 p-2 text-center">
+      <label id="no-data" class="col-12">PAGAMENTI</label>
+      <select class="col-11 p-2" *ngIf="userIsAdministrator" (change)="loadPaymentsDetail($event)">
+        <option [value]="">Seleziona collaboratore</option>
+        <option *ngFor="let collaborator Of collaborators;let idx = index" [value]="collaborator.id">{{collaborator.name}} - {{collaborator.surname}}</option>
+      </select>
+      <div class="row text-start p-3" *ngFor="let payment Of payments">
+        <div class="col-12 p-1">Nome: {{payment.name}}</div>
+        <div class="col-12 p-1">Cognome: {{payment.surname}}</div>
+        <div class="col-12 p-1">Tot. incassato: {{payment.totalIncoming | currency: 'EUR'}}</div>
+        <div class="col-12 p-1">Tot. pagato: {{payment.totalPayed | currency: 'EUR'}}</div>
+        <div class="col-12 p-1">Da pagare: {{payment.resumeCredit | currency: 'EUR'}}</div>
+      </div>
+      <div class="col-12 justify-content-end p-2 text-end">
+        <button class="new-button btn p-1 mt-3 p-2" *ngIf="userCanPay" (click)="addPayment()"><i class="fa fa-money me-1"></i>NUOVO</button>
+      </div>
+    </div>
+    <div class="col-12 mt-5" *ngIf="paymentsDetails != null && paymentsDetails.length != 0;else noPayments">
+      <h5 class="col-12 p-2">LISTA PAGAMENTI</h5>
+      <div class="row p-3" *ngFor="let pDetails Of paymentsDetails">
+        <label class="col-12">Data: {{pDetails.reservationPaymentDate | date: 'dd/MM/yyyy'}}</label>
+        <label class="col-12">Importo: {{pDetails.reservationPaymentAmount | currency: 'EUR'}}</label>
+        <label class="col-12">Causale: {{pDetails.reservationPaymentDescription}}</label>
+      </div>
+    </div>
+    <ng-template #noPayments>
+      <label class="no-data">Non ci sono pagamenti.</label>
+    </ng-template>
+  </div>
+</ng-template>
 
 <ng-container #modalContainer></ng-container>
 <app-loading [loading]="isLoading"></app-loading>

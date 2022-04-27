@@ -14,6 +14,8 @@ namespace ManageDisco.Model
         public decimal ProductPrice { get; set; }
         public int CatalogId { get; set; }
         public Catalog Catalog { get; set; }
+        public int ProductShopTypeId { get; set; }
+        public ProductShopType ProductShopType { get; set; }
     }
 
     public class ProductCatalogView
@@ -23,5 +25,6 @@ namespace ManageDisco.Model
         public string CatalogName { get; set; }
         public int CatalogId { get; set; }
         public decimal ProductPrice { get; set; }
+        public int ProductShopTypeId { get; set; }
     }
 }

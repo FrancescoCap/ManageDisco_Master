@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ManageDisco.Context;
 using ManageDisco.Model;
 using ManageDisco.Model.UserIdentity;
+using ManageDisco.Helper;
 
 namespace ManageDisco.Controllers
 {
@@ -36,10 +37,19 @@ namespace ManageDisco.Controllers
                          CustomerId = x.Id,
                          Name = x.Name,
                          Surname = x.Surname
-                     }).FirstOrDefaultAsync();
+                     }).FirstOrDefaultAsync();                
 
                 prCustomerViews.Add(prCustomerView);
             }
+
+            if (HelperMethods.UserIsInStaff(_user))
+            {
+                prCustomerViews.Add(new PrCustomerView()
+                {
+                    CustomerId = _user.Id,
+                    Name = "Me stesso"
+                });
+            }          
 
             return prCustomerViews;
         }
@@ -61,7 +71,7 @@ namespace ManageDisco.Controllers
         // PUT: api/PrCustomers/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut]
-        public async Task<IActionResult> PutPrCustomer([FromBody]string prCode)
+        public async Task<IActionResult> PutPrCustomer([FromQuery]string prCode)
         {
             if (prCode == "")
                 return BadRequest();
@@ -74,7 +84,7 @@ namespace ManageDisco.Controllers
             //Get pr associated with new code
             User pr = await _db.Users.FirstOrDefaultAsync(x => x.UserCode == prCode);
             if (pr == null)
-                return BadRequest("Nobody found with provided pr code.");
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Nessun pr trovato con il codice fornito." });
 
             prCustomer.PrCustomerPrId = pr.Id;
             _db.Entry(prCustomer).State = EntityState.Modified;

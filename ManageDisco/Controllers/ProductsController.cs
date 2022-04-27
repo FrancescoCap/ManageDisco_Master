@@ -21,17 +21,28 @@ namespace ManageDisco.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductCatalogView>>> GetProduct([FromQuery] int catalogId)
+        public async Task<ActionResult<IEnumerable<ProductCatalogView>>> GetProduct([FromQuery] int catalogId, [FromQuery] bool shop)
         {
-            IEnumerable<ProductCatalogView> products =  _db.Product                
+            IEnumerable<ProductCatalogView> products =  _db.Product
                 .Select(x => new ProductCatalogView()
                 {
                     ProductId = x.ProductId,
                     ProductName = x.ProductName,
                     ProductPrice = x.ProductPrice,
                     CatalogName = x.Catalog.CatalogName,
-                    CatalogId = x.CatalogId
+                    CatalogId = x.CatalogId,
+                    ProductShopTypeId = x.ProductShopTypeId
                 }).OrderBy(x => x.ProductPrice);
+
+            //If products are required for table order have to filter them for only TABLE product
+            if (!shop)
+            {
+                var productShopTypes = await _db.ProductShopType
+                    .Where(x => x.ProductShopTypeDescription != ProductShopTypeContants.PRODUCT_SHOP_TYPE_PRODUCT && x.ProductShopTypeDescription != ProductShopTypeContants.PRODUCT_SHOP_TYPE_ENTRY)
+                    .Select(x => x.ProductShopTypeId)
+                    .ToListAsync();
+                products = products.Where(x => productShopTypes.Contains(x.ProductShopTypeId));
+            }
 
             if (catalogId > 0)
             {

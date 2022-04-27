@@ -30,6 +30,7 @@ namespace ManageDisco.Model
         /// Descrizione condizioni per l'omaggio
         /// </summary>
         public string FreeEntranceDescription { get; set; }
+        public bool FreeEntranceEnabled { get; set; }
         
     }
     /// <summary>
@@ -47,6 +48,7 @@ namespace ManageDisco.Model
         public bool EventIsEnd { get; set; }
         public bool UserCanEditInfo { get; set; }
         public bool UserCanEnrollFreeEntrance { get; set; }
+        public string EventPartyStatusDescription { get; set; }
         /// <summary>
         /// Lista con tutte le immagini in base64
         /// </summary>

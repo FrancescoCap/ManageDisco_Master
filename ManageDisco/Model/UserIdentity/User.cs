@@ -19,10 +19,14 @@ namespace ManageDisco.Model.UserIdentity
         public string DiscoEntityId { get; set; }
         public DiscoEntity DiscoEntity { get; set; }
         public string Gender { get; set; }
+        public decimal Points { get; set; }
     }
 
     public class UserRoles: User
     {
+        public bool UserCanHandleEvents { get; set; }
+        public bool UserCanHandleWarehouse { get; set; }
+        public bool UserCanHandleHomeTemplate { get; set; }
         public List<string> Roles { get; set; } = new List<string>();
     }
     public class LoginRequest
@@ -45,8 +49,8 @@ namespace ManageDisco.Model.UserIdentity
         public string Surname { get; set; }
         [Required]
         public string PhoneNumber { get; set; }
-        [Required]
-        public int Role { get; set; }
+       
+        public string Role { get; set; }
         
         public string PrCode { get; set; }
         [Required]
@@ -57,6 +61,7 @@ namespace ManageDisco.Model.UserIdentity
     {
         public string Token { get; set; }
         public string RefreshToken { get; set; }
+        public string ClientSession { get; set; }
         public string Message { get; set; }
         public bool OperationSuccess { get; set; }
     }
@@ -89,11 +94,13 @@ namespace ManageDisco.Model.UserIdentity
         public string UserPhoneNumber { get; set; }
         public bool IsCustomer { get; set; }
         public bool IsPhoneNumberConfirmed { get; set; }
+        public string Gender { get; set; }
+        public decimal UserPoints { get; set; }
         //PR INFO
         public string PrName { get; set; }
         public string PrSurname { get; set; }
         public string PrEmail { get; set; }
-        public string PrCode { get; set; }
-        public string Gender { get; set; }
+        public string PrCode { get; set; }      
+        public string InvitationLink { get; set; }
     }
 }

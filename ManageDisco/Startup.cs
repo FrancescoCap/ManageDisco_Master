@@ -1,5 +1,6 @@
 using ManageDisco.Context;
 using ManageDisco.Middleware;
+using ManageDisco.Model;
 using ManageDisco.Model.UserIdentity;
 using ManageDisco.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -35,20 +36,20 @@ namespace ManageDisco
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
-        {
+        {           
             //non funzionano le migrazioni. Probabilmente il problema è qui
             services.AddDbContext<DiscoContext>(options => { 
                 options.UseSqlServer(Configuration.GetConnectionString("connString"));              
                
-            }, ServiceLifetime.Transient);
+            });
             
             services.AddAntiforgery(options =>
             {
                 options.Cookie.Name = "ATF-F";
                 options.Cookie.HttpOnly = false;
             });
-
-            services.AddAuthentication()                       
+            services.AddAuthentication(options => { 
+            })                       
                 .AddJwtBearer(opions => {
                     opions.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
                     {
@@ -73,14 +74,21 @@ namespace ManageDisco
                 });
             });
 
+            services.AddDistributedMemoryCache();
+            services.AddSession(options => {
+
+            });
+
             services.AddSingleton<Encryption>();
             services.AddSingleton<TwilioService>();
+            services.AddScoped<TokenService>();
 
             services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<DiscoContext>();            
 
-            services.AddControllers();           
+            services.AddControllers();
             
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -91,20 +99,26 @@ namespace ManageDisco
                 app.UseDeveloperExceptionPage();
                
             }
+
             //app.UseMiddleware<EncryptionMiddleware>();
+            app.UseSession();
+            //app.UseMiddleware<Security>();
             app.UseMiddleware<JwtCookieHandler>();
-            app.UseCors("corsPolicy");        
+            app.UseMiddleware<UserPermissionMiddleware>();
+            app.UseCors("corsPolicy");           
             app.UseRouting();
             
             app.UseAuthentication();            
             app.UseAuthorization();
 
-            CreateRoles(service).Wait();           
+            CreateRoles(service).Wait();
+            CreateProductShopType(service).Wait();
           
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute("default","api/{controller=Base}");                
             });
+           
         }
 
         public async Task CreateRoles(IServiceProvider serviceProvider)
@@ -120,6 +134,34 @@ namespace ManageDisco
                     await roleManager.CreateAsync(new IdentityRole() { Name = rolesArray.GetValue(i).ToString() });
                 }
             }
+        }
+
+        public async Task CreatePermissionActionValues(DiscoContext db)
+        {
+
+            var permissionActionExist = await db.PermissionAction.ToListAsync();
+            var permissionsToInsert = PermissionActionList.GetToInsertPermissions(permissionActionExist);
+            await db.PermissionAction.AddRangeAsync(permissionsToInsert);
+            await db.SaveChangesAsync();
+
+        }
+
+        private async Task CreateProductShopType(IServiceProvider serviceProvider)
+        {
+            string[] types = new string[] { ProductShopTypeCostants.PRODUCT_TYPE_ENTRANCE, ProductShopTypeCostants.PRODUCT_TYPE_TABLE, ProductShopTypeCostants.PRODUCT_TYPE_PRODUCT};
+            using (var service = serviceProvider.GetRequiredService<DiscoContext>())
+            {
+               
+                foreach (string type in types)
+                {
+                    if(!service.Set<ProductShopType>().Any(x => x.ProductShopTypeDescription == type))
+                        service.Set<ProductShopType>().Add(new ProductShopType() { ProductShopTypeDescription = type});
+                }
+                await service.SaveChangesAsync();
+
+                await CreatePermissionActionValues(service);
+            }
+               
         }
 
     }

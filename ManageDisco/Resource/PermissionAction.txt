@@ -1,0 +1,5 @@
+﻿Gestione eventi/POST|PUT/EventParties
+Gestione magazzino/POST|PUT/Warehouse
+Gestione template home/POST|PUT/UpdatePhoto
+Gestione permessi/POST|PUT/UserPermission
+Gestione pagamenti/POST|PUT/Payments

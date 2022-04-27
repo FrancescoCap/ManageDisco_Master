@@ -148,6 +148,9 @@ namespace ManageDisco.Migrations
                     b.Property<string>("FreeEntranceDescription")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("FreeEntranceEnabled")
+                        .HasColumnType("bit");
+
                     b.Property<int>("MaxAge")
                         .HasColumnType("int");
 
@@ -247,6 +250,27 @@ namespace ManageDisco.Migrations
                     b.ToTable("PaymentOverview");
                 });
 
+            modelBuilder.Entity("ManageDisco.Model.PermissionAction", b =>
+                {
+                    b.Property<int>("PermissionActionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Methods")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Path")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PermissionActionDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("PermissionActionId");
+
+                    b.ToTable("PermissionAction");
+                });
+
             modelBuilder.Entity("ManageDisco.Model.PhotoType", b =>
                 {
                     b.Property<int>("PhotoTypeId")
@@ -299,11 +323,115 @@ namespace ManageDisco.Migrations
                     b.Property<decimal>("ProductPrice")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("ProductShopTypeId")
+                        .HasColumnType("int");
+
                     b.HasKey("ProductId");
 
                     b.HasIndex("CatalogId");
 
+                    b.HasIndex("ProductShopTypeId");
+
                     b.ToTable("Product");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.ProductShopHeader", b =>
+                {
+                    b.Property<int>("ProductShopHeaderIdId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("ProductShopHeaderDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProductShopHeaderName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("ProductShopHeaderPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ProductShopImagePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProductShopTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProductShopHeaderIdId");
+
+                    b.HasIndex("ProductShopTypeId");
+
+                    b.ToTable("ProductShopHeader");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.ProductShopRow", b =>
+                {
+                    b.Property<int>("ProductShopRowId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductShopHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductShopRowQuantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProductShopRowId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ProductShopHeaderId");
+
+                    b.ToTable("ProductShopRow");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.ProductShopType", b =>
+                {
+                    b.Property<int>("ProductShopTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("ProductShopTypeDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ProductShopTypeId");
+
+                    b.ToTable("ProductShopType");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.RefreshToken", b =>
+                {
+                    b.Property<int>("RefreshTokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("RefreshTokenClientSession")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("RefreshTokenIsValid")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("RefreshTokenLifetime")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("RefreshTokenUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RefreshTokenValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RefreskTokenUserAgent")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("RefreshTokenId");
+
+                    b.ToTable("RefreshToken");
                 });
 
             modelBuilder.Entity("ManageDisco.Model.Reservation", b =>
@@ -388,6 +516,9 @@ namespace ManageDisco.Migrations
 
                     b.Property<DateTime>("ReservationPaymentDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("ReservationPaymentDescription")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
@@ -571,6 +702,9 @@ namespace ManageDisco.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<decimal>("Points")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -600,6 +734,59 @@ namespace ManageDisco.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.UserPermission", b =>
+                {
+                    b.Property<int>("UserPermissionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<bool>("PermissionActionAllowed")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PermissionActionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("UserPermissionId");
+
+                    b.HasIndex("PermissionActionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserPermission");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.UserProduct", b =>
+                {
+                    b.Property<int>("UserProductId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("ProductShopHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserProductCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("UserProductUsed")
+                        .HasColumnType("bit");
+
+                    b.HasKey("UserProductId");
+
+                    b.HasIndex("ProductShopHeaderId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserProduct");
                 });
 
             modelBuilder.Entity("ManageDisco.Model.Warehouse", b =>
@@ -835,7 +1022,45 @@ namespace ManageDisco.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ManageDisco.Model.ProductShopType", "ProductShopType")
+                        .WithMany()
+                        .HasForeignKey("ProductShopTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Catalog");
+
+                    b.Navigation("ProductShopType");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.ProductShopHeader", b =>
+                {
+                    b.HasOne("ManageDisco.Model.ProductShopType", "ProductShopType")
+                        .WithMany()
+                        .HasForeignKey("ProductShopTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProductShopType");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.ProductShopRow", b =>
+                {
+                    b.HasOne("ManageDisco.Model.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ManageDisco.Model.ProductShopHeader", "ProductShopHeader")
+                        .WithMany()
+                        .HasForeignKey("ProductShopHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("ProductShopHeader");
                 });
 
             modelBuilder.Entity("ManageDisco.Model.Reservation", b =>
@@ -941,6 +1166,40 @@ namespace ManageDisco.Migrations
                         .HasForeignKey("DiscoEntityId");
 
                     b.Navigation("DiscoEntity");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.UserPermission", b =>
+                {
+                    b.HasOne("ManageDisco.Model.PermissionAction", "PermissionAction")
+                        .WithMany()
+                        .HasForeignKey("PermissionActionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ManageDisco.Model.UserIdentity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("PermissionAction");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.UserProduct", b =>
+                {
+                    b.HasOne("ManageDisco.Model.ProductShopHeader", "ProductShopHeader")
+                        .WithMany()
+                        .HasForeignKey("ProductShopHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ManageDisco.Model.UserIdentity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("ProductShopHeader");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ManageDisco.Model.Warehouse", b =>

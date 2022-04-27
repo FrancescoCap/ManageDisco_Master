@@ -4,7 +4,7 @@
   3. Breve descrizione
   4. Slider foto eventi passati
   -->
-<div class="col-12 m-0 p-0" *ngIf="!isLoading">
+<div class="col-12 body-home-container" *ngIf="!isLoading">
   <swiper [effect]="'slide'"
           [grabCursor]="true"
           [centeredSlides]="true"
@@ -20,7 +20,7 @@
     </ng-template>
   </swiper>
 
-  <div class="mt-5 col-12 text-center" style="position:relative">
+  <div class="mt-5 mb-5 col-12 text-center" style="position:relative">
     <h1>Prossimi Eventi</h1>
   </div>
   <div class="swiper-div" style="position:relative">
@@ -86,40 +86,6 @@
       </ng-template>
     </swiper>
   </div>  
-  <div class="col-12 mt-5 p-3 d-flex flex-row" style="background-color:#333" >
-    <div class="col-4">
-      <label class="col-12" style="color:#fff;font-size:20px;">INFORMAZIONI</label>
-      <div class="col-12" style="font-size: 14px; color: #fff">
-        {{homeInfo.discoEntity!.discoName}}
-      </div>
-      <div class="col-12" style="font-size: 14px; color: #fff">
-        P.IVA: {{homeInfo.discoEntity!.discoVatCode}}
-      </div>
-      <div class="col-12" style="font-size: 14px; color: #fff">
-        {{homeInfo.discoEntity!.discoAddress}}, {{homeInfo.discoEntity!.discoCityCap}}, {{homeInfo.discoEntity!.discoCity}}, {{homeInfo.discoEntity!.discoProvince}}
-      </div>
-      <div class="col-12" style="font-size: 14px; color: #fff">
-        {{homeInfo.discoEntity!.discoOpeningTime}} -  {{homeInfo.discoEntity!.discoClosingTime}}
-      </div>      
-    </div>
-    <div class="col-8">
-      <label class="col-12" style="color:#fff;font-size:20px;">CONTATTI</label>
-      <div class="col-3 m-0 p-0" style="background-color:#333" *ngFor="let cont Of homeInfo.contacts">
-        <div class="col-12 p-1" style="color:#fff;">
-          <b style="font-size:16px;">
-            {{cont.contactTypeDescription}}:
-          </b>
-          <div class="col-12" style="font-size:14px;" *ngFor="let contValue Of cont.contactsValues">
-            <label class="col-12" *ngIf="cont.contactTypeId != instagramContactTypeId && cont.contactTypeId != facebookContactTypeId">{{contValue}}</label>
-            <a #linkLbl
-               *ngIf="cont.contactTypeId == instagramContactTypeId || cont.contactTypeId == facebookContactTypeId"
-               [href]="contValue"><i [ngClass]="cont.contactTypeId == instagramContactTypeId ? 'fa fa-instagram':'fa fa-facebook'"></i></a>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-  </div>
 </div>
 
 <app-loading [loading]="isLoading"></app-loading>

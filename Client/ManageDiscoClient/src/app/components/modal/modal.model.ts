@@ -4,7 +4,8 @@ export enum ModalModelEnum {
   ImageBox,
   Table,
   Label,
-  Textarea  
+  Textarea,
+  Checkbox
 }
 
 export interface ModalModelType {
@@ -29,6 +30,8 @@ export interface ViewItem {
   mapList?: { [key: string]: number }
   hasNgModel?: boolean;
   defaultText?: any;
+  extraDescription?: any;
+  validationFunc?: Function;
 }
 
 export class ModalModelList implements ModalModelType {
@@ -58,6 +61,7 @@ export class ModalImageBoxList  {
 export class ModalViewGroup{
   selector?: string;
   multiSelect?: boolean = false;
+  txtTableQuantity?: boolean = false;
   viewItems: ViewItem[] = [];
-  type: ModalModelEnum = ModalModelEnum.TextBox;  
+  type: ModalModelEnum = ModalModelEnum.TextBox; 
 }

@@ -110,6 +110,7 @@ export class TableOrderComponent implements AfterViewInit {
     var order: TableOrderPut = {
       exitChanged: info.get("orderExit"),
       productsSpendingAmount: info.get("orderBudget"),
+      shopCoupon: info.get("coupon"),
       productsId: {}
     };
     var rows = info.get("productsId");
@@ -143,7 +144,9 @@ export class TableOrderComponent implements AfterViewInit {
       {
         type: ModalModelEnum.TextBox, viewItems: [
           { viewId: "totBudget", referenceId: "orderBudget", label: "Totale", hasNgModel:true },
-          { viewId: "txtExit", referenceId: "orderExit", label: "Exit", hasNgModel: false }
+          { viewId: "txtExit", referenceId: "orderExit", label: "Exit", hasNgModel: false },
+          { viewId: "txtCoupon", referenceId: "coupon", label: "Coupon", hasNgModel: false, validationFunc: this.couponValidation, extraDescription: "Desc" }
+
         ]
       }      
     )
@@ -155,32 +158,19 @@ export class TableOrderComponent implements AfterViewInit {
     this.modalNewOrderNgModel.set("productsId","orderBudget");
   }
 
-  onOrderConfirmed(orderInfo: NewTableOrderData) {
-    var orderData = this.generateOrder(orderInfo);
-
-    this._api.putTablOrder(this.tableIdNewOrder, orderData).pipe(
-      catchError(err => {
-        console.log(err);
-        this._modalService.showErrorOrMessageModal(err.message);
-        return err;
-      })).subscribe(() => {
-        this.getEventTables(this.selectedEvent);
-      });
+  couponValidation = (code: string) => {
+    var retVal = null;
+    this._api.checkCouponValidation(code).subscribe((data: any) => {
+      retVal = data.products as Map<string, number>;
+      console.log(retVal);      
+    })
   }
+
 
   onModalClose(state: any) {
   }
 
-  generateOrder(products: NewTableOrderData): TableOrderPut {
-
-    var orderData: TableOrderPut = {};
-    orderData.productsId = products.productsId;
-    orderData.productsSpendingAmount = products.totSpending;
-    orderData.exitChanged = products.totExit;
-
-    return orderData;
-  }
-
+ 
   editOrderTable(tableName: any, tableId: any) {
     const calls: Observable<any>[] = [
       this._api.getTableOrderRows(tableId),
@@ -248,7 +238,7 @@ export class TableOrderComponent implements AfterViewInit {
     this.initNewOrderModalViews();
     const tableName = this.eventTables.tables.find(x => x.tableId == tableId)?.tableName;
     this._modalService.showAddModal(this.onOrderAdded, `Nuovo ordine per ${tableName}`, this.modalNewOrderViews);
-    console.log(this.modalNewOrderNgModel)
+    
     this._modalService.setModelView(this.modalNewOrderNgModel);
   }
 

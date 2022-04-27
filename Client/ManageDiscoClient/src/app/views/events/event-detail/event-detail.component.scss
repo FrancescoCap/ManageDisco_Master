@@ -3,10 +3,6 @@ textarea{
     height: 200px;
 }
 
-swiper{
-    height:600px!important;
-}
-
 #divDetails
 {
    /* border:1px dashed #000;
@@ -84,4 +80,13 @@ swiper{
     width: 150px;
     height:40px;
     margin: 0px 0.5% 0px 0.5%;
+}
+
+@media (min-width:768px){
+  #divButtons button {
+    width: 200px;
+    height: 60px;
+    margin: 0px 0.5% 0px 0.5%;
+    font-size: 20px;
+  }
 }

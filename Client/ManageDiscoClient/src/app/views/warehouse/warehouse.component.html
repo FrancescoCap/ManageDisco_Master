@@ -1,27 +1,41 @@
-<div class="p-3 col-12">
+<div class="body-container col-12">
   <div class="col-12 text-center">
     <label id="no-data">RIFORNIMENTO MAGAZZINO</label>
   </div>
   <div class="col-12 p-1 text-end">
-    <button class="p-2 new-button" (click)="addProductToCatalog()"><i class="fa fa-plus"></i> AGGIUNGI</button>
+    <button class="p-2 btn new-button" (click)="addProductToCatalog()"><i class="fa fa-plus"></i> NUOVO</button>
   </div>
-  <div class="row col-12 mx-auto">
-    
-    <div class="row col-12 p-2 tblheader-bk" data-value="tblHeader">
-      <div class="col-4">Prodotto</div>
-      <div class="col-4">Stock</div>
-      <div class="col-4"></div>
+  <div class="row col-12 mx-auto mobile-list" *ngIf="!isMobileView && !isTabletView;else mobileBody">
+
+    <div class="row col-12 col-lg-12 p-lg-2" [class.tblheader-bk]="!isMobileView && !isTabletView"  data-value="tblHeader">
+      <div class="col-lg-4">Prodotto</div>
+      <div class="col-lg-4">Stock</div>
+      <div class="col-lg-4"></div>
     </div>
     <div class="row" data-value="tblBody">
       <div class="row p-2" data-value=tblRow *ngFor="let wh Of warehouse">
-        <div class="col-4">{{wh.productName}}</div>
-        <div class="col-4">{{wh.warehouseQuantity}}</div>
-        <div class="col-4">
+        <div class="col-lg-4">{{wh.productName}}</div>
+        <div class="col-lg-4">{{wh.warehouseQuantity}}</div>
+        <div class="col-lg-4">
           <i class="fa fa-plus" (click)="addQuantity(wh.productId)"></i>
         </div>
       </div>
     </div>
   </div>
+  <ng-template #mobileBody>
+    <div class="row p-2 mt-2" data-value=tblRow *ngFor="let wh Of warehouse">
+      <div class="col-12 row">
+        <div class="col-10">
+          {{wh.productName}}
+        </div>
+        <div class="col-1 text-end">
+          <i class="fa fa-plus" (click)="addQuantity(wh.productId)"></i>
+        </div>
+      </div>
+      <div class="col-12">Qtà: {{wh.warehouseQuantity}}</div>
+
+    </div>
+  </ng-template>
 </div>
 
 <ng-container #modalContainer></ng-container>

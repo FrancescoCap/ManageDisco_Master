@@ -46,6 +46,7 @@ namespace ManageDisco.Model
         /// Totale da pagare
         /// </summary>
         public decimal ResumeCredit { get; set; }
+        public string PaymentDescription { get; set; }
     }
 
 }

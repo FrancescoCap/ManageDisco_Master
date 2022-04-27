@@ -32,10 +32,11 @@ const routes:Routes = [
   { path: 'HomeSettings', loadChildren: () => import('./views/home-settings/home-settings.module').then(m => m.HomeSettingsModule)},
   { path: 'Warehouse', loadChildren: () => import('./views/warehouse/warehouse.module').then(m => m.WarehouseModule)},
   { path: 'Coupon', loadChildren: () => import('./views/coupon/coupon.module').then(m => m.CouponModule)},
-  { path: 'PhoneNumber', loadChildren: () => import('./views/coupon/coupon.module').then(m => m.CouponModule)}
+  { path: 'PhoneNumber', loadChildren: () => import('./views/coupon/coupon.module').then(m => m.CouponModule)},
+  { path: 'Shop', loadChildren: () => import('./views/shop/shop.module').then(m => m.ShopModule)}
 ]
-export const server_URL = "http://localhost:5000/api/";
-export const client_URL = "http://localhost:4200";
+export const server_URL = "http://192.168.1.69:5000/api/";
+export const client_URL = "http://192.168.1.69:4200";
 
 @NgModule({
   declarations: [

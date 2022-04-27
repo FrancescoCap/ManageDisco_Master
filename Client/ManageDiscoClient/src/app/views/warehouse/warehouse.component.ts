@@ -4,6 +4,7 @@ import { catchError } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { ModalModelEnum, ModalViewGroup } from '../../components/modal/modal.model';
 import { Product, Warehouse } from '../../model/models';
+import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 
 @Component({
@@ -17,12 +18,17 @@ export class WarehouseComponent implements OnInit {
 
   warehouse?: Warehouse[];
   productIdSelected?: any;
+  isMobileView = false;
+  isTabletView = false;
 
   constructor(private _api: ApiCaller,
-    private _modal: ModalService) { }
+    private _modal: ModalService,
+    private _generalService:GeneralService  ) { }
 
   ngOnInit(): void {
     this.initData();
+    this.isMobileView = this._generalService.isMobileView();
+    this.isTabletView = this._generalService.isTabletView();
   }
 
   ngAfterViewInit() {

@@ -50,9 +50,7 @@ namespace ManageDisco.Controllers
            // var userPhone = HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.MobilePhone).Value;
             
             var response = new MessagingResponse();
-
-            //var task = new Task(() => {  });
-            //task.Start();
+            
             if (!String.IsNullOrEmpty(incomingMessage.Body)){
                 switch (incomingMessage.Body)
                 {
@@ -96,14 +94,17 @@ namespace ManageDisco.Controllers
                     ftpUsername, ftpPassword,
                     $"{couponGenerationResponse.UserId}_coupon.webp",
                     HelperMethods.ConvertBitmapToByteArray(couponGenerationResponse.ImageStream));
-
-
-            _twilioService.StartTwilioResponse(from, to, $"Ciao {user.Name} {user.Surname} sono Opium! Puoi trovare il coupon al seguente link: {couponGenerationResponse.Link}");
-                //var messageResource = MessageResource.Create(
-                //    from: new PhoneNumber($"{from}"),
-                //    to: new PhoneNumber($"{to}"),
-                //    body: $"Ciao {user.Name} {user.Surname} sono Opium! Puoi trovare il coupon al seguente link: {couponGenerationResponse.Link}");
-            //});
+            /*
+             * L'inivio di immagini funziona. Questo è un URL di un'immagine casuale.
+             * Quando andrò in produzione dovrò sostituirlo con l'indirizzo FTP associato al coupon
+             */
+            List<Uri> media = new List<Uri>()
+            {
+                new Uri("https://images.unsplash.com/photo-1545093149-618ce3bcf49d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=668&q=80")
+            };
+            //_twilioService.StartTwilioResponse(from, to, $"Ciao {user.Name} {user.Surname} sono Opium! Puoi trovare il coupon al seguente link: {couponGenerationResponse.Link.Replace("http://","")}");
+            _twilioService.StartTwilioResponse(from, to, $"Ciao {user.Name} {user.Surname} sono Opium! Puoi trovare il coupon al seguente link: {couponGenerationResponse.Link.Replace("http://","")}", media);
+          
         }
 
         private void SendPhoneNumberConfirmation(string from, string to)
@@ -111,8 +112,10 @@ namespace ManageDisco.Controllers
             var number = to.Replace("whatsapp:", "");
             var user = _db.Users.FirstOrDefault(x => x.PhoneNumber == number);
             string body = $"Ciao, clicca sul seguente link per confermare il tuo nr. di cellulare!\nlocalhost:4200/PhoneNumber?refer={user.Id}&action=phoneConfirm";
-
+            
             _twilioService.StartTwilioResponse(from, to, body);
         }
+
+       
     }
 }

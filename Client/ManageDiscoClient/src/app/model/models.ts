@@ -1,7 +1,54 @@
+export enum CookieConstants {
+  AUTHORIZATION_COOKIE = "c_us",
+  REFRESH_COOKIE = "c_r",
+  ISAUTH_COOKIE = "c_in",
+  PR_REF_COOKIE = "p_r",
+  AUTH_FULL_COOKIE = "a_f",
+  AUTH_STANDARD_COOKIE = "a_s",
+  CLIENT_SESSION = "c_s"
+}
+
 export enum TranslatedRolesEnum {
   WAREHOUSE_WORKER = "Magazziniere",
   PR = "Pr",
   ADMINISTRATOR = "Amministratore"
+}
+
+export interface UserProduct {
+  userProductId?: number;
+  userId?: string; 
+  productShopId?: number;
+  userProductUsed?: boolean;
+  productShopHeader?: ProductShopHeader;
+  userProductCode?: string;
+}
+
+export interface ProductShopType {
+  _dropId?: any;
+  _modalDropText?: any;
+  _valueOut?: any;
+
+  productShopTypeId?: number;
+  productShopTypeDescription?: string;
+}
+
+export interface ProductShopHeader {
+  productShopHeaderIdId?: number;
+  productShopHeaderPrice?: number;
+  productShopHeaderName?: string;
+  productShopHeaderDescription?: string;
+  productShopHeaderProductId?: number;
+  productShopProductQuantity?: number;
+  productShopTypeId?: number;
+  productShopBase64Image?: string;
+  rows?: ProductShopRow[];
+}
+
+export interface ProductShopRow {
+  productShopRowId?: number;
+  productId?: number; 
+  productShopRowQuantity?: number;
+  productShopHeaderId?: number;
 }
 
 export enum TranslatedReservationStatusEnum {
@@ -128,6 +175,13 @@ export interface NavigationLabel {
   isActive?: boolean;
   link?: string;
   id?: string;
+  child: NavigationLabelChild[];
+}
+
+export interface NavigationLabelChild {
+  index?: number;
+  label?: string;
+  isActive?: boolean;
 }
 
 export interface UserInfoView {
@@ -141,20 +195,25 @@ export interface UserInfoView {
   prCode?: string;
   userPhoneNumber?: string;
   isPhoneNumberConfirmed?: string;
+  invitationLink?: string;
+  userPoints?: number;
 }
 
 export interface HeaderMenu {
   header?: string;
   link?: string;
+  icon?: string;
   child?:ChildMenu[]
 }
 
 export interface ChildMenu {
   title?: string;
   link?: string;
+  icon?: string;
 }
 
 export interface User {
+  id?: string;
   name?: string;
   surname?: string;
   reservationsCount?: string;
@@ -243,6 +302,45 @@ export interface EventPartyView {
   events?: EventParty[];
 }
 
+export interface UserPermission {
+  userId?: string;
+  userPermissionId?: number;
+  name?: string;
+  surname?: string;
+  permissionActionId?: number;
+  permissionActionDescription?: string;
+  permissionActionAllowed?: boolean;
+}
+
+export interface UserPermissionPut {
+  userId?: string;
+  permissionId?: number;
+}
+
+export interface UserPermissionTable {
+  userPermissionTableHeaderCol?: string[];
+  rows?: UserPermissionRow[];
+}
+
+export interface UserPermissionRow {
+  user?: string;
+  userPermissionTableCell?: UserPermissionCell[];
+}
+
+export interface UserPermissionCell {
+  _stateString?: string;
+
+  userId?: string;
+  userIdentity?: string;
+  permissionId?: number;
+  permissionState?: boolean;
+}
+
+export interface PermissionAction {
+  permissionActionId?: number;
+  permissionActionDescription?: string;
+}
+
 export interface EventParty {
   _showDate?: boolean;
   _dropId?: any;
@@ -263,6 +361,7 @@ export interface EventParty {
   userCanEditInfo?: boolean;
   userCanEnrollFreeEntrance?: boolean;
   eventIsEnd?: boolean;
+  freeEntranceEnabled?: boolean;
 }
 
 export interface ReservationType {
@@ -283,13 +382,16 @@ export interface PaymentOverview {
   totalIncoming?:number,
   totalPayed?:number,
   resumeCredit?: number;
+  paymentDescription?: string;
 }
 
 export interface ReservationPayments {
   reservationPymentId: number;
   userId?: string;
+  paymentDescription?: string;
   reservationPaymentAmount?: number;
   reservationPaymentDate?: Date;
+  reservationPaymentDescription?: string;
 }
 
 export interface ReservationStatus {
@@ -301,6 +403,7 @@ export interface ReservationStatus {
 export interface PaymentPost {
   userId?: string;
   reservationPaymentAmount?: number;
+  reservationPaymentDescription?: string;
 }
 
 export interface Table {
@@ -346,6 +449,7 @@ export interface TableOrderPut {
   productsId?: {[key:number]: number}//Map<number,number>;
   productsSpendingAmount?: number;
   exitChanged?: number;
+  shopCoupon?: string;
 }
 
 //Modello per l'assegnazione di un tavolo fisico alla prenotazione
@@ -389,6 +493,7 @@ export interface NewTableOrderData {
   productsId: {[key:number]:number} // Map<number, number>;
   totSpending?: number;
   totExit?: number;
+  shopCoupon?: string;
 
 }
 

@@ -1,11 +1,11 @@
-<div class="p-3 col-12">
+<div class="body-container col-12">
   <div class="row col-12 m-3">
     <label class="col-12 label-subtitle">FILTRI:</label>
     <div class="col-3 p-2">
-      <input class="col-12" [disabled]="selectedEvent <= 0" id="txtTableNameFilter" #query placeholder="Nome tavolo" (input)="onTableNameFilter(query.value)" [(ngModel)]="tableNameFilter" />
+      <input class="col-12 p-lg-" [disabled]="selectedEvent <= 0" id="txtTableNameFilter" #query placeholder="Nome tavolo" (input)="onTableNameFilter(query.value)" [(ngModel)]="tableNameFilter" />
     </div>
-    <div class="col-2 p-2">
-      <select id="drpEvents" class="col-12" [(ngModel)]="selectedEvent" (change)="onEventChange()">
+    <div class="col-8 p-2">
+      <select id="drpEvents" class="col-10 col-lg-3 mx-auto p-2 p-lg-1" [(ngModel)]="selectedEvent" (change)="onEventChange()">
         <option [value]="0">Seleziona evento</option>
         <option [value]="event.id" *ngFor="let event of events!.events">{{event.name}}</option>
       </select>

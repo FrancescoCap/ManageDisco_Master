@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -28,6 +29,7 @@ namespace ManageDisco.Controllers
     {
         DiscoContext _db;
         UserManager<User> _userManager;
+        SignInManager<User> _signManager;
         IConfiguration _configuration;
         TwilioService _twilioService;
         Encryption _encryption;
@@ -36,13 +38,15 @@ namespace ManageDisco.Controllers
             UserManager<User> userManager, 
             IConfiguration configuration,
             TwilioService twilioService,
-            Encryption encryption)
+            Encryption encryption,
+            SignInManager<User> sign)
         {
             _db = db;
             _userManager = userManager;
             _configuration = configuration;
             _twilioService = twilioService;
             _encryption = encryption;
+            _signManager = sign;
         }
 
         [Authorize(Roles = RolesConstants.ROLE_ADMINISTRATOR, AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
@@ -79,6 +83,18 @@ namespace ManageDisco.Controllers
             return Ok(user);
         }
 
+        [Authorize(Roles = RolesConstants.ROLE_ADMINISTRATOR, AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet]
+        [Route("Collaborators")]
+        public async Task<IActionResult> GetCollaborators()
+        {
+           var users = _userManager.GetUsersInRoleAsync(RolesConstants.ROLE_PR).Result.ToList();
+            users.AddRange(_userManager.GetUsersInRoleAsync(RolesConstants.ROLE_WAREHOUSE_WORKER).Result.ToList());
+            users.AddRange(_userManager.GetUsersInRoleAsync(RolesConstants.ROLE_ADMINISTRATOR).Result.ToList());
+
+            return Ok(users);
+        }
+
         [HttpPost]
         [Route("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest loginInfo)
@@ -99,20 +115,28 @@ namespace ManageDisco.Controllers
                     RefreshToken = "",
                     Message = "Email o password errati"
                 };
-                return Ok(response);
+                return BadRequest(response);
+            }
+
+            var passwordCheck = await _signManager.CheckPasswordSignInAsync(user, loginInfo.Password, true);
+            if (!passwordCheck.Succeeded)
+            {
+                //Wrong password
+                response = new AuthenticationResponse()
+                {
+                    Token = "",
+                    RefreshToken = "",
+                    Message = "Email o password errati"
+                };
+                return BadRequest(response);
             }
 
             List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim(ClaimTypes.Name, user.Name));
             claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
-            claims.Add(new Claim(ClaimTypes.Surname, user.Surname));
             claims.Add(new Claim(ClaimTypes.Email, user.Email));
-            claims.Add(new Claim(ClaimTypes.MobilePhone, user.PhoneNumber != null ? user.PhoneNumber : "+39"));
             claims.Add(new Claim(JwtRegisteredClaimNames.Jti, new Guid().ToString()));
             /**CUSTOM CLAIMS*/
             claims.Add(new Claim(CustomClaim.CLAIM_USERCODE, user.UserCode != null ? user.UserCode:""));
-            claims.Add(new Claim(CustomClaim.CLAIM_USERNAME, user.UserName));       
-            claims.Add(new Claim(CustomClaim.CLAIM_GENDER, user.Gender));       
             
             var userRoles = await _userManager.GetRolesAsync(user);
             foreach (string role in userRoles)
@@ -121,30 +145,32 @@ namespace ManageDisco.Controllers
             }
 
             //token
-            var token = HelperMethods.GenerateJwtToken(claims, _configuration["Jwt:SecurityKey"], _configuration["Jwt:ValidIssuer"], _configuration["Jwt:ValidAudience"]);
-            token = _encryption.EncryptCookie(token, "cookieAuth");
-            response = new AuthenticationResponse();
-            response.Token = token;
-            response.RefreshToken = HelperMethods.GenerateRandomString(468);
+            //var token = HelperMethods.GenerateJwtToken(claims, _configuration["Jwt:SecurityKey"], _configuration["Jwt:ValidIssuer"], _configuration["Jwt:ValidAudience"]);
+            //token = _encryption.EncryptCookie(token, "cookieAuth");      
 
-            Response.Cookies.Append("_auth", token, new CookieOptions() { HttpOnly = true,  SameSite = SameSiteMode.Strict });
-            Response.Cookies.Append("isAuth", "1", new CookieOptions() { SameSite = SameSiteMode.Strict }); 
+            response = await GenerateTokens(user);
+
+            //delete old cookie if user login wihout logout operation           
+            areCookiesToAdd(false);
+            areCookiesToAdd(true, response.Token, response.RefreshToken);
             if (HelperMethods.UserIsPrOrAdministrator(user, (List<string>)userRoles))
             {
-                Response.Cookies.Append("authorization", "True", new CookieOptions() { SameSite = SameSiteMode.Strict });
+                Response.Cookies.Append(CookieConstants.AUTH_STANDARD_COOKIE, "True", new CookieOptions() { SameSite = SameSiteMode.Strict });
                 if (HelperMethods.UserIsAdministrator((List<string>)userRoles))
-                    Response.Cookies.Append("authorization_full", "True", new CookieOptions() {  SameSite = SameSiteMode.Strict });
+                    Response.Cookies.Append(CookieConstants.AUTH_FULL_COOKIE, "True", new CookieOptions() {  SameSite = SameSiteMode.Strict });
 
             }else if (HelperMethods.UserIsCustomer((List<string>)userRoles))
             {
                 var prId = _db.PrCustomer.FirstOrDefaultAsync(x => x.PrCustomerCustomerid == user.Id).Result.PrCustomerPrId;
                 var prCode = _db.Users.FirstOrDefaultAsync(x => x.Id == prId).Result.UserCode;
-                Response.Cookies.Append("pr_ref", prCode, new CookieOptions() { SameSite = SameSiteMode.Strict });
+                Response.Cookies.Append(CookieConstants.PR_REF_COOKIE, prCode, new CookieOptions() { SameSite = SameSiteMode.Strict });
             }
+           
+            HttpContext.Session.SetString(CookieConstants.CLIENT_SESSION, response.ClientSession);
 
             return Ok(response);
         }
-
+        
         [HttpPost]
         [Route("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest registrationInfo)
@@ -170,8 +196,8 @@ namespace ManageDisco.Controllers
 
             //Per la registrazione degli utenti dello staff (magazziniere, amministratori e pr) verrà creata un'apposita pagina con queryParam "type=staff" in cui verrà specificato il role
             //o in alternativa verrà chiamata a mano con i parametri che servono
-            string roleName = registrationInfo.Role == 0 ? Enum.GetValues(typeof(RolesEnum)).GetValue(((int)RolesEnum.PR)).ToString() : 
-                    Enum.GetValues(typeof(RolesEnum)).GetValue(registrationInfo.Role).ToString();
+            /* IF ROLE IS NULL MEANS THAT IS A CUSTOMER REGISTRATION */
+            string roleName = String.IsNullOrEmpty(registrationInfo.Role) ? _db.Roles.Where(x => x.Name == RolesConstants.ROLE_CUSTOMER).FirstOrDefault().Name : _db.Roles.Find(registrationInfo.Role).Name;
 
             if (_userManager.Users.Any(x => x.Email == registrationInfo.Email))
             {
@@ -179,8 +205,16 @@ namespace ManageDisco.Controllers
                 authenticationResponse.RefreshToken = "";
                 authenticationResponse.Message = "L'email è già registrata.";
                 authenticationResponse.OperationSuccess = false;
-                return Ok(authenticationResponse);
+                return BadRequest(authenticationResponse);
             }
+            //if (_userManager.Users.Any(x => x.PhoneNumber.Replace("+39","") == registrationInfo.PhoneNumber))
+            //{
+            //    authenticationResponse.Token = "";
+            //    authenticationResponse.RefreshToken = "";
+            //    authenticationResponse.Message = "E' già presente un account associato al numero indicato.";
+            //    authenticationResponse.OperationSuccess = false;
+            //    return BadRequest(authenticationResponse);
+            //}
                 
 
             if (String.IsNullOrEmpty(registrationInfo.PrCode) && roleName == RolesConstants.ROLE_CUSTOMER)
@@ -189,15 +223,34 @@ namespace ManageDisco.Controllers
                 authenticationResponse.RefreshToken = "";
                 authenticationResponse.Message = "Codice PR non valido.";
                 authenticationResponse.OperationSuccess = false;
-                return Ok(authenticationResponse);
+                return BadRequest(authenticationResponse);
             }              
 
             if (roleName == RolesConstants.ROLE_ADMINISTRATOR || roleName == RolesConstants.ROLE_PR || roleName == RolesConstants.ROLE_WAREHOUSE_WORKER)
             {
                 newUser.UserCode = HelperMethods.GenerateRandomString(6, false);
             }
-           
-            
+
+            if (roleName == RolesConstants.ROLE_CUSTOMER)
+            {
+                var prId = await _db.Users.FirstOrDefaultAsync(x => x.UserCode == registrationInfo.PrCode);
+
+                if (prId == null || String.IsNullOrEmpty(prId.Id))
+                {
+                    authenticationResponse.Token = "";
+                    authenticationResponse.RefreshToken = "";
+                    authenticationResponse.Message = "Il codice fornito non corrisponde ad un PR.";
+                    authenticationResponse.OperationSuccess = false;
+                    return BadRequest(authenticationResponse);
+                }
+
+                _db.PrCustomer.Add(new PrCustomer()
+                {
+                    PrCustomerCustomerid = newUser.Id,
+                    PrCustomerPrId = prId.Id
+                });
+            }
+
             var isUserCreated = _userManager.CreateAsync(newUser, registrationInfo.Password);
             if (!isUserCreated.Result.Succeeded)
             {
@@ -209,36 +262,18 @@ namespace ManageDisco.Controllers
                 }
                 authenticationResponse.Token = "";
                 authenticationResponse.RefreshToken = "";
-                authenticationResponse.Message = "Registration failed: " + stringBuilder.ToString();
+                authenticationResponse.Message = "Registrazione fallita " + stringBuilder.ToString();
                 authenticationResponse.OperationSuccess = false;
                 return Ok(authenticationResponse);
             }
-            await _userManager.AddToRoleAsync(newUser, roleName);
 
-            if (roleName == RolesConstants.ROLE_CUSTOMER)
-            {
-                var prId = _db.Users.FirstOrDefaultAsync(x => x.UserCode == registrationInfo.PrCode).Result.Id; // _db.ReservationUserCode.FirstOrDefault(x => x.ReservationUserCodeValue == registrationInfo.PrCode).UserId;
-                if (prId == String.Empty)
-                {
-                    authenticationResponse.Token = "";
-                    authenticationResponse.RefreshToken = "";
-                    authenticationResponse.Message = "Il codice fornito non corrisponde ad un PR.";
-                    authenticationResponse.OperationSuccess = false;
-                    return Ok(authenticationResponse);
-                }
-
-                _db.PrCustomer.Add(new PrCustomer()
-                {
-                    PrCustomerCustomerid = newUser.Id,
-                    PrCustomerPrId = prId
-                });
-            }           
+            await _userManager.AddToRoleAsync(newUser, roleName);                               
 
             await _db.SaveChangesAsync();
 
             await SendPhoneNumberConfirmation(registrationInfo.PhoneNumber);
 
-            authenticationResponse.Message = "Registration success";
+            authenticationResponse.Message = "Registratione completata";
             authenticationResponse.OperationSuccess = true;
             //Change to Redirect(loginPage)
             return Ok(authenticationResponse);
@@ -263,11 +298,16 @@ namespace ManageDisco.Controllers
                 UserSurname = user.Surname,
                 UserEmail = user.Email,
                 UserPhoneNumber = user.PhoneNumber,
+                UserPoints = user.Points,
                 IsPhoneNumberConfirmed = user.PhoneNumberConfirmed
-                
+
             };
+
             var roles = await _userManager.GetRolesAsync(user);
             userInfoView.IsCustomer = !HelperMethods.UserIsInStaff(user, roles.ToList());
+
+            if (!userInfoView.IsCustomer) 
+                userInfoView.InvitationLink = $"{_configuration["NgRok:Client"]}/SignUp?code={user.UserCode}";
 
             if (userInfoView.IsCustomer)
             {
@@ -350,11 +390,47 @@ namespace ManageDisco.Controllers
         public async Task<IActionResult> Logout()
         {
 
-            Response.Cookies.Delete("_auth");
-            Response.Cookies.Delete("isAuth");
-            Response.Cookies.Delete("authorization");
-            Response.Cookies.Delete("authorization_full");
-            Response.Cookies.Delete("pr_ref");
+            areCookiesToAdd(false);
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("RefreshToken")]
+        public async Task<IActionResult> RefreshToken([FromQuery]string userId)
+        {
+            var refreshCookie = HttpContext.Request.Cookies.FirstOrDefault(x => x.Key == CookieConstants.REFRESH_COOKIE);
+            var refreshTokenValue = refreshCookie.Value;
+            var clientSession = Encoding.UTF8.GetString(HttpContext.Session.Get(CookieConstants.CLIENT_SESSION));
+            //To avoid multiple refresh token generation check if it was already provided
+            bool refreshTokenIsAlreadyProvided = _db.RefreshToken.Where(x => x.RefreshTokenClientSession == clientSession).Any(x => x.RefreshTokenIsValid == true)
+                && _db.RefreshToken.Where(x => x.RefreshTokenClientSession == clientSession).Count(x => x.RefreshTokenIsValid == true) > 1;
+            RefreshToken refreshTokenOld = await _db.RefreshToken.FirstOrDefaultAsync(x => x.RefreshTokenValue == refreshTokenValue);
+            
+            if (!refreshTokenIsAlreadyProvided && refreshTokenOld.RefreshTokenIsValid)
+            {
+                //check if refresh token exist 
+                
+
+                if (refreshTokenOld == null)
+                    return BadRequest();
+
+
+                //var lifetime = HttpContext.Session.GetString(CookieConstants.CLIENT_SESSION);
+                //if (long.Parse(lifetime) != refreshTokenOld.RefreshTokenLifetime)
+                //    return BadRequest();
+
+                User user = await _userManager.FindByIdAsync(refreshTokenOld.RefreshTokenUserId);
+                if (user == null)
+                    return BadRequest();
+
+                refreshTokenOld.RefreshTokenIsValid = false;
+                _db.Entry(refreshTokenOld).State = EntityState.Modified;
+                await _db.SaveChangesAsync();
+
+                var tokens = await GenerateTokens(user);
+                areCookiesToAdd(true, tokens.Token, tokens.RefreshToken);
+            }
+            
 
             return Ok();
         }
@@ -404,5 +480,79 @@ namespace ManageDisco.Controllers
             await _twilioService.TriggerTwilio(formData);
         }
         
+        private void areCookiesToAdd(bool add, params string[] args)
+        {
+            //handle only global Cookies
+            if (add)
+            {
+                Response.Cookies.Append(CookieConstants.AUTHORIZATION_COOKIE, args[0], new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
+                Response.Cookies.Append(CookieConstants.ISAUTH_COOKIE, "1", new CookieOptions() { SameSite = SameSiteMode.Strict });
+                Response.Cookies.Append(CookieConstants.REFRESH_COOKIE, args[1], new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict});
+                //Response.Cookies.Append(CookieConstants.CLIENT_SESSION, args[2]);
+            }
+            else
+            {
+                Response.Cookies.Delete(CookieConstants.AUTHORIZATION_COOKIE);
+                Response.Cookies.Delete(CookieConstants.ISAUTH_COOKIE);
+                Response.Cookies.Delete(CookieConstants.AUTH_STANDARD_COOKIE);
+                Response.Cookies.Delete(CookieConstants.AUTH_FULL_COOKIE);
+                Response.Cookies.Delete(CookieConstants.PR_REF_COOKIE);
+                Response.Cookies.Delete(CookieConstants.REFRESH_COOKIE);
+                Response.Cookies.Delete(CookieConstants.CLIENT_SESSION);
+            }
+        }
+        public async Task<RefreshToken> GenerateRefreshTokn(int length, string userId, string clientSession, bool withSpecialChars = true )
+        {
+            RefreshToken refreshToken = new RefreshToken()
+            {
+                RefreshTokenValue = HelperMethods.GenerateRandomString(length, withSpecialChars),
+                RefreshTokenLifetime = DateTime.Now.ToUniversalTime().Ticks,
+                RefreshTokenUserId = userId,
+                RefreshTokenIsValid = true,
+                RefreshTokenClientSession = clientSession
+            };
+
+            _db.RefreshToken.Add(refreshToken);
+            await _db.SaveChangesAsync();
+
+            return refreshToken;
+
+        }      
+        
+        private async Task<AuthenticationResponse> GenerateTokens(User user)
+        {
+            List<Claim> claims = new List<Claim>();
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
+            claims.Add(new Claim(ClaimTypes.Email, user.Email));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, new Guid().ToString()));            
+            /**CUSTOM CLAIMS*/
+            claims.Add(new Claim(CustomClaim.CLAIM_USERCODE, user.UserCode != null ? user.UserCode : ""));
+            string userAgent = HttpContext.Request.Headers["User-Agent"];
+            
+            claims.Add(new Claim(CustomClaim.CLAIM_USERAGENT, userAgent));
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            foreach (string role in userRoles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            //token
+            var token = HelperMethods.GenerateJwtToken(claims, _configuration["Jwt:SecurityKey"], _configuration["Jwt:ValidIssuer"], _configuration["Jwt:ValidAudience"]);
+            token = _encryption.EncryptCookie(token, "cookieAuth");
+
+            string clientSession = HelperMethods.GenerateRandomString(15, false);
+            string oldClientSession = HttpContext.Session.GetString(CookieConstants.CLIENT_SESSION); 
+            string session = !String.IsNullOrEmpty(oldClientSession) ? oldClientSession : clientSession;
+
+            var refreshToken = await GenerateRefreshTokn(468, user.Id, session);
+
+            AuthenticationResponse response = new AuthenticationResponse();
+            response.Token = token;
+            response.RefreshToken = refreshToken.RefreshTokenValue;
+            response.ClientSession = session;
+
+            return response;
+        }
     }
 }

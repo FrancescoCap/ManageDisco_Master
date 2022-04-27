@@ -23,7 +23,8 @@ namespace ManageDisco.Controllers
         [HttpGet]
         public async Task<IActionResult> GetWarehouse()
         {
-            List<WarehouseView> warehouses = await _db.Warehouse
+
+            List<WarehouseView> warehouses = await _db.Warehouse               
                 .Select(x => new WarehouseView()
                 {
                     ProductId = x.ProductId,

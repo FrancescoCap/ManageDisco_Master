@@ -1,6 +1,7 @@
 <div class="col-12" *ngIf="!isLoading && event != null">  
-<div class="col-12 swiper-div">
-  <swiper [effect]="'slide'"
+<div class="col-lg-12 h-auto swiper-div">
+  <swiper 
+          [effect]="'slide'"
           [grabCursor]="true"
           [centeredSlides]="true"
           [pagination]="true"
@@ -10,24 +11,24 @@
               disableOnInteraction: false
           }"
           class="mySwiper">
-    <ng-template swiperSlide *ngFor="let image Of event.linkImage">
+    <ng-template swiperSlide class="col-12" *ngFor="let image Of event.linkImage">
       <img class="img-sl-one" [src]="image" />
     </ng-template>
     
   </swiper>
   <!--<img *ngIf="event.linkImage != null" class="col-12 mx-auto p-4" style="width:auto;height:420px" [src]="event?.linkImage" />-->
 </div>
-<div class="col-12 row">
-  <div class="col-6 justify-content-start mt-5 p-5 text-capitalize">
-    <small class="col-12 event-description-p" style="color:red;font-weight:bold" *ngIf="!event.eventIsEnd">EVENTO TERMINATO</small>
-    <div class="col-12">
+<div class="col-lg-12 row">
+  <div class="col-lg-6 col-12 justify-content-start mt-lg-5 p-5 text-capitalize">
+    <small class="col-lg-12 col-12 event-description-p" style="color:red;font-weight:bold">{{event.eventPartyStatusDescription}}</small>
+    <div class="col-lg-12 col-12">
       <!--Titolo-->
       <label class="fw-bold col-12 event-title">{{event.name}}</label>
-      <h6>{{event.date | date: 'dd/MM/yyyy'}}</h6>
+      <h6 class="col-12">{{event.date | date: 'dd/MM/yyyy'}}</h6>
     </div>
 
     <!--Descrizione-->
-    <div class="col-12 m-5 mx-auto" (click)="startEditDesctiption()">
+    <div class="col-lg-12 col-12 m-lg-5 m-3 mx-auto" (click)="startEditDesctiption()">
       <div class="col-12 justify-content-start" *ngIf="event.userCanEditInfo;else labelDescription">
         <small class="col-12 instructions">(Clicca sul box per modificare la descrizione)</small>
         <textarea class="col-12" [disabled]="!editDescription" [(ngModel)]="event.description">{{event.description}}</textarea>
@@ -41,24 +42,30 @@
   </div>
   
   <!--Prezzi-->
-  <div class="col-5 justify-content-end">
-    <div class="col-10" style="margin-left:50%">
-      <div class="align-content-end mt-5 p-5 price-div" [ngClass]="editPriceMode ? 'col-8' : 'col-6'">
+  <div class="col-lg-5 col-12 p-lg-0 p-3 justify-content-end">
+    <div class="col-lg-10 col-12 mx-auto p-lg-0 p-3">
+      <div class="align-content-end mt-lg-5 mt-1 p-5 col-12 price-div" [ngClass]="editPriceMode ? 'col-8' : 'col-6'">
         <label class="fw-bold col-12 event-title event-price-title">Prezzi:<i class="ms-3 fa fa-edit" style="cursor:pointer" *ngIf="event.userCanEditInfo" (click)="editPrice()"></i></label>
         <ul class="p-0 ul-price" *ngIf="!editPriceMode; else editPriceTemplate">
           <li>Ingresso: <label>{{event.entrancePrice | currency: 'EUR'}}</label></li>
           <li>Tavolo: <label>{{event.tablePrice | currency: 'EUR'}}</label></li>
           <li>
-            Omaggio: <label *ngIf="event.freeEntranceDescription">
+            Omaggio: <label *ngIf="event.freeEntranceDescription && event.freeEntranceEnabled">
               {{event.freeEntranceDescription }}
               <label (click)="onFreeEntraceRequest()"
                      style="font-style:italic; cursor:pointer; color: blue; text-decoration:underline"
-                     *ngIf="event.userCanEnrollFreeEntrance">CLICCA QUI</label>
+                     *ngIf="!event.eventIsEnd && event.userCanEnrollFreeEntrance && event.freeEntranceEnabled">CLICCA QUI</label>
             </label>
           </li>
         </ul>
-        <div class="col-12">
-          <button class="col-12 btn btn-primary" (click)="addReservation()" [disabled]="!event.eventIsEnd"><i class="fa fa-calendar-check-o me-2"></i>PRENOTA</button>
+        <div class="col-md-12 text-md-center col-12"> 
+          <button class="col-md-6 col-12 btn btn-primary mt-md-2" (click)="addReservation()" [disabled]="event.eventIsEnd"><i class="fa fa-calendar-check-o me-2"></i>PRENOTA</button>
+          <div *ngIf="areDetailsEditableFromUser">
+            <button class="col-md-6 col-12 btn btn-primary mt-md-2" (click)="closeFreeEntrance()" *ngIf="!event.freeEntranceEnabled; else openFreeEntrance"><i class="fa fa-play me-2"></i>APRI OMAGGIO</button>
+            <ng-template #openFreeEntrance>
+              <button class="col-md-6 col-12 btn btn-primary mt-md-2" *ngIf="userIsAdministrator" [disabled]="!event.eventIsEnd" (click)="closeFreeEntrance()"><i class="fa fa-stop me-2"></i>CHIUDI OMAGGIO</button>
+            </ng-template>
+          </div>  
         </div>
         <ng-template #editPriceTemplate>
           <form #editPriceForm="ngForm" (ngSubmit)="editPriceConfirm()">
@@ -86,7 +93,7 @@
   </div>  
   
   <div class="col-12 text-end p-3" id="divButtons">
-    <button id="events" class="btn btn-primary" (click)="goTo($event.target)"><i class="me-2 fa fa-arrow-circle-o-left"></i>Eventi</button>
+    <button id="events" class="btn btn-primary p-md-1" (click)="goTo($event.target)"><i class="me-2 fa fa-arrow-circle-o-left"></i>Eventi</button>
     <button id="delete" class="btn btn-danger" (click)="goTo($event.target)" *ngIf="areDetailsEditableFromUser == true"><i class="me-2 fa fa-calendar-times-o"></i>Annulla evento</button>
   </div>
 </div>

@@ -35,20 +35,19 @@ export class EventDetailComponent implements OnInit {
   editPriceModel = { entrancePrice: 0, tablePrice: 0, freeEntranceDescription: "", eventDescription: "" };
   editDescription = false;
   areDetailsEditableFromUser: boolean = false;
+  userIsAdministrator: boolean = false;
 
   //[ngStyle] = "{'visibility': areDetailsEditableFromUser == true ? 'visible':'hidden'}"
   constructor(private _api: ApiCaller,
     private route: RouterOutlet,
     private modal: ModalService,
     private router: Router,
-    private user: UserService  ) { }
+    private user: UserService ) { }
 
   ngOnInit(): void {
     this.route.activatedRoute.queryParams.subscribe(params => {
-      this.eventId = params["eventId"];
-      if (params["editable"] == "true")
-        this.areDetailsEditableFromUser = this.user.userIsAdminstrator();
-
+      this.eventId = params["eventId"];     
+      this.areDetailsEditableFromUser = this.user.userIsAdminstrator();
     })
     this.initData();
   }
@@ -60,11 +59,11 @@ export class EventDetailComponent implements OnInit {
   initData() {
     this.isLoading = true;
     this._api.getEventDetail(this.eventId)
-    .subscribe(data => {
+    .subscribe((data:any)  => {
       this.event = data;
       this.editPriceMode = false;
       this.editDescription = false;
-      
+      this.userIsAdministrator = this.user.userIsAdminstrator();
       this.isLoading = false;
     });
   }
@@ -178,6 +177,9 @@ export class EventDetailComponent implements OnInit {
       this.modaViews.push({
         type: ModalModelEnum.Table, selector:"tblCustomer", multiSelect: false, viewItems: [{ label: "Prenota per", viewId: "tblPrCustomers", referenceId: "customerId", list: this.prCustomers }]
       });
+      this.modaViews.push({
+        type: ModalModelEnum.Checkbox, selector: "checkBoxForMe", viewItems: [{label: "Prenota per me", viewId:"chbForMe", referenceId:"chbIsForMe"}]
+      })
     } else {      
       this.modaViews.push({
         type: ModalModelEnum.TextBox, viewItems: [{ label: "Codice pr", viewId: "txtPrCode", referenceId: "userCode", defaultText: this.user.getCustomerPrCode() }]
@@ -208,7 +210,7 @@ export class EventDetailComponent implements OnInit {
       })).subscribe((message: any) => {     
         //show success modal
         if (message != null)
-          this.modal.showErrorOrMessageModal(message.message);
+          this.modal.showOperationResponseModal(message.message,"PRENOTAZIONE");
       })
   }
 
@@ -216,21 +218,20 @@ export class EventDetailComponent implements OnInit {
     //Non apro una modal perchè per richiedere l'omaggio necessito di essere registrato, quindi ho già tutte le info che mi servono
     this.isLoading = true;
     this._api.getFreeEntrance(this.eventId).pipe(
-      catchError((err:any) => {
+      catchError(err => {
         this.isLoading = false;
-        this.modal.showErrorOrMessageModal(err.message);
+        //Gestione messaggio d'errore su codice http 400
+       
         return err;
       })).subscribe((data: any) => {
-        this.isLoading = false;
-        this.onFreeEntranceSubscription();
-        //SPostare questo messaggio sulla subscribe dell'API Che fa partire il messaggio whatsapp
-       
+        this.isLoading = false;        
+        this.onFreeEntranceSubscription();       
       })
   }
 
   onFreeEntranceSubscription() {
     const formData = new FormData();
-
+    //get whatsapp message
     this._api.getSubscription(formData).pipe(
       catchError(err => {
         this.modal.showErrorOrMessageModal(err.message);
@@ -243,5 +244,11 @@ export class EventDetailComponent implements OnInit {
   startEditDesctiption() {
     if (this.user.userIsAdminstrator())
       this.editDescription = true;
+  }
+
+  closeFreeEntrance() {
+    this._api.closeFreeEntrance(this.eventId).subscribe((data: any) => {
+      this.initData();
+    })
   }
 }

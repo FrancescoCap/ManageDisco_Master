@@ -256,14 +256,16 @@ namespace ManageDisco.Controllers
             if (reservation == null)
                 return NotFound("No reservation found");
 
+            if (reservation.TableId == null)
+                return BadRequest(new GeneralReponse() { Message = "Per la conferma del budget il tavolo deve essere prima assegnato.", OperationSuccess = false} );
+
             reservation.ReservationRealBudget = euro;
             _db.Entry(reservation).State = EntityState.Modified;
 
-            //budget confermato quindi aumento il credito del dipendente nei confronti del locale
-            //ReservationPayment reservationPayment = new ReservationPayment();       
-            ///*I RESTANTI CAMPI SONO VALORIZZATI DAL TRIGGER*/
-            //reservationPayment.UserId = reservation.UserId;
-            //_db.ReservationPayment.Add(reservationPayment);
+            /**************** 
+             * budget confermato quindi aumento il credito del dipendente nei confronti del locale
+             * Tutta la gestione dei dati è fatta tramite trigger
+             ***************/          
 
             await _db.SaveChangesAsync();
 
@@ -318,13 +320,13 @@ namespace ManageDisco.Controllers
 
             if ((reservation.ReservationTypeId == 2 ||
                 reservation.ReservationTypeId == 3) && reservation.ReservationExpectedBudget == 0)
-                return Ok(new ReservationResponse() { Message = "For this prenotation type previsional budget is required." });
+                return Ok(new GeneralReponse() { Message = "Per questo tipo di prenotazione è richiesto un'aspettativa di budget", OperationSuccess = false });
 
 
             _db.Reservation.Add(reservation);
             await _db.SaveChangesAsync();
 
-            return Ok(new ReservationResponse() { ReservationCode = reservation.ReservationCode, Message = "Your reservation was successful inserted. Please save your reservation code." });
+            return Ok(new ReservationResponse() { ReservationCode = reservation.ReservationCode, Message = "La tua prenotazione è stata accettata." });
         }
 
         [HttpGet("Event")]

@@ -10,6 +10,16 @@ html, body {
   font-family: 'Numans', sans-serif;
 }
 
+.body-container{
+    margin-top:10%;
+}
+@media only screen and (max-width:400px){
+  .body-container {
+    margin-top: 50%;
+  }
+}
+
+
 .container {
   height: 100%;
   align-content: center;
@@ -17,7 +27,6 @@ html, body {
 
 .card {
   height: 370px;
-  margin-top: auto;
   margin-bottom: auto;
   width: 400px;
   background-color: #333;

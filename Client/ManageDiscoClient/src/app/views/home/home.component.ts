@@ -24,8 +24,8 @@ export class HomeComponent implements OnInit {
   photoGalleryMain?: HomeInfo;
   photoGalleryMoments?: HomeInfo;
 
-  instagramContactTypeId?: number;
-  facebookContactTypeId?: number;
+  //instagramContactTypeId?: number;
+  //facebookContactTypeId?: number;
 
   readonly HOME_GALLERY_MAIN = "Home_Galleria";
   readonly HOME_GALLERY_MOMENTS = "Home_Momenti";
@@ -44,11 +44,7 @@ export class HomeComponent implements OnInit {
       this._api.getHomeInfo()
     ]
 
-    forkJoin(calls).pipe(
-      catchError(err => {
-        this._modalService.showErrorOrMessageModal(err.message);
-        return err;
-      })).subscribe((data: any): any => {
+    forkJoin(calls).subscribe((data: any): any => {
         this.homeInfo = data[0];
         //Pulisco la galleria foto dalle immagini vuote
         this.homeInfo.homePhoto = this.homeInfo.homePhoto?.filter(x => x.homePhotoPath != "no_image.webp");
@@ -56,8 +52,8 @@ export class HomeComponent implements OnInit {
         this.photoGalleryMain = { homePhoto: this.homeInfo.homePhoto?.filter(x => x.photoTypeDescription == this.HOME_GALLERY_MAIN)! };       
         this.photoGalleryMoments = { homePhoto: this.homeInfo.homePhoto?.filter(x => x.photoTypeDescription == this.HOME_GALLERY_MOMENTS)! };
 
-        this.instagramContactTypeId = this.homeInfo.contacts?.find(x => x.contactTypeDescription?.includes("Instagram"))?.contactTypeId;
-        this.facebookContactTypeId = this.homeInfo.contacts?.find(x => x.contactTypeDescription?.includes("Facebook"))?.contactTypeId;
+        //this.instagramContactTypeId = this.homeInfo.contacts?.find(x => x.contactTypeDescription?.includes("Instagram"))?.contactTypeId;
+        //this.facebookContactTypeId = this.homeInfo.contacts?.find(x => x.contactTypeDescription?.includes("Facebook"))?.contactTypeId;
 
         this.isLoading = false;
       })

@@ -1,6 +1,6 @@
-<div class="container p-5">
-  <div class="d-flex justify-content-center h-100">
-    <div class="card">
+<div class="row" >
+  <div class="d-flex justify-content-center h-100 p-5 mt-5 p-lg-0 m-lg-0">
+    <div class="card body-container" >
       <div class="card-header">
         <h3>Sign In</h3>
         <div class="d-flex justify-content-end social_icon">
@@ -9,7 +9,7 @@
           <span><i class="fa fa-twitter-square"></i></span>
         </div>
       </div>
-      <div class="card-body">
+      <div class="card-body" >
         <form #frmLogin="ngForm" name="loginForm" (ngSubmit)="login()">
           <div class="input-group form-group pt-2 pb-2">
             <div class="input-group-prepend ">
@@ -48,3 +48,5 @@
     </div>
   </div>
 </div>
+
+<ng-template #modalContainer></ng-template>

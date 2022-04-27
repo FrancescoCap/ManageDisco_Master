@@ -24,13 +24,22 @@ namespace ManageDisco.Service
 
         public string EncryptCookie(string valueToEncrypt, string scope)
         {
-            if (String.IsNullOrEmpty(valueToEncrypt))
+            if (String.IsNullOrEmpty(valueToEncrypt) || String.IsNullOrEmpty(scope))
                 throw new NullReferenceException();
 
             _protector.CreateProtector(scope);
             string valueEncrypted = _protector.Protect(valueToEncrypt);
             return valueEncrypted;
 
+        }
+
+        public string DecryptCookie(string value)
+        {
+            if (String.IsNullOrEmpty(value))
+                return null;
+
+            var encryptedValue = _protector.Unprotect(value);
+            return encryptedValue;
         }
     }
 }

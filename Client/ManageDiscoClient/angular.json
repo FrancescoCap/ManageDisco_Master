@@ -82,6 +82,7 @@
               "browserTarget": "ManageDiscoClient:build:development"
             }
           },
+         
           "defaultConfiguration": "development"
         },
         "extract-i18n": {

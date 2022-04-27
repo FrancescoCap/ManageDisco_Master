@@ -3,7 +3,7 @@ import { NgModel } from "@angular/forms";
 import { ModalType, NewTableOrderData } from "../../model/models";
 import { ModalService } from "../../service/modal.service";
 
-import { ModalModelEnum, ModalModelList, ModalTextBoxList, ModalViewGroup } from "./modal.model";
+import { ModalModelEnum, ModalViewGroup, ViewItem } from "./modal.model";
 
 @Component({
   selector: 'app-modal',
@@ -140,12 +140,34 @@ export class ModalComponent implements OnInit {
      * VISIONARE ANCHE L'HTML
      */
     if (product._valueOut != null) {
-      var addValue = event.target.checked;
-      
+      var addValue = event == null ? true : event.target.checked;
+     
       this.modelOut = this.modelOut == null ? product._valueOut : (addValue ? this.modelOut + product._valueOut : this.modelOut - product._valueOut);
       var ngModelReference = this.modelValues?.get(keyRef);
       this.values.set(ngModelReference, this.modelOut);
      
+    }
+  }
+
+  onTxtTableQuantityChange(keyRef: any, event: any, itemId: any) {
+    if (this.values.get(keyRef) == null) {
+      this.values.set(keyRef, [itemId + ":" + event.target.value]);
+    } else {
+      //get list
+      var keyValueList = this.values.get(keyRef);
+
+      var valueExist = keyValueList?.find(x => x.split(":")[0] == itemId);
+      var quantity = event.target.value;
+
+      if (valueExist) {
+        var valueIndex = keyValueList?.findIndex(x => x.split(":")[0] == itemId, 0);
+        keyValueList!.splice(valueIndex!, 1);
+      }
+
+      if (quantity > 0)
+        keyValueList!.push(itemId + ":" + quantity);
+
+      this.values.set(keyRef, keyValueList!);
     }
   }
 
@@ -223,5 +245,16 @@ export class ModalComponent implements OnInit {
     }
     fileReader.readAsDataURL(fileEvent.target.files[0]);
    
+  }
+
+  inputChange(viewItem: ViewItem, event: any) {
+
+    setTimeout(function () {
+      if (viewItem.validationFunc != null) {
+        if (event.target.value.length == 6) //Call callback only if coupon code are completed. It is not suitable for other validation
+          viewItem.validationFunc.call(null, event.target.value);
+      }     
+    },1000)   
+      
   }
 }

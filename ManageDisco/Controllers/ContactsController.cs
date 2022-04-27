@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ManageDisco.Context;
 using ManageDisco.Model;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ManageDisco.Controllers
 {
@@ -18,8 +19,9 @@ namespace ManageDisco.Controllers
         public ContactsController(DiscoContext db, IConfiguration configuration) : base(db, configuration)
         {
         }
-
+         
         // GET: api/Contacts
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetContact()
         {

@@ -1,9 +1,12 @@
 import { ViewContainerRef } from '@angular/core';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { catchError, forkJoin, Observable } from 'rxjs';
+import { Observable } from 'rxjs/internal/Observable';
+import { forkJoin } from 'rxjs/internal/observable/forkJoin';
+import { catchError} from 'rxjs/operators';
 import { ApiCaller } from '../../api/api';
 import { ModalModelEnum, ModalModelList, ModalTextBoxList, ModalViewGroup } from '../../components/modal/modal.model';
 import { EventParty, ModalType, PrCustomerView, Reservation, ReservationPost, ReservationType } from '../../model/models';
+import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 import { UserService } from '../../service/user.service';
 
@@ -37,13 +40,18 @@ export class ReservationComponent implements OnInit {
   modalType: ModalType = ModalType.NEW_RESERVATION;
 
   eventFilter = 0;
+  isMobileView = false;
+  isTabletView = false;
 
   constructor(private _api: ApiCaller,
     private _modal: ModalService,
-    private _user:UserService  ) {
+    private _user: UserService,
+    private _generalService: GeneralService  ) {
   }
 
   ngOnInit(): void {
+    this.isMobileView = this._generalService.isMobileView();
+    this.isTabletView = this._generalService.isTabletView();
     this.initData();
   }
 
@@ -118,8 +126,7 @@ export class ReservationComponent implements OnInit {
   confirmBudget(reserveId: number, budget: number) {
 
     this._api.confirmReservationBudget(reserveId, budget).pipe(
-      catchError(err => {
-        console.log(err);
+      catchError(err => { 
         return err;
       })).subscribe(data => {
         this.initData();

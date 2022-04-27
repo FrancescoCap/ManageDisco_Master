@@ -146,7 +146,7 @@ export class EventsComponent implements OnInit {
       this.events!.events = this.events_full!.events;
       return;
     } 
-    this.events!.events = this.events_full!.events!.filter(x => { return x.name?.toLowerCase().includes(this.eventFilterValue) });
+    this.events!.events = this.events_full!.events!.filter(x => { return x.name?.toLowerCase().includes(this.eventFilterValue.toLowerCase()) });
   }
 
   openEventDetails(id: any) {

@@ -1,34 +1,33 @@
-<div class="p-3 col-12" *ngIf="!isLoading">
+<div class="col-12 body-container" *ngIf="!isLoading">
   <div class="col-12 text-center">
     <label id="no-data" class="col-12">PROGRAMMAZIONE EVENTI</label>
   </div>
   <div class="row pe-3">
     <div class="row p-3">
-      <div class="col-6">
-        <input type="text" class="col-6" placeholder="Cerca evento" (input)="filterEventsForName()" [(ngModel)]="eventFilterValue" />
+      <div class="col-lg-6 col-md-8 col-12">
+        <input type="text" class="col-lg-6 col-md-8 col-10" placeholder="Cerca evento" (input)="filterEventsForName()" [(ngModel)]="eventFilterValue" />
       </div>     
-      <div class="col-6 text-end">
-        <button class="col-2 p-2  new-button" (click)="openNewEventModal()" *ngIf="events?.userCanAddEvent"><i class="fa fa-plus me-1"></i>NUOVO</button>
+      <div class="col-12 col-lg-6 text-center text-lg-end mt-2 mt-lg-0">
+        <button class="col-12 col-lg-2 p-1 p-lg-2 btn new-button" (click)="openNewEventModal()" *ngIf="events_full?.userCanAddEvent"><i class="fa fa-plus me-1"></i>NUOVO</button>
       </div>
     </div>
   </div>
   <div class="row p-2" *ngFor="let e of events!.events">
-    <div class="col-2">
+    <div class="col-lg-2 col-md-5 col-12">
       <img class="img-preview" [src]="e.imagePreview"/>
     </div>
-    <div class="col-8 p-3">
-      <h2 class="col-12 event-title">{{e.name}}</h2>
+    <div class="col-lg-8 col-md-7 col-12 p-3">
+      <a [routerLink]="['/Events/Details']" [queryParams]="{eventId:e.id}"><h2 class="col-12 event-title">{{e.name}}</h2></a>
       <h6 class="col-12 event-date">{{e.date | date: 'dd/MM/yyyy'}}</h6>
       <h5 class="col-12 event-description" style="white-space: pre-line">{{e.description}}</h5>
       <div class="row pb-3 pt-3">
-        <h5 class="col-1">Stato: </h5>
-        <h5 class="col-3" style="background-color:#ec842a">{{e.eventPartyStatusDescription}}</h5>
+        <h5 class="col-lg-1 col-3">Stato: </h5>
+        <h5 class="col-lg-3 col-6" style="background-color:#ec842a">{{e.eventPartyStatusDescription}}</h5>
       </div>
     </div>
-    <div class="col-1">
-      <div class="col-12 p-2"> <button class="col-12 p-1 btn btn-secondary" (click)="goToEvent(e.id)">DETTAGLI</button></div>
+    <div class="col-lg-1 col-12">
+      <!--<div class="col-12 p-2"> <button class="col-12 p-1 btn btn-secondary" (click)="goToEvent(e.id)">DETTAGLI</button></div>-->
       <div class="col-12 p-2"><button class="col-12 p-1 btn btn-danger" *ngIf="events_full!.userCanDeleteEvent" (click)="deleteEvent(e.id)">ELIMINA</button></div>
-
     </div>
     <div class="dropdown-divider"></div>
   </div>

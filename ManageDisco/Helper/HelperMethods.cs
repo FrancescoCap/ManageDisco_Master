@@ -51,15 +51,12 @@ namespace ManageDisco.Helper
                 audience: audience,
                 claims: claims,
                 notBefore: null,
-                expires: DateTime.UtcNow.AddMinutes(50),
-                signingCredentials: credentials);
-
-           
+                expires: DateTime.UtcNow.AddMinutes(5),
+                signingCredentials: credentials);           
 
 
             return new JwtSecurityTokenHandler().WriteToken(token);
-
-        }
+        }       
 
         public static Object HandleNullValue<T>(T value)
         {
@@ -261,6 +258,7 @@ namespace ManageDisco.Helper
         /// <summary>
         /// Restituisce la stringa formattata in base64 di un'immagine
         /// </summary>
+        /// <param name="defaultAddress">Indrizzo ftp con riferimento all'immagine</param>
         /// <returns></returns>
         public static string GetBase64Image(string defaultAddress, string ftpUser, string ftpPassword)
         {

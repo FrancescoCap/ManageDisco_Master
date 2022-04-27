@@ -26,4 +26,13 @@ namespace ManageDisco.Model
         public Bitmap ImageStream { get; set; }
     }
 
+    public class CouponValidation
+    {
+        public CouponValidation()
+        {
+            Products = new Dictionary<string, int>();
+        }
+        public Dictionary<string, int> Products { get; set; }
+    }
+
 }

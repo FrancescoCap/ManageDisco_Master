@@ -10,6 +10,7 @@ namespace ManageDisco.Model
     {
         public string Header { get; set; }      
         public string Link { get; set; }
+        public string Icon { get; set; }
         public List<MenuChild> child { get; set; }
     }
 
@@ -17,6 +18,7 @@ namespace ManageDisco.Model
     {
         public string Title { get; set; }
         public string Link { get; set; }
+        public string Icon { get; set; }
     }
 
 }

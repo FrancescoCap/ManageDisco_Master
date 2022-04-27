@@ -1,0 +1,58 @@
+<div class="col-12 body-container" *ngIf="!isLoading">
+  <div class="col-12 text-center">
+    <label id="no-data" class="col-12">SHOP</label>
+  </div>
+  <div class="row" *ngIf="!isMobileView && !isTabletView;else mobileTemplate">
+    <div class="row col-lg-12">
+      <div class="row col-lg-12 text-center">
+        <div class="col-md-12 col-lg-12 text-center text-lg-end mt-2 mt-lg-0">
+          <button class="col-md-1 col-lg-1 p-2 btn new-button" (click)="openNewProductModal()" *ngIf="userIsAdministrator"><i class="fa fa-plus me-1"></i>NUOVO</button>
+        </div>
+      </div>
+    </div>
+    <div class="row m-2 p-2 product-card-container" *ngFor="let prod of productsShop">
+      <div id="productImage" class="col-12 image-container">
+        <img class="col-12" [src]="prod.productShopBase64Image" />
+      </div>
+      <div id="productDescription" class="col-lg-12 p-3">
+        <label class="col-12 label-product-title">{{prod.productShopHeaderName}}</label>
+        <label class="col-12 label-product-descr">{{prod.productShopHeaderDescription}}</label>
+      </div>
+      <div class="col-12 p-2 text-center">
+        <button class="col-12 btn btn-success btn-price p-2 p-lg-3" (click)="purchase(prod.productShopHeaderIdId)">ACQUISISCI {{prod.productShopHeaderPrice}} pt.</button>
+      </div>     
+    </div>
+  </div>  
+  <ng-template #mobileTemplate>
+    <div class="row">
+      <div class="row col-12 text-center">
+        <div class="col-12 col-lg-6 text-center text-md-end text-lg-end mt-2 mt-lg-0">
+          <button class="col-12 col-md-3 col-lg-2 p-1 p-lg-2 btn new-button" (click)="openNewProductModal()" *ngIf="userIsAdministrator"><i class="fa fa-plus me-1"></i>NUOVO</button>
+        </div>
+      </div>
+    </div>
+    <div class="row p-2" *ngFor="let prod of productsShop">
+      <div class="col-md-4 text-md-start col-12">
+        <img class="col-12" [src]="prod.productShopBase64Image" />
+      </div>
+      <div class="col-md-8 col-12 p-3 wrapper-shop-parent-desc">
+        <label class="col-12 label-product-title">{{prod.productShopHeaderName}}</label>
+        <label class="col-12 label-product-descr">{{prod.productShopHeaderDescription}}</label>
+        <div class="col-12 p-2 m-lg-0 col-lg-12 text-center wrapper-shop-child-purchase">
+          <button class="col-12 btn btn-success btn-price p-2 p-lg-3" (click)="purchase(prod.productShopHeaderIdId)">ACQUISISCI {{prod.productShopHeaderPrice}} pt.</button>
+        </div>
+      </div>
+      <div class="dropdown-divider"></div>
+    </div>
+  </ng-template>
+  <!--No events template-->
+  <div id="no-data" *ngIf="productsShop == null || productsShop.length == 0" class="row col-12 p-4">
+    NON CI SONO PREMI ACQUISIBILI
+  </div>
+</div>
+
+<app-loading [loading]="isLoading"></app-loading>
+
+<ng-container #modalContainer></ng-container>
+
+

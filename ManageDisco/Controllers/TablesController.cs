@@ -227,6 +227,35 @@ namespace ManageDisco.Controllers
                 });
             }
 
+            //add coupon products if client sent
+            if (!String.IsNullOrEmpty(orderInfo.ShopCoupon))
+            {
+                var userOwner = _db.Reservation.FirstOrDefaultAsync(x => x.TableId == table.TableId).Result.UserIdOwner;
+                if (_db.UserProduct.Any(x => x.UserId == userOwner && x.UserProductCode == orderInfo.ShopCoupon && x.UserProductUsed == false))
+                {
+                    var userProduct = await _db.UserProduct.FirstOrDefaultAsync(x => x.UserProductCode == orderInfo.ShopCoupon);
+                    ProductShopHeader shopProduct = await _db.ProductShopHeader.FirstOrDefaultAsync(x => x.ProductShopHeaderIdId == userProduct.ProductShopHeaderId);
+                    if (shopProduct == null)
+                        return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Il prodotto non è più disponibile" });
+
+                    var productShopRows = await _db.ProductShopRow.Where(x => x.ProductShopHeaderId == shopProduct.ProductShopHeaderIdId).ToListAsync();
+                    productShopRows.ForEach(x =>
+                    {
+                        orderRows.Add(new TableOrderRow()
+                        {
+                            ProductId = x.ProductId,
+                            TableOrderRowQuantity = x.ProductShopRowQuantity,
+                            TableOrderHeader = orderHeader
+                        });
+                    });
+                   
+
+                    userProduct.UserProductUsed = true;
+                    _db.Entry(userProduct).State = EntityState.Modified;
+                }
+
+            }
+
             _db.TableOrderRow.AddRange(orderRows);
             await _db.SaveChangesAsync();
 

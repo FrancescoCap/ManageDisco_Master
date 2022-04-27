@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { ApiCaller } from '../../api/api';
 import { AssignTablePost, EventParty, EventPartyView, Reservation, ReservationStatus, ReservationViewTable, Table, TableMapFileInfo } from '../../model/models';
+import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 
 @Component({
@@ -23,12 +24,15 @@ export class TableComponent implements OnInit {
   selectedEventId: number = 0;
   selectedResStatusId: number = 0;
   isLoading = false;
+  isMobileView = false;
 
   constructor(private api: ApiCaller,
-      private _modal:ModalService  ) { }
+    private _modal: ModalService,
+    private _generalService:GeneralService  ) { }
 
   ngOnInit(): void {
-    this.initData();
+    this.isMobileView = this._generalService.isMobileView();
+    this.initData();    
   }
 
   ngAfterViewInit() {

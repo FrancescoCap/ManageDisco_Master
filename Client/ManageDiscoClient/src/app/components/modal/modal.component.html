@@ -1,6 +1,6 @@
-<div *ngIf="visibile" class="modal-bg-trasparent col-12 modal-background-transparent">
+<div *ngIf="visibile" class="modal-bg-trasparent modal-background-transparent">
   <!--New generic modal 2-->
-  <div class="col-xxl-8 col-lg-8 mx-auto my-5" id="modalContainer" *ngIf="modalType == 1 || modalType == 3">
+  <div class="col-12 col-lg-8 col-xxl-8  mx-auto my-5" id="modalContainer" *ngIf="modalType == 1 || modalType == 3">
     <div class="modal-header-bg title-bg header-round-border p-3">
       <h3>{{header}}</h3>
     </div>
@@ -10,13 +10,13 @@
         <div class="col-12 m-0 p-0" *ngIf="lists != null && lists.length > 0">
           <div class="col-12 d-flex row" *ngFor="let viewGroup Of lists">
             <div class="col-12" *ngFor="let viewItem of viewGroup.viewItems;let i = index">
-              <div class="col-5 mx-auto">
-                <label class="col-12 input-title" *ngIf="viewGroup.type != 3">{{viewItem.label}}</label>
+              <div class="col-12 col-lg-5 mx-auto">
+                <label class="col-12 input-title" *ngIf="viewGroup.type != 3 && viewGroup.type != 6">{{viewItem.label}}</label>
                 <div class="col-12 mx-auto">
                   <!--dropdown inputs-->
                   <select *ngIf="viewGroup.type == 1"
                           [name]="viewItem.viewId"
-                          class="col-12 p-2"
+                          class="col-10 col-lg-12 p-2"
                           [id]="viewItem.viewId"
                           [ngModel]="values.get(viewItem.referenceId)"
                           (ngModelChange)="values.set(viewItem.referenceId, $event)">
@@ -29,55 +29,66 @@
                 <div class="col-12 mx-auto">
                   <!--textbox inputs-->
                   <input *ngIf="viewGroup.type == 0 && viewItem.hasNgModel == true;else inputNoModel"
-                         class="col-12"
+                         class="col-10 col-lg-12"
                          type="text"
                          [id]="viewItem.referenceId"
                          [(ngModel)]="modelOut"
-                         (ngModelChange)="onChange(viewItem.referenceId, $event)" />
+                         (ngModelChange)="onChange(viewItem.referenceId, $event)"
+                         (change)="viewItem.validationFunc != null ? inputChange(viewItem, $event) : null" />
                   <!--"inputNOMODEL" da intendersi come senza nessun model collegato agli altri dati-->
                   <ng-template #inputNoModel>
                     <input *ngIf="viewGroup.type == 0"
-                           class="col-12"
+                           class="col-10 col-lg-12"
                            type="text"
                            placeholder=""
                            [ngModel]="values.get(viewItem.referenceId)"
-                           (ngModelChange)="values.set(viewItem.referenceId, $event)" />
+                           (ngModelChange)="values.set(viewItem.referenceId, $event)"
+                           (input)="viewItem.validationFunc != null ? inputChange(viewItem, $event) : null" />
                   </ng-template>
+                  <div class="col-lg-12 col-12" *ngIf="viewItem.extraDescription != null"><small>{{viewItem.extraDescription}}</small></div>
                 </div>
               </div>
               <!--textarea-->
               <div class="col-12" *ngIf="viewGroup.type == 5">
-                <textarea id="viewGroup.viewId" class="col-10" [ngModel]="values.get(viewItem.referenceId)" (ngModelChange)="values.set(viewItem.referenceId, $event)"></textarea>
+                <textarea id="viewGroup.viewId" class="col-10 col-lg-10" [ngModel]="values.get(viewItem.referenceId)" (ngModelChange)="values.set(viewItem.referenceId, $event)"></textarea>
               </div>
               <div class="col-12 p-2 mx-auto">
                 <!--image input-->
                 <input id="{{viewItem.viewId}}"
                        *ngIf="viewGroup.type == 2"
-                       class="col-12" type="file"
+                       class="col-10 col-lg-12"
+                       type="file"
                        accept="image/webp"
                        (change)="onFileChanged($event,viewItem.referenceId)" />
               </div>
               <!--table input-->
               <div class="col-12 text-center mx-auto" *ngIf="viewGroup.type == 3">
                 <label class="col-12">{{viewItem.label}}</label>
-                <div class="col-4 mx-auto text-center card-body table-inputs" style="overflow-x:auto;overflow-y:auto; border: 1px solid #000">
-                  <div class="col-12 text-start" *ngFor="let listData of viewItem.list">
+                <div class="col-12 col-lg-5 mx-auto text-center card-body table-inputs" style="overflow-x:auto;overflow-y:auto; border: 1px solid #000">
+                  <div class="col-10 col-lg-12 text-start" *ngFor="let listData of viewItem.list;let i = index">
                     <!--qui ho la lista dati-->
                     <input class="col-1"
                            type="checkbox"
                            [checked]="this.values.get(viewItem.referenceId)?.includes(listData._dropId)"
                            (change)="onCheckboxChangeState(viewItem.referenceId, listData, $event, viewGroup.selector)" />
-                    {{listData._modalDropText}} - {{listData._valueOut | currency: 'EUR'}}
+                    <input *ngIf="viewGroup.txtTableQuantity" type="number" class="col-2 col-lg-2" (change)="onTxtTableQuantityChange('txtTableQuantity', $event, listData._dropId)" />
+                    {{listData._modalDropText}} <small *ngIf="listData._valueOut">- {{listData._valueOut | currency: 'EUR'}}</small>
                   </div>
                 </div>
+              </div>
+              <div class="col-12" *ngIf="viewGroup.type == 6">
+                <div class="row text-start p-1">
+                  <input type="checkbox" id="viewItem.viewId" class="col-1" />
+                  <label [for]="viewItem.viewId" class="col-11">{{viewItem.label}}</label>
+                </div>                
               </div>
             </div>
           </div>
 
         </div>
         <div class="row mt-3 justify-content-center">
-          <button type="button" class="col-2 btn btn-secondary m-1" (click)="onCloseModal()">Annulla</button>
-          <button class="col-2 btn btn-primary m-1" (click)="onConfirmModal()">OK</button>
+          <button type="button" class="col-5 col-lg-2 btn btn-secondary m-1" (click)="onCloseModal()">Annulla</button>
+          <button class="col-5 col-lg-2 btn btn-primary m-1" (click)="onConfirmModal()">OK</button>
         </div>
         <!--</form>-->
       </div>
@@ -85,7 +96,7 @@
 
 
   </div>
-  <div *ngIf="modalType == 6" class="col-5 modal-border m-auto mt-5">
+  <div *ngIf="modalType == 6" class="col-12 col-lg-5 modal-border m-auto mt-5">
     <div class="modal-header-bg title-bg header-round-border p-3">
       <h3>{{header}}</h3>
     </div>
@@ -102,7 +113,7 @@
     </div>
   </div>
   <!--LOGIN-->
-  <div *ngIf="modalType == 7" class="col-lg-5 col-12 modal-border m-auto mt-5">
+  <div *ngIf="modalType == 7" class="col-12 col-lg-5  modal-border m-auto mt-5">
     <div class="modal-header-bg title-bg header-round-border p-3">
       <h3>{{header}}</h3>
     </div>
@@ -126,19 +137,8 @@
 
   </div>
 
-  <!--Error dialog-->
-  <!--<div *ngIf="modalType == 5 || modalType == 8" class="col-8 modal-border m-auto mt-5" style="max-width:30%;width:100%;">
-    <div class="col-12 card-header" data-value="">
-      {{header}}
-      <i class="fa fa-close" style="float:right" (click)="onCloseModal()"></i>
-    </div>
-    <div class="card-body" style="background-color:white">
-      <label>{{message}}</label>
-    </div>
-  </div>-->
-
   <!--Success dialog-->
-  <div *ngIf="modalType == 9 || modalType == 5 || modalType == 10" class="col-4 modal-border m-auto mt-5" >
+  <div *ngIf="modalType == 9 || modalType == 5 || modalType == 10" class="col-12  col-lg-4 modal-border m-auto mt-5" >
     <div class="col-12 card-header" data-value="">
       {{header}}
       <i class="fa fa-close" style="float:right" (click)="onCloseModal()"></i>

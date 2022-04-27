@@ -1,4 +1,4 @@
-<header style="z-index:99;position:relative">
+<!--<header style="z-index:99;position:relative">
   <div class="row header-bg">
     <ul class="col-11" id="ulmenu">
       <li *ngFor="let itemMenu Of menu" [class.drpdown]="itemMenu.child != null && itemMenu.child.length > 0">
@@ -12,20 +12,88 @@
       <label class="dropbtn">Logout</label>
     </label>
   </div>
- 
   
-</header>
-
-<!--<div class="navbar">
-  <ul class="col-11" id="ulmenu">
-    <li *ngFor="let itemMenu Of menu" [class.drpdown]="itemMenu.child != null && itemMenu.child.length > 0">
-      <a [class.dropbtn]="itemMenu.child != null && itemMenu.child.length > 0" [href]="itemMenu.link">{{itemMenu.header}}</a>
-      <div *ngIf="itemMenu.child != null && itemMenu.child.length > 0" class="drpdown-content">
-        <a *ngFor="let subItem of itemMenu.child" [href]="subItem.link">{{subItem.title}}</a>
+</header>-->
+<div class="wrapper">
+  <nav>
+    <input type="checkbox" id="show-search">
+    <input type="checkbox" id="show-menu">
+    <label for="show-menu" class="menu-icon"><i class="fas fa-bars"></i></label>
+    <div class="content">
+      <!--<div class="logo"><a href="#">Opium Disco Club</a></div>-->
+      <ul class="links">
+        <li *ngFor="let itemMenu Of menu">
+          <a [href]="itemMenu.link" [class.desktop-link]="itemMenu.child != null && itemMenu.child.length > 0"><i *ngIf="isMobileView" class="me-3" [class]="itemMenu.icon!"></i>{{itemMenu.header}}</a>
+          <input type="checkbox" [id]="'show-' + itemMenu.header">
+          <label *ngIf="itemMenu.child != null && itemMenu.child.length > 0" [for]="'show-' + itemMenu.header"><i *ngIf="isMobileView" class="me-3" [class]="itemMenu.icon!"></i>{{itemMenu.header}}</label>
+          <ul *ngIf="itemMenu.child != null && itemMenu.child.length > 0">
+            <li>
+              <a *ngFor="let subItem of itemMenu.child" [href]="subItem.link"><i *ngIf="isMobileView" class="me-3" [class]="subItem.icon!"></i>{{subItem.title}}</a>
+            </li>
+          </ul>
+        </li>
+        <li *ngIf="isMobileView">
+          <a style="cursor:pointer" (click)="logout()">Logout</a>
+        </li>
+      </ul>
+    </div>    
+      <div *ngIf="!isMobileView" class="content">
+        <ul class="links">
+          <li>
+            <a for="show-search" class="search-icon"><i class="fa fa-user-o"></i></a>
+            <ul>
+              <li>
+                <a style="cursor:pointer" (click)="logout()">Logout</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
       </div>
-    </li>
-  </ul>-->
-  <!--<a *ngFor="let itemMenu Of menu" [href]="itemMenu.link">{{itemMenu.header}}</a>-->
-<!--</div>-->
+    <form action="#" class="search-box">
+      <input type="text" placeholder="Type Something to Search..." required>
+      <button type="submit" class="go-icon"><i class="fas fa-long-arrow-alt-right"></i></button>
+    </form>
+  </nav>
+</div>
 
 <router-outlet></router-outlet>
+
+<div id="footer_push"></div>
+
+<footer class="col-12 col-lg-12 mt-lg-5 p-3 d-flex flex-row footer" *ngIf="homeInfo != null"  style="background-color:#333">
+  <div class="col-12 col-lg-12 row" *ngIf="homeInfo != null">
+    <div class="col-6 col-lg-4">
+      <label class="col-6 col-lg-12 title" style="color:#fff;">INFORMAZIONI</label>
+      <div class="col-12 label" style="color: #fff">
+        {{homeInfo!.discoEntity!.discoName}}
+      </div>
+      <div class="col-12 label" style="color: #fff">
+        P.IVA: {{homeInfo!.discoEntity!.discoVatCode}}
+      </div>
+      <div class="col-12 label" style="color: #fff">
+        {{homeInfo!.discoEntity!.discoAddress}}, {{homeInfo!.discoEntity!.discoCityCap}}, {{homeInfo!.discoEntity!.discoCity}}, {{homeInfo!.discoEntity!.discoProvince}}
+      </div>
+      <div class="col-12 label" style="color: #fff">
+        {{homeInfo!.discoEntity!.discoOpeningTime}} -  {{homeInfo!.discoEntity!.discoClosingTime}}
+      </div>
+    </div>
+    
+
+    <div class="col-6 col-lg-4">
+      <label class="col-6 col-lg-12 title " style="color:#fff;">CONTATTI</label>
+      <div class="col-12 col-lg-12 m-lg-0 p-lg-0" style="background-color:#333" *ngFor="let cont Of homeInfo!.contacts">
+        <div class="col-12 p-lg-1 label" style="color:#fff;">
+          {{cont.contactTypeDescription}}:
+          <div class="col-12 col-lg-12 label" *ngFor="let contValue Of cont.contactsValues">
+            <label class="col-12 col-lg-12 label" *ngIf="cont.contactTypeId != instagramContactTypeId && cont.contactTypeId != facebookContactTypeId">{{contValue}}</label>
+            <a #linkLbl
+               *ngIf="cont.contactTypeId == instagramContactTypeId || cont.contactTypeId == facebookContactTypeId"
+               [href]="contValue"><i [ngClass]="cont.contactTypeId == instagramContactTypeId ? 'fa fa-instagram':'fa fa-facebook'"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+

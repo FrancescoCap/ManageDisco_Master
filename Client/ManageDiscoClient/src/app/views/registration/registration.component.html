@@ -1,13 +1,8 @@
-<div class="container p-5">
-  <div class="d-flex justify-content-center h-100">
-    <div class="registration-card card">
+<div class="row">
+  <div class="d-flex justify-content-center h-100 mt-5 p-5 m-lg-0 p-lg-0">
+    <div class="registration-card card body-container">
       <div class="card-header">
         <h3>Sign Up</h3>
-        <div class="d-flex justify-content-end social_icon">
-          <span><i class="fa fa-facebook-square"></i></span>
-          <span><i class="fa fa-google-plus-square"></i></span>
-          <span><i class="fa fa-twitter-square"></i></span>
-        </div>
       </div>
       <div class="card-body">
         <form name="registrationForm" (ngSubmit)="register()">
@@ -21,13 +16,13 @@
             <div class="input-group-prepend">
               <span class="input-group-text h-100" style="padding-top:15%"></span>
             </div>
-            <input name="password" passwordValidator parent="true" compare-password="confirmPassword" required #password="ngModel" type="password" class="form-control h-25" placeholder="Password" [(ngModel)]="registrationRequest.password">
+            <input name="password" passwordValidator  compare-password="confirmPassword" required #password="ngModel" type="password" class="form-control h-25" placeholder="Password" [(ngModel)]="registrationRequest.password">
           </div>
           <div class="input-group form-group pt-2 pb-2">
             <div class="input-group-prepend">
               <span class="input-group-text h-100" style="padding-top:15%"></span>
             </div>
-            <input name="confirmPassword" passwordValidator compare-password="password" required #confirmPassword="ngModel" [(ngModel)]="repeatedPassword" type="password" class="form-control h-25" placeholder="Conferma password">
+            <input name="confirmPassword" passwordValidator parent="true" compare-password="password" required #confirmPassword="ngModel" [(ngModel)]="repeatedPassword" type="password" class="form-control h-25" placeholder="Conferma password">
           </div>
           <div class="input-group form-group pt-2 pb-2">
             <div class="input-group-prepend">
@@ -60,7 +55,7 @@
             <select name="drpGender" class="form-control h-25 dropdown" [(ngModel)]="registrationRequest.gender">
               <option value="">Seleziona sesso</option>
               <option value="Male">Maschio</option>
-              <option value="Famale">Femmina</option>
+              <option value="Female">Femmina</option>
             </select>
           </div>
           <div class="input-group form-group pt-2 pb-2">

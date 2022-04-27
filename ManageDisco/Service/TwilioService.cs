@@ -47,12 +47,28 @@ namespace ManageDisco.Service
         {
             Twilio.TwilioClient.Init(_conf["Twilio:AccountId"], _conf["Twilio:Token"]);
 
+            var message = MessageResource.Create(                
+                from: new Twilio.Types.PhoneNumber(SanitizeNumber(from)),
+                to: new Twilio.Types.PhoneNumber(SanitizeNumber(to)),
+                body: body);           
+        }
+
+        public void StartTwilioResponse(string from, string to, string body, List<Uri> mediaUrl)
+        {
+            Twilio.TwilioClient.Init(_conf["Twilio:AccountId"], _conf["Twilio:Token"]);
+
             var message = MessageResource.Create(
-                from: new Twilio.Types.PhoneNumber(from),
-                to: new Twilio.Types.PhoneNumber(to),
+                mediaUrl: mediaUrl,
+                from: new Twilio.Types.PhoneNumber(SanitizeNumber(from)),
+                to: new Twilio.Types.PhoneNumber(SanitizeNumber(to)),
                 body: body);
         }
 
-     
+        private string SanitizeNumber(string value)
+        {            
+            string sanitizedNumber = !value.Contains("+") ? $"whatsapp:+39{value.Replace("whatsapp:", "")}" : value;
+            return sanitizedNumber;
+        }
+
     }
 }
