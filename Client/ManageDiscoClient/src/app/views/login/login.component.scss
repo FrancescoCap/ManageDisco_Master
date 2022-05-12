@@ -10,13 +10,9 @@ html, body {
   font-family: 'Numans', sans-serif;
 }
 
-.body-container{
-    margin-top:10%;
-}
+
 @media only screen and (max-width:400px){
-  .body-container {
-    margin-top: 50%;
-  }
+ 
 }
 
 
@@ -80,6 +76,7 @@ input:focus {
   color: black;
   background-color: #FFC312;
   width: 100px;
+  padding:0.25rem!important;
 }
 
 .login_btn:hover {

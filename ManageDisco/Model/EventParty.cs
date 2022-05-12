@@ -10,9 +10,9 @@ namespace ManageDisco.Model
     public class EventParty
     {
         public int Id { get; set; }
-        [Required]
+        
         public string Name { get; set; }
-        [Required]
+        
         public string Description { get; set; }
         public int MaxAge { get; set; }
 

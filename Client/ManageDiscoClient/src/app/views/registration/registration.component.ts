@@ -5,7 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { catchError } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { client_URL } from '../../app.module';
-import { AuthResponse, RegistrationRequest } from '../../model/models';
+import { LoginResponse, RegistrationRequest } from '../../model/models';
 import { ModalService } from '../../service/modal.service';
 
 @Component({
@@ -45,7 +45,7 @@ export class RegistrationComponent implements OnInit {
       catchError(err => {
         this.isLoading = false;
         return err;
-      })).subscribe((data: AuthResponse) => {
+      })).subscribe((data: LoginResponse) => {
         this.isLoading = false;
         if (data.operationSuccess) {
           this._modal.showOperationResponseModal("Registrazione avvenuta con successo.", "Registrazione", false, undefined, this.onRegistrationResponseModalClose);         

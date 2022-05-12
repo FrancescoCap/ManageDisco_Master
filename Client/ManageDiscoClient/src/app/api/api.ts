@@ -3,7 +3,7 @@ import { Injectable, Input, ViewContainerRef } from "@angular/core";
 import { Router } from "@angular/router";
 import { map, Observable, pipe } from "rxjs";
 import { GeneralMethods } from "../helper/general";
-import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartyView, PrCustomerView, HomeInfo, CatalogView, HomePhotoPost, Role, TranslatedRolesEnum, ReservationStatus, TranslatedReservationStatusEnum, ProductShopHeader, ProductShopType, UserPermissionCell, UserPermissionTable, UserPermissionPut } from "../model/models";
+import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartyView, PrCustomerView, HomeInfo, CatalogView, HomePhotoPost, Role, TranslatedRolesEnum, ReservationStatus, TranslatedReservationStatusEnum, ProductShopHeader, ProductShopType, UserPermissionCell, UserPermissionTable, UserPermissionPut, CouponValidation, ReservationPost } from "../model/models";
 import { ModalService } from "../service/modal.service";
 
 import { ApiHttpService } from "./http";
@@ -163,7 +163,7 @@ export class ApiCaller {
   }
 
   public putWarehouseQuantity(warehouse:any) {
-    return this.http.putCall(this.url.putWarehouseQuantity(), warehouse);
+    return this.http.putCall(this.url.putWarehouseQuantity(), warehouse, this.onApiError);
   }
 
   public getWarehouse(): Observable<any> {
@@ -234,16 +234,18 @@ export class ApiCaller {
     return this.http.postCallWithResponse(this.url.login(), data, this.onApiError);
   }
   //eventId optional for filtering purposes
-  public getReservations(eventId: number, reserveStatus?: number): Observable<Reservation[]> {
-    return this.http.getCall(this.url.getReservations(eventId, reserveStatus));
+  public getReservations(eventId: number, reserveStatus: number = 0, reservationId?:number): Observable<Reservation[]> {
+    return this.http.getCall(this.url.getReservations(eventId, reserveStatus, reservationId), this.onApiError);
   }
-
 
   public getReservationStatus() {
     return this.http.getCall(this.url.getReservationStatus(), this.onApiError).pipe(
       map((status: ReservationStatus[]) => {
         status.forEach((x, y) => {
-          x._translatedStatus = Object.entries(TranslatedReservationStatusEnum).find(k => k[0] == x.reservationStatusValue?.toUpperCase())?.[1];
+          //console.log("server:" + x.reservationStatusValue)
+          //console.log(Object.entries(TranslatedReservationStatusEnum).find(k => k[1][1] == x.reservationStatusValue))
+          //x._translatedStatus = Object.entries(TranslatedReservationStatusEnum).find(k => k[1][1] == x.reservationStatusValue)?.[1];
+          //console.log(x._translatedStatus)
         })
         return status;
       }));
@@ -295,7 +297,7 @@ export class ApiCaller {
   }
 
   public postEvent(event:EventParty):Observable<any> {
-   return this.http.postCall(this.url.getEvents(), event);
+   return this.http.postCall(this.url.getEvents(), event, this.onApiError);
   }
 
   public getReservationTypes(): Observable<ReservationType[]> {
@@ -311,7 +313,11 @@ export class ApiCaller {
   }
   
   public postReservation(data?: Reservation) {
-    return this.http.postCall(this.url.getReservations(0), data);
+    return this.http.postCall(this.url.getReservations(0), data, this.onApiError);
+  }
+
+  public putReservation(data: ReservationPost) {
+    return this.http.putCall(this.url.getReservations(0,0,0,true), data, this.onApiError);
   }
 
   public getPrCustomers(): Observable<PrCustomerView[]> {
@@ -331,9 +337,12 @@ export class ApiCaller {
   }
 
   public acceptReservation(reservationId: number, status: number) {
-    return this.http.putCall(this.url.getReservations(0) + "?reservationId="+ reservationId.toString() + "&status=" + status.toString(), null)
+    return this.http.putCall(this.url.getReservations(0) + "?reservationId="+ reservationId.toString() + "&status=" + status.toString(), this.onApiError)
   }
 
+  /*
+   * TODO: usare il body per l'invio di dati, non le query params
+   */  
   public confirmReservationBudget(reservationId:number, euro: number): Observable<any> {
     return this.http.putCall(this.url.confirmBudget() + `?reservationId=${reservationId}&euro=${euro}`, null, this.onApiError);
   }
@@ -355,15 +364,35 @@ export class ApiCaller {
   }
 
   public postPayment(newPayment: PaymentPost) {
-    return this.http.postCall(this.url.reservationsPayments(), newPayment);
+    return this.http.postCall(this.url.reservationsPayments(), newPayment, this.onApiError);
+  }
+
+  public getTables() {
+    return this.http.getCall(this.url.getTables(), this.onApiError).pipe(
+      map((tables: Table[]) => {
+        tables.forEach((x, y) => {
+          tables[y]._dropId = x.tableId;
+          tables[y]._modalDropText = x.tableAreaDescription + "-" + x.tableNumber;
+        })
+        return tables;
+      }));
   }
 
   public getAssignableTables(eventId?:number): Observable<Table[]> {
-    return this.http.getCall(this.url.getAssignableTables(eventId));
+    return this.http.getCall(this.url.getAssignableTables(eventId)).pipe(
+      map((values: Table[]) => {
+        values.forEach((x, y) => {
+          values[y]._dropId = x.tableId;
+          values[y]._modalDropText = x.tableAreaDescription + " " + x.tableNumber;
+          console.log(x)
+        })
+        return values;
+      })
+    );
   }
 
   public assignTable(data:AssignTablePost) {
-    return this.http.postCall(this.url.postAssignTable(), data);
+    return this.http.postCall(this.url.postAssignTable(), data, this.onApiError);
   }
 
   public getEventTables(eventId:number):Observable<TableEvents> {
@@ -375,7 +404,7 @@ export class ApiCaller {
   }
 
   public getCatalogs(): Observable<CatalogView> {
-    return this.http.getCall(this.url.getCatalog()).pipe(
+    return this.http.getCall(this.url.getCatalog(), this.onApiError).pipe(
       map((data:CatalogView) => {
         data.catalog?.forEach((item: Catalog) => {
           item._modalDropText = item.catalogName;
@@ -399,7 +428,7 @@ export class ApiCaller {
   }
 
   public postProduct(data:Product) {
-    return this.http.postCall(this.url.getProducts(), data);
+    return this.http.postCall(this.url.getProducts(), data, this.onApiError);
   }
 
   public deleteProduct(productId:number) {

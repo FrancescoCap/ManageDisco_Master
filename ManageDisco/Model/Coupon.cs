@@ -28,11 +28,14 @@ namespace ManageDisco.Model
 
     public class CouponValidation
     {
-        public CouponValidation()
-        {
-            Products = new Dictionary<string, int>();
-        }
-        public Dictionary<string, int> Products { get; set; }
+        public List<CouponValidationRow> Products { get; set; } = new List<CouponValidationRow>();
+    }
+
+    public class CouponValidationRow
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; }
+        public int ProductQuantity { get; set; }
     }
 
 }

@@ -138,13 +138,17 @@ export class Endpoints {
       return this.base_url + "User/Login"
   }
 
-  public getReservations(eventId: number, reserveStatus?:number): string {
-    if (eventId > 0 && reserveStatus != null)
-      return this.base_url + `Reservations/Filter/Event?eventId=${eventId}&resStatus=${reserveStatus == null ? 2 : reserveStatus}`;
+  public getReservations(eventId: number, reserveStatus?:number, reservationId?:number, edit:boolean = false): string {
+    if (eventId > 0 && reserveStatus != 0)
+      return this.base_url + `Reservations/Filter/Event?eventId=${eventId}&resStatus=${reserveStatus == 0 ? 2 : reserveStatus}`;
     else if (eventId > 0)
       return this.base_url + `Reservations?eventId=${eventId}`;
+    else if (reservationId != null && reservationId > 0)
+      return this.base_url + `Reservations?id=${reservationId}`;
+    else if (edit)
+      return this.base_url + `Reservations/Edit`;
     else
-      return this.base_url + "Reservations";
+      return this.base_url + `Reservations`;
   }
 
   public getEventReservation(eventId:any) {
@@ -202,6 +206,10 @@ export class Endpoints {
     return this.base_url + `ReservationStatus`;
   }
 
+  public getTables() {
+    return this.base_url + `Tables`;
+  }
+
   public getAssignableTables(eventId?:number) {
     return this.base_url + `Tables/Assignable?eventId=${eventId}`;
   }
@@ -211,7 +219,7 @@ export class Endpoints {
   }
 
   public postAssignTable() {
-    return this.base_url + `Tables`;
+    return this.base_url + `Reservation/AssignTable`;
   }
 
   public getTableMap() {

@@ -32,7 +32,7 @@ export class ProductComponent implements OnInit {
   textBox: ModalTextBoxList[] = [{ id: "productName", label: "Nome" }, { id: "productPrice", label: "Prezzo" }];
   dropDown: ModalModelList[] = [];
   modalType = ModalType.NEW_PRODUCT;
-  
+  isLoading = false;
 
   constructor(private _api: ApiCaller,
       private _modal:ModalService) { }
@@ -46,6 +46,7 @@ export class ProductComponent implements OnInit {
   }
 
   initData() {
+    this.isLoading = true;
     const calls: Observable<any>[] = [
       this._api.getProducts(0),
       this._api.getCatalogs()
@@ -53,7 +54,7 @@ export class ProductComponent implements OnInit {
 
     forkJoin(calls).pipe(
       catchError(err => {
-        this._modal.showErrorOrMessageModal(err.modal);
+        this.isLoading = false;
         return err;
       })).subscribe((data: any) => {
         this.products = data[0];
@@ -62,6 +63,8 @@ export class ProductComponent implements OnInit {
         this.catalogView.catalog!.forEach(x => {
           this.showShieldBack.set(x.catalogId, false);
         })
+        this.isLoading = false;
+        this._modal.hideModal();
       });
   }
 
@@ -169,8 +172,15 @@ export class ProductComponent implements OnInit {
   }
 
   onCatalogAdded = (info: any): void => {
+    this.isLoading = true;
     var catalog: Catalog = {
       catalogName: info.get("catalogName")
+    }
+
+    if (catalog.catalogName == null) {
+      this.isLoading = false;
+      this._modal.showErrorOrMessageModal("Inserire un nome catalogo.", "ERRORE");
+      return;
     }
 
     this._api.postCatalog(catalog).pipe(

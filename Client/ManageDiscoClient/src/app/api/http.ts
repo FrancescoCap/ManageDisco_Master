@@ -20,8 +20,7 @@ export class ApiHttpService {
   private DELETE: string = "DELETE";
   
   constructor(private http: HttpClient,
-        private router: Router,
-        @Inject("urlRedirect") urlOnUnauthorized: string) {
+        private router: Router) {
   }
 
   public getCall(url: string, onErrorCallback?: (status: number, message: string) => any): Observable<any> {

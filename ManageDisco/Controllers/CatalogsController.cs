@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ManageDisco.Context;
 using ManageDisco.Model;
 using ManageDisco.Helper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ManageDisco.Controllers
 {
@@ -20,7 +21,7 @@ namespace ManageDisco.Controllers
         }
 
 
-        // GET: api/Catalogs
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetCatalog()
         {

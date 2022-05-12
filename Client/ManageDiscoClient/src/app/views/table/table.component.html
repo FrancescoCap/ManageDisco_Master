@@ -13,9 +13,10 @@
       <div class="col-12 col-lg-3 mt-3 mt-lg-0 p-1 row">
         <select id="drpReservationStatus" class="col-12 p-2" (change)="onResStatusChange($event)">
           <option [value]="0">Stato prenotazione</option>
-          <option *ngFor="let rs of reservationStatus" [value]="rs.reservationStatusId">{{rs._translatedStatus}}</option>
+          <option *ngFor="let rs of reservationStatus" [value]="rs.reservationStatusId">{{rs.reservationStatusValue}}</option>
         </select>
       </div>
+      <div class="col-12 col-lg-3"></div>
       <div class="col-12 col-lg-3 m-lg-0 p-2 text-end">
         <label style="text-decoration:underline; cursor:pointer" for="btnShowMap" class="me-1">Mappa</label>
         <i id="btnShowMap" class=" fa fa-file-pdf-o" (click)="showTableMap()"></i>
@@ -23,7 +24,8 @@
     </div>
   </div>
   <div *ngIf="!isMobileView;else mobileTemplate">
-    <div class="row card-header p-2" data-value="tblHeader" style="background-color:burlywood">
+    <app-tableview [data-list]="tableViewData" [max-rows-page]="tableRowPage"></app-tableview>
+    <!--<div class="row card-header p-2" data-value="tblHeader" style="background-color:burlywood">
       <div class="col-3">Nome tavolo</div>
       <div class="col-3">Nr. persone previste</div>
       <div class="col-3">Budget previsto</div>
@@ -47,7 +49,7 @@
           </ng-template>
         </div>
       </div>
-    </div>
+    </div>-->
   </div>
   <ng-template #warningTemplate>
     <div class="col-12 col-lg-3 no-data">
@@ -56,12 +58,13 @@
   </ng-template>
   <ng-template #mobileTemplate>
     <div style="overflow:auto; height:620px; max-height:780px;">
-      <div class="col-12 p-2" *ngFor="let r of acceptedReservations.reservations">
+      <div class="col-12 p-2" *ngFor="let r of acceptedReservations">
         <div class="col-12"><b>Nome prenotazione:</b> {{r.reservationName}}</div>
         <div class="col-12"><b>N. persone:</b> {{r.reservationPeopleCount}}</div>
         <div class="col-12"><b>Budget stimato:</b> {{r.reservationExpectedBudget | currency: 'EUR'}}</div>
         <div class="col-12" *ngIf="r.reservationStatusId == 2; else warningTemplate">
-          <select class="col-8 p-1" (change)="onTableAssigned(r.eventId, r.reservationId, $event)" *ngIf="acceptedReservations.canAssignTable;else unsassignableTable" [(ngModel)]="r.tableId">
+          <!--*ngIf="acceptedReservations.canAssignTable;else unsassignableTable"-->
+          <select class="col-8 p-1" (change)="onTableAssigned(r.eventId, r.reservationId, $event)" [(ngModel)]="r.tableId">
             <option [value]="0"></option>
             <option *ngFor="let t of avaiableTables" [value]="t.tableId">{{t.tableAreaDescription}} - {{t.tableNumber}}</option>
           </select>

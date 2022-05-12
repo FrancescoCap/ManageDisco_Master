@@ -1,6 +1,6 @@
-<div class="row" >
+<div class="col-12 body-container">
   <div class="d-flex justify-content-center h-100 p-5 mt-5 p-lg-0 m-lg-0">
-    <div class="card body-container" >
+    <div class="card p-3" >
       <div class="card-header">
         <h3>Sign In</h3>
         <div class="d-flex justify-content-end social_icon">
@@ -15,14 +15,13 @@
             <div class="input-group-prepend ">
               <span class="input-group-text h-100" style="padding-top:15%"><i class="fa mx-auto fa-user h-100"></i></span>
             </div>
-            <input name="email" type="email" #emailValue="ngModel" required emailValidator class="form-control h-25" placeholder="email" [(ngModel)]="loginRequest.email">
-            
+            <input name="email" type="email" #emailValue="ngModel" required emailValidator class="form-control p-1" placeholder="email" [(ngModel)]="loginRequest.email">            
           </div>
           <div class="input-group form-group pt-2 pb-2">
             <div class="input-group-prepend">
               <span class="input-group-text h-100" style="padding-top:15%"><i class="fa mx-auto fa-key h-100"></i></span>
             </div>
-            <input name="password" type="password" #passwordValue="ngModel" class="form-control h-25" placeholder="password" [(ngModel)]="loginRequest.password">
+            <input name="password" type="password" #passwordValue="ngModel" class="form-control p-1" placeholder="password" [(ngModel)]="loginRequest.password">
             <label class="col-12" *ngIf="passwordValue.dirty && passwordValue.errors?.['required']">Inserire una password</label>
           </div>
           <div class="row mt-3 mb-3 align-items-center remember">

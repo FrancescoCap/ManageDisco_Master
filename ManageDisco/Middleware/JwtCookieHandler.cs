@@ -1,15 +1,21 @@
 ﻿using ManageDisco.Context;
+using ManageDisco.Controllers;
+using ManageDisco.Helper;
 using ManageDisco.Model;
 using ManageDisco.Model.UserIdentity;
 using ManageDisco.Service;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace ManageDisco.Middleware
@@ -17,29 +23,37 @@ namespace ManageDisco.Middleware
     public class JwtCookieHandler
     {
         private Encryption _encryption;
+       // private UserManager<User> _userManager;
         private readonly RequestDelegate _next;
-        private DiscoContext _db;
+        private IConfiguration _configuration;
 
-        public JwtCookieHandler(RequestDelegate next, Encryption encryption)
+        public JwtCookieHandler(RequestDelegate next, 
+            Encryption encryption, 
+            IConfiguration configuration
+            )
         {
             _next = next;
             _encryption = encryption;
-            //_db = db;
+            this._configuration = configuration;
+           //this._userManager = userManager;
         }
 
-        public async Task Invoke(HttpContext context)
+        public async Task Invoke(HttpContext context, DiscoContext db, UserManager<User> userManager)
         {
             if (context.Request.Method != HttpMethods.Options)
             {
-                if (context.Request.Path == "/api/User/RefreshToken")
+                if (context.Request.Path.Value.Contains("/api/User/Login"))
                 {
-                    //bool rftValid = await isRefreshTokenValid(context.Request.Cookies.FirstOrDefault(c => c.Key == CookieConstants.REFRESH_COOKIE).Value, context.Session.GetString(CookieConstants.CLIENT_SESSION));
-                    //if (rftValid)
-                    //{                        
-                        
-                        await _next.Invoke(context);
-                    //}
-                }                   
+                    context.Session.Clear();
+                }
+                //bool appendCookieFromClosedBrowser = context.Request.Cookies.Any(x => x.Key == CookieConstants.REFRESH_COOKIE) && !context.Request.Cookies.Any(x => x.Key == CookieConstants.AUTHORIZATION_COOKIE);
+                //if (appendCookieFromClosedBrowser)
+                //{
+                //    var refreshToken = context.Request.Cookies.FirstOrDefault(x => x.Key == CookieConstants.REFRESH_COOKIE);
+                //    AuthenticationResponse newTokens = await AttachNewTokens(db, context, userManager, _encryption, refreshToken.Value);
+                //    context.Response.Cookies.Append(CookieConstants.AUTHORIZATION_COOKIE, newTokens.Token);
+                //    context.Response.Cookies.Append(CookieConstants.REFRESH_COOKIE, newTokens.RefreshToken);
+                //}              
 
                 var cookie = context.Request.Path == "/api/User/Login" || 
                     //new customer registration
@@ -48,52 +62,63 @@ namespace ManageDisco.Middleware
                 if (cookie != null)
                 {
                     var jwtInfo = new JwtSecurityTokenHandler().ReadJwtToken(cookie);
-                    //if token is used with another agent means that was copied 
-                  
-                    string userAgent = jwtInfo.Claims.FirstOrDefault(x => x.Type == CustomClaim.CLAIM_USERAGENT).Value;
-                    string agentCaller = context.Request.Headers["User-Agent"];
-                   /*
-                   * RESTITUIRE UN'ECCEZIONE MIGLIORE
-                   */
-                    if (userAgent != agentCaller)
-                        await _next.EndInvoke(null);
+                    var tokenExpirationDateString = jwtInfo.Claims.FirstOrDefault(x => x.Type == CustomClaim.CLAIM_EXPIRATIONDATE).Value;
+                    var tokenExpirationDateMilliseconds = double.Parse(tokenExpirationDateString);
+                    ////if token is expired, redirect to general API
+                    //if (jwtInfo.ValidTo.CompareTo(DateTime.UtcNow) < 0) //expired
+                    //{
+                    //    var userId = jwtInfo.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
+                    //    var refreshToken = db.RefreshToken.FirstOrDefault(x => x.RefreshTokenUserId == userId && x.RefreshTokenIsValid == true).RefreshTokenLifetime;
+                    //    var refreshTokenExpireDate = new DateTime(refreshToken);
 
-                    context.Request.Headers.Append("Authorization", "Bearer " + cookie);
+                    //    if (refreshTokenExpireDate.CompareTo(DateTime.UtcNow) > 0)
+                    //        context.Request.Path = "/api/User/RefreshToken";
+                    //    else
+                    //        await HandleNoValidToken(db, context);
+                    //}
+                    //else
+                    //{
+                    //if token is used with another agent means that was copied
+                    string userAgent = jwtInfo.Claims.FirstOrDefault(x => x.Type == CustomClaim.CLAIM_USERAGENT).Value;
+                        string agentCaller = context.Request.Headers["User-Agent"];
+                        /*
+                        * RESTITUIRE UN'ECCEZIONE MIGLIORE
+                        */
+                        if (userAgent != agentCaller)
+                            await _next.EndInvoke(null);
+
+                        context.Request.Headers.Append("Authorization", "Bearer " + cookie);
+                    //}
+                    
                 }
                 else
                 {
                     //Se entro qui singifica che l'utente è anonimo e non loggato
                     //Rendirizzo verso un endpoint per l'accesso anonimo.
                     //Per convenzione l'API dovrà avere un punto di access con path General
-
-                    //Per alcune API non devo impostare il redirect
-                    bool isLoginRequest = context.Request.Path.Value.Contains("Login") || context.Request.Path.Value.Contains("Register");
-                    bool isWhatsappRequest = context.Request.Path.Value.Contains("Whatsapp");
-                    bool isCouponRequest = context.Request.Path.Value.Contains("Coupon");
-                    bool isContactRequest = context.Request.Path.Value.Contains("Info");
-                    context.Request.Path = 
-                        (!isLoginRequest &&     //need redirect
-                        !isWhatsappRequest && 
-                        !isCouponRequest &&
-                        !isContactRequest) ? $"{context.Request.Path}/General" : context.Request.Path;
+                    await HandleNoValidToken(db, context);                   
                 }
             }          
            
            await _next.Invoke(context);
         }
 
-        //public async Task<bool> isRefreshTokenValid(string refreshTokenValue, string sessionTime)
-        //{
-        //    //RefreshToken refreshToken = await _db.RefreshToken.FirstOrDefaultAsync(x => x.RefreshTokenValue == refreshTokenValue);
-        //    //if (refreshToken == null)
-        //    //    return false;
+       
+        private async Task<IActionResult> HandleNoValidToken(DiscoContext db, HttpContext context)
+        {
+            string controller = context.Request.Path.Value.Split("/")[2];
+            string path = context.Request.Path;
+            AnonymusAllowed anonymus = await db.AnonymusAllowed.FirstOrDefaultAsync(x => x.Path == path && x.Controller == controller);
 
-        //    long nowTicks = DateTime.Now.ToUniversalTime().Ticks;
-
-        //    if ((nowTicks - refreshToken.RefreshTokenLifetime.ToUniversalTime().Ticks) == (nowTicks - long.Parse(sessionTime)))
-        //        return true;
-
-        //    return false;
-        //}
+            if (anonymus != null)
+            {
+                context.Request.Path = anonymus.RedirectedPath;
+                return new OkResult();
+            }
+            else
+            {
+                return new UnauthorizedResult();
+            }
+        }
     }
 }

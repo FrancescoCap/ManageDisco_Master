@@ -1,6 +1,6 @@
 import { ComponentFactoryResolver, ComponentRef, Input, ViewChild, ViewContainerRef } from "@angular/core";
 import { Injectable } from "@angular/core";
-import { map } from "rxjs";
+import { map, Subject } from "rxjs";
 import { ModalComponent } from "../components/modal/modal.component";
 import { ModalViewGroup } from "../components/modal/modal.model";
 import { ModalType } from "../model/models";
@@ -20,6 +20,7 @@ export class ModalService {
     this.modalContainer = container;
   }
 
+  //TODO delete
   public setModelView(ngModel: Map<any, any>) {   
     if (this.modalComponentRef != null)
         this.modalComponentRef.instance.modelValues = ngModel;
@@ -29,7 +30,7 @@ export class ModalService {
     this.initComponentRef();
     
     if (this.modalComponentRef != null) {
-      this.modalComponentRef.instance.modalType = isMessageModal != null && isMessageModal ? ModalType.INFO : ModalType.ERROR;
+      this.modalComponentRef.instance.modalType = isMessageModal != null && isMessageModal ? ModalType.SUCCESS : ModalType.ERROR;
       this.modalComponentRef.instance.message = message;
       this.modalComponentRef.instance.header = title != null ? title : "Errore";
       this.modalComponentRef.instance.visibile = true;
@@ -71,14 +72,19 @@ export class ModalService {
         });
       }
 
-      this.modalComponentRef.instance.modalType = modalType != null ? modalType : ModalType.NEW_RESERVATION;  //default selection for map purposes
-      this.modalComponentRef.instance.visibile = true;
+      this.modalComponentRef.instance.modalType = modalType != null ? modalType : ModalType.NEW_RESERVATION;  //default selection for map purposes   
       this.modalComponentRef.instance.header = title;
       this.modalComponentRef.instance.modalConfirmed.subscribe((event: any) => {
         
         confirmCallback(event);
       })
+      this.modalComponentRef.instance.showModal();
+      this.modalComponentRef.instance.modalVisibilityListener?.next(true);
     }
+  }
+  //To close manually modal: case error was thrown and modal is not to close
+  public hideModal() {
+    this.modalComponentRef?.instance.modalVisibilityListener?.next(false);
   }
 
   public showListViewModal(title:string, data:ModalViewGroup[]) {

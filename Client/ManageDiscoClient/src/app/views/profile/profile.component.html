@@ -272,7 +272,6 @@
         <label id="no-data" class="col-12">Permessi</label>
         <small class="col-12">Gestisci i permessi degli altri componenti dello staff.</small>
       </div>
-     
         <div class="d-flex p-lg-2">
           <div class="col-3"></div>
           <div class="col-3" *ngFor="let permission of userPermission!.userPermissionTableHeaderCol!">
@@ -283,38 +282,11 @@
           <div class="col-12 d-flex">
             <label class="col-3">{{cell.user}}</label>
             <div class="row col-3" style="overflow:auto" *ngFor="let state of cell.userPermissionTableCell">
-              <input type="checkbox" class="col-1" [checked]="state.permissionState" (change)="onPermissionStateChange(state.userId, state.permissionId)"/>
-              <!--<select class="col-lg-4" >
-                <option value="true">Concedi</option>
-                <option value="false">Nega</option>
-              </select>-->
+              <input type="checkbox" class="col-1" [checked]="state.permissionState" (change)="onPermissionStateChange(state.userId, state.permissionId)" />            
             </div>
           </div>
         </div>
-      
-      
 
-      <!--<div id="tblPermissions">
-    <div class="col-12 row p-lg-2 tblheader-bk" data-value="tblHeader">
-      <div class="col-3"></div>
-      <div style="width:20%" *ngFor="let permission of userPermission!.userPermissionTableHeaderCol!">
-        <label>{{permission}}</label>
-      </div>
-    </div>
-    <div class="row col-12" style="overflow:auto">
-      <div class="col-12 row p-lg-2" *ngFor="let cell of userPermission!.rows!" data-value="tblBody">
-        <div class="col-12 row" data-value="tblRow">
-          <label class="col-3">{{cell.user}}</label>
-          <div class="row col-3" style="overflow:auto" *ngFor="let state of cell.userPermissionTableCell">
-            <select class="col-lg-4" [value]="state.permissionState" (change)="onPermissionStateChange(state.userId, state.permissionId)">
-              <option value="true">Concedi</option>
-              <option value="false">Nega</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>-->
     </div>
   </div>
   </div>

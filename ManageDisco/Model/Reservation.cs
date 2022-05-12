@@ -131,6 +131,7 @@ namespace ManageDisco.Model
 
     public class ReservationPost
     {        
+        public int ReservationId { get; set; }
         public string ReservationUserCodeValue { get; set; }
         public int ReservationPeopleCount { get; set; }
         public int EventPartyId { get; set; }

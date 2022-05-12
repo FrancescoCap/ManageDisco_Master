@@ -110,15 +110,43 @@ namespace ManageDisco
             
             app.UseAuthentication();            
             app.UseAuthorization();
-
+                       
             CreateRoles(service).Wait();
             CreateProductShopType(service).Wait();
-          
+           
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute("default","api/{controller=Base}");                
             });
            
+        }
+
+        public async Task CreateAnonymusPath(DiscoContext db)
+        {
+
+            var paths = new AnonymusAllowed().GetAnonymusPaths();
+            foreach (string k in paths.Keys)
+            {
+                var pathList = paths[k];
+                foreach(string p in pathList)
+                {
+                    string path = pathList.FirstOrDefault(x => x == p);
+                    var pathExist = db.AnonymusAllowed.Any(x => x.Controller == k && x.Path == path.Replace("/General", "") && (x.RedirectedPath == path || x.RedirectedPath == path + "/General"));
+                    if (!pathExist)
+                    {
+                        await db.AnonymusAllowed.AddAsync(new AnonymusAllowed()
+                        {
+                            Controller = k,
+                            Path = path.Replace("/General", ""),
+                            RedirectedPath = path
+                        });
+                    }
+                }
+                
+            }
+            await db.SaveChangesAsync();
+
         }
 
         public async Task CreateRoles(IServiceProvider serviceProvider)
@@ -160,6 +188,7 @@ namespace ManageDisco
                 await service.SaveChangesAsync();
 
                 await CreatePermissionActionValues(service);
+                await CreateAnonymusPath(service);
             }
                
         }

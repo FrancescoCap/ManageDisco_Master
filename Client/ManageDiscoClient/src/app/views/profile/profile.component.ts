@@ -229,12 +229,14 @@ export class ProfileComponent implements OnInit {
   }
 
   getPermissionActions() {
+    this.isLoading = true;
     var calls: Observable<any>[] = [
       this._api.getUserPermission()
     ]
 
     forkJoin(calls).subscribe((data: any) => {
       this.userPermission = data[0];
+      this.isLoading = false;
     })
 
   }
@@ -276,7 +278,7 @@ export class ProfileComponent implements OnInit {
   }
 
   onPermissionStateChange(memberId?:string, permId?:number) {
-
+    this.isLoading = true;
     var putPermission: UserPermissionPut = {
       permissionId: permId,
       userId: memberId

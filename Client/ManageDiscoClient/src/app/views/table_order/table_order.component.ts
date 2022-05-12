@@ -3,11 +3,12 @@ import { EventEmitter } from '@angular/core';
 import { Component, ComponentFactoryResolver, OnInit, Type, ViewContainerRef } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { observable } from 'rxjs';
+import { Subject } from 'rxjs';
 import { catchError, forkJoin, Observable } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { ModalComponent } from '../../components/modal/modal.component';
 import { ModalModelEnum, ModalModelList, ModalViewGroup } from '../../components/modal/modal.model';
-import { EventParty, EventPartyView, ModalType, NewTableOrderData, Product, TableEventHeader, TableEvents, TableOrderHeader, TableOrderPut, TableOrderRow } from '../../model/models';
+import { CouponValidation, EventParty, EventPartyView, ModalType, NewTableOrderData, Product, TableEventHeader, TableEvents, TableOrderHeader, TableOrderPut, TableOrderRow } from '../../model/models';
 import { ModalService } from '../../service/modal.service';
 
 @Component({
@@ -38,6 +39,7 @@ export class TableOrderComponent implements AfterViewInit {
   tableIdNewOrder: number = 0;
   addNewOrder = false;
   newOrderModalTitle = "Nuovo ordine per ";
+  isLoading = false;
 
   constructor(private _api: ApiCaller,
     private _componentFactory: ComponentFactoryResolver,
@@ -55,33 +57,62 @@ export class TableOrderComponent implements AfterViewInit {
   }
 
   initData() {
-    this.getEventTables(this.selectedEvent);
-    this.getEvents();
+    this.isLoading = true;
+    var calls:Observable<any>[] = [
+      this.getEventTables(this.selectedEvent),
+      this.getEvents()
+    ]
+
+    forkJoin(calls).pipe(
+      catchError(err => {
+        this._modalService.showErrorOrMessageModal(err.message, "ERRORE");
+        return err;
+      })).subscribe((data: any) => {
+        this.eventTables = data[0];
+        this.eventTablesFull = this.eventTables.tables;
+        this.selectedEvent = data[0].eventId;
+        this.events = data[1];        
+        this.isLoading = false;
+      })
   }
 
   getEvents() {
-    this._api.getEvents().pipe(catchError(err => {
-      console.log(err);
+    return this._api.getEvents();/*.pipe(catchError(err => {
+      this._modalService.showErrorOrMessageModal(err.message, "ERRORE");
       return err;
     })).subscribe((data: any) => {
       this.events = data;
-    })
+      if (this.eventTables != null && this.eventTables.tables != null)
+        this.isLoading = false;
+    })*/
   }
 
   //Restituisce i tavoli confermati e sistemati sulla mappa per l'evento richiesto
   getEventTables(eventId: number) {
-    this._api.getEventTables(eventId).pipe(catchError(err => {
-      console.log(err);
+    return this._api.getEventTables(eventId);/*.pipe(catchError(err => {
+      this._modalService.showErrorOrMessageModal(err.message, "ERRORE");
       return err;
     })).subscribe((data: any) => {     
       this.eventTables = data;
       this.eventTablesFull = this.eventTables.tables;
       this.selectedEvent = data.eventId;
-    })
+      if (this.events != null && this.events.events != null)
+        this.isLoading = false;
+    })*/
   }
 
   onEventChange() {
-    this.getEventTables(this.selectedEvent);
+    this.isLoading = true;
+    this._api.getEventTables(this.selectedEvent).pipe(catchError(err => {
+      this._modalService.showErrorOrMessageModal(err.message, "ERRORE");
+      return err;
+    })).subscribe((data: any) => {     
+      this.eventTables = data;
+      this.eventTablesFull = this.eventTables.tables;
+      this.selectedEvent = data.eventId;
+      if (this.events != null && this.events.events != null)
+        this.isLoading = false;
+    })
   }
 
   onTableNameFilter(event?: any) {
@@ -114,19 +145,22 @@ export class TableOrderComponent implements AfterViewInit {
       productsId: {}
     };
     var rows = info.get("productsId");
+    
     if (rows.length == 0)
       return;
 
-    for (var i = 0; i < rows.length; i++) {     
-        order.productsId![rows[i]] = 1;
-    }
+    rows.forEach((x: any, y: any) => {
+      var valueSplit = x.split(":");
+      var productId = valueSplit[0];
+      var productQuantity = valueSplit[1];
+      order.productsId![productId] = productQuantity;
+    })
+
     this._api.putTablOrder(this.tblId, order).pipe(
       catchError(err => {
         this._modalService.showErrorOrMessageModal(err.message);
         return err;
-      })).subscribe(x => {
-        this.initData();
-      });
+      })).subscribe(x => {this.initData()});
     
   }
 
@@ -137,35 +171,32 @@ export class TableOrderComponent implements AfterViewInit {
 
     this.modalNewOrderViews.push(
       {
-        type: ModalModelEnum.Table, multiSelect:true, viewItems: [
-          { viewId: "tblProducts", referenceId: "productsId", list: this.productsList, label: "Prodotti" }
+        type: ModalModelEnum.Table, multiSelect:true, txtTableQuantity:true, viewItems: [
+          { viewId: "tblProducts", referenceId: "productsId", list: this.productsList, label: "Prodotti", connectToReferenceView:"orderBudget" }
         ]        
       },
       {
         type: ModalModelEnum.TextBox, viewItems: [
-          { viewId: "totBudget", referenceId: "orderBudget", label: "Totale", hasNgModel:true },
+          { viewId: "totBudget", referenceId: "orderBudget", label: "Totale *", hasNgModel:true},
           { viewId: "txtExit", referenceId: "orderExit", label: "Exit", hasNgModel: false },
-          { viewId: "txtCoupon", referenceId: "coupon", label: "Coupon", hasNgModel: false, validationFunc: this.couponValidation, extraDescription: "Desc" }
-
+          { viewId: "txtCoupon", referenceId: "coupon", label: "Coupon", hasNgModel: false, validationFunc: this.couponValidation, extraDescription: new Subject<any>()}
         ]
       }      
-    )
-    /*
-     * Per associare i due valori imposto un map nel modal component indicando il reference id del valore da usare come ngModel e a chi assegnarlo
-     * @param1 : referenceId dei dati con all'interno il valueOut
-     * @param2: referenceId della view che deve leggere quel valore
-     * */
-    this.modalNewOrderNgModel.set("productsId","orderBudget");
+    )   
   }
 
   couponValidation = (code: string) => {
-    var retVal = null;
-    this._api.checkCouponValidation(code).subscribe((data: any) => {
-      retVal = data.products as Map<string, number>;
-      console.log(retVal);      
-    })
+    this._api.checkCouponValidation(code).pipe(catchError(err => { this._modalService.showErrorOrMessageModal(err.message, "ERRORE"); return err; }))
+      .subscribe((data: CouponValidation) => {
+        var extraDescriptionString: string = "";
+        data.products?.forEach(x => {
+          extraDescriptionString += x.productName + ":" + x.productQuantity + '\n';
+        })
+        var modalTxts = this.modalNewOrderViews.find(x => x.type == ModalModelEnum.TextBox);
+        var extraDescription = modalTxts?.viewItems.find(x => x.viewId == "txtCoupon")?.extraDescription;
+        extraDescription?.next(extraDescriptionString);
+      })
   }
-
 
   onModalClose(state: any) {
   }
@@ -179,7 +210,7 @@ export class TableOrderComponent implements AfterViewInit {
 
     forkJoin(calls).pipe(
       catchError(err => {
-        console.log(err);
+        this._modalService.showErrorOrMessageModal(err.message, "ERRORE");
         return err;
       })).subscribe((data: any) => {
         /*DATA VALUES*/

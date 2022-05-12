@@ -105,7 +105,14 @@ export class EventsComponent implements OnInit {
 
   onEventAdded = (info: any): void => {
     this.isLoading = true;
-    var eventDate = this._generalService.rewriteDateToISO(info.get("eventDate"));
+    var eventDate = "";
+    if (info.get("eventDate") != null)
+      eventDate = this._generalService.rewriteDateToISO(info.get("eventDate"));
+    else {
+      this._modalService.showErrorOrMessageModal("Data non valida.", "ERRORE");
+      return;
+    }
+      
 
     var newEvent: EventParty = {
       name: info.get("eventName"),
@@ -123,6 +130,7 @@ export class EventsComponent implements OnInit {
       info.get("eventImageDetailThree") == null) {
 
       this._modalService.showErrorOrMessageModal("Caricare le foto per l'evento.");
+      this.isLoading = false;
       return;
     } else {
       newEvent.linkImage = [
@@ -134,9 +142,11 @@ export class EventsComponent implements OnInit {
       ]
     }
   
-   this._api.postEvent(newEvent)
+    this._api.postEvent(newEvent)
+      .pipe(catchError(err => { this.isLoading = false;  return err;}))
      .subscribe(() => {
        this.isLoading = false;
+       this._modalService.hideModal();
        this.initData();
      })
  }

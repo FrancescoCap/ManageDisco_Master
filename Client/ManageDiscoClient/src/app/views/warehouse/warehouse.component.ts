@@ -20,6 +20,7 @@ export class WarehouseComponent implements OnInit {
   productIdSelected?: any;
   isMobileView = false;
   isTabletView = false;
+  isLoading = false;
 
   constructor(private _api: ApiCaller,
     private _modal: ModalService,
@@ -36,12 +37,14 @@ export class WarehouseComponent implements OnInit {
   }
 
   initData() {
+    this.isLoading = true;
     this._api.getWarehouse().pipe(
       catchError(err => {
-        this._modal.showErrorOrMessageModal(err.message);
+        this.isLoading = false;
         return err;
       })).subscribe((data: any) => {
         this.warehouse = data;
+        this.isLoading = false;
       })
   }
 
@@ -59,6 +62,7 @@ export class WarehouseComponent implements OnInit {
   }
 
   onQuantityAdded = (info: any): void => {
+    this.isLoading = true;
     var qty: Warehouse = {
       warehouseQuantity: info.get("productQuantity"),
       productId: this.productIdSelected
@@ -66,18 +70,20 @@ export class WarehouseComponent implements OnInit {
 
     this._api.putWarehouseQuantity(qty).pipe(
       catchError(err => {
-        this._modal.showErrorOrMessageModal(err.message);
+        this.isLoading = false;
         return err;
       })).subscribe((data: any) => {
-
+        this.isLoading = false;
+        this._modal.hideModal();
         this.initData();
       })
   }
 
   addProductToCatalog() {
+    this.isLoading = true;
     this._api.getCatalogs().pipe(
       catchError(err => {
-        this._modal.showErrorOrMessageModal(err.message);
+        this.isLoading = false;
         return err;
       })).subscribe((data: any) => {
         //inizializzo la modal
@@ -95,12 +101,14 @@ export class WarehouseComponent implements OnInit {
             label: "Catalogo", viewId: "drpCatalog", referenceId: "catalogId", list: data.catalog
           }]
         });
-
+        this.isLoading = false;
+        
         this._modal.showAddModal(this.onProductAdded, "Nuovo prodotto", modelView);
       });
   }
 
   onProductAdded = (info: any): void => {
+    this.isLoading = true;
     var product: Product = {
       productName: info.get("productName"),
       productPrice: info.get("productPrice"),
@@ -109,9 +117,11 @@ export class WarehouseComponent implements OnInit {
 
     this._api.postProduct(product).pipe(
       catchError(err => {
-        this._modal.showErrorOrMessageModal(err.message);
+        this.isLoading = false;
         return err;
       })).subscribe(() => {
+        this.isLoading = false;
+        this._modal.hideModal();
         this.initData();
       })
   }

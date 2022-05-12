@@ -24,7 +24,8 @@ namespace ManageDisco.Controllers
         public async Task<IActionResult> GetWarehouse()
         {
 
-            List<WarehouseView> warehouses = await _db.Warehouse               
+            List<WarehouseView> warehouses = await _db.Warehouse
+                .Where(x => x.Product.ProductShopType.ProductShopTypeDescription == ProductShopTypeContants.PRODUCT_SHOP_TYPE_TABLE)
                 .Select(x => new WarehouseView()
                 {
                     ProductId = x.ProductId,
@@ -50,21 +51,22 @@ namespace ManageDisco.Controllers
         public async Task<IActionResult> PutWarehouse([FromBody] WarehousePut warehousePut)
         {
             if (warehousePut == null)
-                return BadRequest("Invalid data.");
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Dati non validi." });
 
             if (warehousePut.ProductId == 0)
-                return BadRequest("Not valid product.");
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Il prodotto non è valido." });
 
             if (warehousePut.WarehouseQuantity == 0)
-                return BadRequest("Can't add zero quantity.");
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Impossibile inserire quantità 0."});
+            
 
             Product product = await _db.Product.FirstOrDefaultAsync(x => x.ProductId == warehousePut.ProductId);
             if (product == null)
-                return NotFound("Product not found.");
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Prodotto non trovato." });
 
             Warehouse warehouseRow = await _db.Warehouse.FirstOrDefaultAsync(x => x.ProductId == product.ProductId);
             if (warehouseRow == null)
-                return NotFound("Product is not in warehouse.");
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Il prodotto non è presente a magazzino" });
 
             warehouseRow.WarehouseQuantity = warehouseRow.WarehouseQuantity + warehousePut.WarehouseQuantity;
             _db.Entry(warehouseRow).State = EntityState.Modified;

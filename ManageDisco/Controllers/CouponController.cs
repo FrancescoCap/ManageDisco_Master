@@ -49,31 +49,27 @@ namespace ManageDisco.Controllers
 
             if (String.IsNullOrEmpty(couponCode))
                 return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Coupon non valido."});
-            
+
             //if (_db.UserProduct.Any(x => x.UserProductCode == couponCode && x.UserProductUsed == true))
             //    return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Coupon già utilizzato." });
 
-            //UserProduct userProduct = await _db.UserProduct
-            //    .Where(x => x.UserProductUsed == false && x.UserProductCode == couponCode)
-            //    .Select(x => new UserProduct() {
-            //       // ProductShopId = x.ProductShopId,
-            //        UserId = x.UserId,
-            //        UserProductCode = x.UserProductCode,
-            //        //ProductShop = new ProductShopHeader()
-            //        //{
-            //        //    //ProductShopProductId = x.ProductShop.ProductShopId,
-            //        //    ProductShopName = x.ProductShop.ProductShopName,
-            //        //    ProductShopDescription = x.ProductShop.ProductShopDescription
-            //        //}
-            //    }).FirstOrDefaultAsync();
-
-            //if (userProduct == null)
-            //    return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Coupon non valido." });
-
-
+            var couponHeaderId = _db.UserProduct.FirstOrDefaultAsync(x => x.UserProductCode == couponCode).Result.ProductShopHeaderId;
+            var couponProductsRows = await _db.ProductShopRow.Where(x => x.ProductShopHeaderId == couponHeaderId).Select(x => x.ProductId).ToListAsync();
+            List<Product> products = await _db.Product.Where(x => couponProductsRows.Contains(x.ProductId)).ToListAsync();
 
             CouponValidation couponValidation = new CouponValidation();
-            //couponValidation.Products.Add(userProduct.ProductShop.ProductShopName, userProduct.ProductShop.ProductShopProductQuantity);
+
+            products.ForEach(p =>
+            {
+                //Non è il massimo. Potrei tirarmi fuori il dato già dalla couponRows
+                int quantity = _db.ProductShopRow.FirstOrDefault(x => x.ProductId == p.ProductId).ProductShopRowQuantity;
+                
+                couponValidation.Products.Add(new CouponValidationRow() { 
+                    ProductId = p.ProductId,
+                    ProductName = p.ProductName,
+                    ProductQuantity = quantity
+                });
+            });
 
             return Ok(couponValidation);
         }
@@ -85,7 +81,7 @@ namespace ManageDisco.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("Validate")]
-        public async Task<IActionResult> ValidateCoupon([FromQuery] string couponUserId)
+        public async Task<IActionResult> ValidateFreeEntranceCoupon([FromQuery] string couponUserId)
         {
             if (String.IsNullOrEmpty(couponUserId))
                 return BadRequest();

@@ -4,14 +4,16 @@ using ManageDisco.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace ManageDisco.Migrations
 {
     [DbContext(typeof(DiscoContext))]
-    partial class DiscoContextModelSnapshot : ModelSnapshot
+    [Migration("20220505212712_ADD_ANONYMUSALLOWED")]
+    partial class ADD_ANONYMUSALLOWED
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -26,13 +28,10 @@ namespace ManageDisco.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<string>("AnonymusPath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Controller")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Path")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RedirectedPath")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");

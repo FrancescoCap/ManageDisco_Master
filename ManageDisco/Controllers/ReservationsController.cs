@@ -25,7 +25,7 @@ namespace ManageDisco.Controllers
 
         // GET: api/Reservations
         [HttpGet]
-        public async Task<IActionResult> GetReservation([FromQuery] int eventId)
+        public async Task<IActionResult> GetReservation([FromQuery] int eventId, [FromQuery]int id)
         {
             IQueryable<ReservationView> reservationViews = _db.Reservation
                 .Select(x => new ReservationView()
@@ -47,9 +47,10 @@ namespace ManageDisco.Controllers
                     CanAcceptReservation = x.ReservationStatusId != ReservationStatusValue.RESERVATIONSTATUS_REJECTED && x.ReservationStatusId != ReservationStatusValue.RESERVATIONSTATUS_APPROVED &&
                             HelperMethods.UserIsAdministrator(_user), //E' concettualmente sbagliato bloccare la funzionalità da qui. Dovrebbe essere un attributo a livello Utente
                     CanAcceptBudget = x.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_APPROVED &&
-                            DateTime.Compare(x.EventParty.Date, DateTime.Today) > 0 && HelperMethods.UserIsInStaff(_user),
+                            DateTime.Compare(x.EventParty.Date, DateTime.Today) > 0 && HelperMethods.UserIsInStaff(_user) && x.ReservationRealBudget == 0,
                     ReservationName = x.ReservationTableName,
-                    TableId = x.TableId != null ? x.TableId : 0
+                    TableId = x.TableId != null ? x.TableId : 0,
+                    ReservationTablAssigned = $"{x.Table.TableAreaDescription} - {x.Table.TableNumber}"
                 });
             
 
@@ -67,7 +68,8 @@ namespace ManageDisco.Controllers
 
             if (eventId != 0)
                 reservationViews = reservationViews.Where(x => x.EventId == eventId);
-
+            if (id > 0)
+                reservationViews = reservationViews.Where(x => x.ReservationId == id);
 
             return Ok(await reservationViews.ToListAsync());
         }
@@ -206,19 +208,26 @@ namespace ManageDisco.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut]
         [Route("Edit")]
-        public async Task<IActionResult> PutReservation([FromQuery] int reservationId, [FromBody] ReservationPost reservation)
+        public async Task<IActionResult> PutReservation([FromBody] ReservationPost reservation)
         {
 
-            if (reservation == null || reservationId < 1 || reservation.EventPartyId < 1)
+            if (reservation == null || reservation.ReservationId < 1)
                 return BadRequest();
 
-            Reservation reservationOld = await _db.Reservation.FirstOrDefaultAsync(x => x.ReservationId == reservationId && x.EventPartyId == reservation.EventPartyId);
+            Reservation reservationOld = await _db.Reservation.FirstOrDefaultAsync(x => x.ReservationId == reservation.ReservationId);
             if (reservationOld == null)
                 return NotFound();
 
-            reservationOld.EventPartyId = reservation.EventPartyId;
+            if (reservation.EventPartyId != 0)
+                reservationOld.EventPartyId = reservation.EventPartyId;
+            if (reservation.ReservationType != 0)
+                reservationOld.ReservationTypeId = reservation.ReservationType;
+
+            reservationOld.ReservationTableName = reservation.ReservationName;
+            reservationOld.ReservationExpectedBudget = reservation.ReservationExpectedBudget;
+            reservationOld.ReservationRealBudget = reservation.ReservationRealBudget;
             reservationOld.ReservationPeopleCount = reservation.ReservationPeopleCount;
-            reservationOld.ReservationTypeId = reservation.ReservationType;
+           
 
 
             _db.Entry(reservationOld).State = EntityState.Modified;
@@ -250,11 +259,11 @@ namespace ManageDisco.Controllers
         public async Task<IActionResult> ConfirmBudget([FromQuery] int reservationId, [FromQuery] int euro)
         {
             if (reservationId == 0)
-                return BadRequest("Invalid reservation Id");
+                return BadRequest(new GeneralReponse() { Message = "Id prenotazione non valido.", OperationSuccess = false });
             Reservation reservation = await _db.Reservation.FirstOrDefaultAsync(x => x.ReservationId == reservationId);
 
             if (reservation == null)
-                return NotFound("No reservation found");
+                return NotFound(new GeneralReponse() { Message = "Non è stata trovata nessuna prenotazione con questo identificativo.", OperationSuccess = false});
 
             if (reservation.TableId == null)
                 return BadRequest(new GeneralReponse() { Message = "Per la conferma del budget il tavolo deve essere prima assegnato.", OperationSuccess = false} );
@@ -281,13 +290,22 @@ namespace ManageDisco.Controllers
                 return BadRequest();
 
             if (reservationData.ReservationUserCodeValue == string.Empty)
-                return Ok(new ReservationResponse() { Message = "Missing PR code." });
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Codice PR mancante." });
 
             if (reservationData.EventPartyId < 1)
-                return Ok(new ReservationResponse() { Message = "Missing event reference for reservation." });
+                return BadRequest(new ReservationResponse() { Message = "Selezionare un evento." });
 
             if (reservationData.ReservationType < 1)
-                return Ok(new ReservationResponse() { Message = "Missing reservation type." });
+                return BadRequest(new ReservationResponse() { Message = "Selezionare un tipo di prenotazione." });
+
+            if (String.IsNullOrEmpty(reservationData.ReservationName))
+                return BadRequest(new ReservationResponse() { Message = "Indicare un nome per la prenotazione." });
+
+            if (reservationData.ReservationPeopleCount < 1)
+                return BadRequest(new ReservationResponse() { Message = "Indicare un numero di persone." });
+
+            if (reservationData.ReservationExpectedBudget < 1)
+                return BadRequest(new ReservationResponse() { Message = "Indicare un budget marginale di spesa." });
 
             if (reservationData.ReservationUserCodeValue == null)
             {
@@ -320,14 +338,66 @@ namespace ManageDisco.Controllers
 
             if ((reservation.ReservationTypeId == 2 ||
                 reservation.ReservationTypeId == 3) && reservation.ReservationExpectedBudget == 0)
-                return Ok(new GeneralReponse() { Message = "Per questo tipo di prenotazione è richiesto un'aspettativa di budget", OperationSuccess = false });
+                return BadRequest(new GeneralReponse() { Message = "Per questo tipo di prenotazione è richiesto un'aspettativa di budget", OperationSuccess = false });
 
+            string confirmMessage = "La tua prenotazione è stata accettata.";
+
+            Reservation alreadyPresentTableReservation = await _db.Reservation.FirstOrDefaultAsync(x => x.EventPartyId == reservationData.EventPartyId && x.TableId == reservationData.TableId);
+            if (alreadyPresentTableReservation != null)
+            {
+                if (await ChangeReservationTable(reservation, alreadyPresentTableReservation))
+                {
+                    if (HelperMethods.UserIsAdministrator(_user))
+                        confirmMessage = $"Il tavolo precedentemente assegnato a {alreadyPresentTableReservation.ReservationTableName} e stato ora prenotato per {reservation.ReservationTableName}";
+                    
+                }
+            }
 
             _db.Reservation.Add(reservation);
             await _db.SaveChangesAsync();
 
-            return Ok(new ReservationResponse() { ReservationCode = reservation.ReservationCode, Message = "La tua prenotazione è stata accettata." });
+            return Ok(new ReservationResponse() { ReservationCode = reservation.ReservationCode, Message = confirmMessage });
         }
+
+        /// <summary>
+        /// Associa un tavolo "fisico" alla prenotazione
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        // POST: api/Tables
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        [Route("AssignTable")]
+        public async Task<ActionResult<Table>> PostTable([FromBody] TableAssignPost table)
+        {
+            if (table == null)
+                return BadRequest(new GeneralReponse() { Message = "Formato dati non valido.", OperationSuccess = false });
+            //if (table.EventId <= 0 || table.ReservationId <= 0)
+            //    return BadRequest(new GeneralReponse() { Message = "Selezionare un evento e una prenotazione valida.", OperationSuccess = false });           
+
+            Reservation reservation = await _db.Reservation.FirstOrDefaultAsync(x => x.ReservationId == table.ReservationId);
+            if (reservation == null)
+                return NotFound(new GeneralReponse() { Message = "Nessuna prenotazione trovata.", OperationSuccess = false });
+
+            //Controllo che il tavolo non sia già assegnato. In caso provvedo all'eventuale scambio
+            Reservation oldReservation = _db.Reservation.FirstOrDefault(x => x.TableId == table.TableId && x.EventPartyId == table.EventId); //recupero l'eventuale tavolo già posizionato per l'evento
+            if (oldReservation != null)
+            {
+                if (await ChangeReservationTable(reservation, oldReservation))
+                    return Ok(new GeneralReponse() { Message = $"Il tavolo precedentemente assegnato a {oldReservation.ReservationTableName} e stato ora prenotato per {reservation.ReservationTableName}", OperationSuccess = false });
+                else
+                    return BadRequest(new GeneralReponse() { Message = "Il tavolo è stato già assegnato.", OperationSuccess = false });
+            }
+
+
+            reservation.TableId = table.TableId;
+            _db.Entry(reservation).State = EntityState.Modified;
+
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }
+
 
         [HttpGet("Event")]
         public async Task<IActionResult> GetEventReservation([FromQuery] int eventId)
@@ -355,21 +425,32 @@ namespace ManageDisco.Controllers
             return Ok(reservations);
         }
 
-        // DELETE: api/Reservations/5
-        /* [HttpDelete("{id}")]
-         public async Task<IActionResult> DeleteReservation(int id)
-         {
-             var reservation = await _db.Reservation.FindAsync(id);
-             if (reservation == null)
-             {
-                 return NotFound();
-             }
+        /// <summary>
+        /// A seguito di due prenotazioni che richiedono lo stesso tavolo, confonta fra il tavolo già presente e quello della nuova richiesta chi presenta il budget più alto.
+        /// A seconda del risultato provvede ad assegnare il tavolo a quello economicamente migliore.
+        /// </summary>
+        private async Task<bool> ChangeReservationTable(Reservation newReservation, Reservation oldReservation)
+        {
+            bool tableChanged = false;
 
-             _db.Reservation.Remove(reservation);
-             await _db.SaveChangesAsync();
+            if (newReservation.ReservationExpectedBudget > oldReservation.ReservationExpectedBudget)
+            {
+                newReservation.TableId = oldReservation.TableId;
+                oldReservation.TableId = null;
 
-             return NoContent();
-         }*/
+                _db.Entry(oldReservation).State = EntityState.Modified;
+                _db.Entry(newReservation).State = EntityState.Modified;
+                                
+                tableChanged = true;
+            }
+            else
+            {
+                tableChanged = false;
+            }
+
+           
+            return tableChanged;
+        }
 
         private bool ReservationExists(int eventId)
         {

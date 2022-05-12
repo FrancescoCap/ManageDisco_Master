@@ -90,6 +90,10 @@ namespace ManageDisco.Controllers
                 return BadRequest("Invalid data");
             if (reservationPayment.UserId == string.Empty)
                 return BadRequest("Invalid user");
+            if (reservationPayment.ReservationPaymentAmount < 1)
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Inserire un importo." });
+            if (String.IsNullOrEmpty(reservationPayment.ReservationPaymentDescription))
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Inserire una causale pagamento." });
 
             _db.ReservationPayment.Add(reservationPayment);
             await _db.SaveChangesAsync();

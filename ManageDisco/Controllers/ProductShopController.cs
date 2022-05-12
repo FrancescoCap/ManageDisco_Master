@@ -28,6 +28,7 @@ namespace ManageDisco.Controllers
        /// GET ProductShop ONLY headers. It is used for shop page view
        /// </summary>
        /// <returns></returns>
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetProductShop()
         {
@@ -43,7 +44,7 @@ namespace ManageDisco.Controllers
 
             header.ForEach(x =>
             {
-                x.productShopBase64Image = !String.IsNullOrEmpty(x.ProductShopImagePath) ? HelperMethods.GetBase64Image(x.ProductShopImagePath, ftpUser, ftpPassword) : HelperMethods.GetBase64NoImage(ftpAddress, ftpUser,ftpPassword);
+                x.productShopBase64Image = !String.IsNullOrEmpty(x.ProductShopImagePath) ? HelperMethods.GetBase64Image(x.ProductShopImagePath, ftpUser, ftpPassword) : HelperMethods.GetBase64DefaultNoImage(ftpAddress, ftpUser,ftpPassword);
             });
 
             return Ok(header);
@@ -78,6 +79,16 @@ namespace ManageDisco.Controllers
         {
             if (productShop == null)
                 return BadRequest();
+            if (String.IsNullOrEmpty(productShop.ProductShopHeaderDescription))
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Inserire una descrizione per l'articolo."});
+            if (String.IsNullOrEmpty(productShop.ProductShopHeaderName))
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Inserire un nome per l'articolo." });
+            if (productShop.ProductShopTypeId < 1)
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Selezionare una tipolgia del prodotto." });
+            if (productShop.ProductShopHeaderPrice < 1)
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Indicare un prezzo per l'articolo." });
+            if (productShop.Rows == null || !productShop.Rows.Any())
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Selezionare almeno un prodotto." });
 
             string imageExtension = "webp";
             string fileName = $"{productShop.ProductShopHeaderName.Replace(" ", "_")}_{productShop.ProductShopHeaderPrice}.{imageExtension}";
@@ -87,7 +98,7 @@ namespace ManageDisco.Controllers
                 ProductShopHeaderName = productShop.ProductShopHeaderName,
                 ProductShopHeaderPrice = productShop.ProductShopHeaderPrice,
                 ProductShopTypeId = productShop.ProductShopTypeId,
-                ProductShopImagePath = $"{ftpAddress}/{fileName}"
+                ProductShopImagePath = String.IsNullOrEmpty(productShop.ProductShopBase64Image) ? $"{ftpAddress}/{fileName}" : ""
             };
            
             _db.Entry(productShopHeader).State = EntityState.Added;
@@ -105,8 +116,8 @@ namespace ManageDisco.Controllers
 
 
             await _db.SaveChangesAsync();
-
-            await HelperMethods.UploadFileToFtp(ftpAddress, ftpUser, ftpPassword, fileName, Convert.FromBase64String(productShop.ProductShopBase64Image.Split(",").Last()));
+            if(!String.IsNullOrEmpty(productShop.ProductShopBase64Image))
+                await HelperMethods.UploadFileToFtp(ftpAddress, ftpUser, ftpPassword, fileName, Convert.FromBase64String(productShop.ProductShopBase64Image.Split(",").Last()));
 
             return Ok();
         }

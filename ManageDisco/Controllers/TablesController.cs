@@ -27,26 +27,43 @@ namespace ManageDisco.Controllers
         }
 
         
-        [HttpGet("Assignable")]
-        public async Task<ActionResult<Table>> GetTable([FromQuery]int eventId)
-        {           
-            if (eventId <= 0)
-            {
-                return Ok(await _db.Table.ToListAsync());
-            }
-            //Tavoli già assegnati per questo evento
-            List<Table> assignedTables = await _db.Reservation
-                .Where(x => x.EventPartyId == eventId && x.TableId != null)
-                .Select(x => new Table()
-                {
-                    TableId = x.Table.TableId
-                }).ToListAsync();
-
-            List<Table> avaiableTables = await _db.Table/*.Where(x => !assignedTables.Contains(x))*/.ToListAsync();
+        //[HttpGet("Assignable")]
+        //public async Task<IActionResult> GetTable([FromQuery]int eventId)
+        //{
+        //    var nextEventId = await _db.Events
+        //        .Select(x => new EventParty()
+        //        {
+        //            Id = x.Id,
+        //            Date = x.Date
+        //        }).OrderByDescending(x => x.Date).FirstOrDefaultAsync();
 
 
-            return Ok(avaiableTables);
-        }
+        //    ////if (eventId <= 0)
+        //    ////{
+        //    ////    return Ok(await _db.Table.ToListAsync());
+        //    ////}
+        //    ////Tavoli già assegnati per questo evento
+        //    ////IQueryable<ReservationView> assignedTables = _db.Reservation
+        //    ////    .Include(i => i.Table)
+        //    ////    .Select(x => new ReservationView()
+        //    ////    {
+        //    ////        TableId = x.Table.TableId,
+        //    ////        ReservationName = x.ReservationTableName,
+        //    ////        ReservationPeopleCount = x.ReservationPeopleCount,
+        //    ////        ReservationExpectedBudget = x.ReservationExpectedBudget,
+        //    ////        ReservationTablAssigned = x.Table.TableAreaDescription + " " + x.Table.TableNumber
+        //    ////    });
+
+        //    ////if (eventId > 0)
+        //    ////{
+        //    ////    assignedTables = assignedTables.Where(x => x.EventId == eventId);
+        //    ////}
+
+        //    ////List<ReservationView> avaiableTables = await assignedTables.ToListAsync();
+
+
+        //    return Ok(avaiableTables);
+        //}
 
         [HttpGet]
         [Route("Map")]
@@ -188,6 +205,7 @@ namespace ManageDisco.Controllers
                 return BadRequest("Invalid table");
             if (orderInfo == null || orderInfo.ProductsId == null || !orderInfo.ProductsId.Any())
                 return Ok();
+            
 
             Table table = await _db.Table.FirstOrDefaultAsync(x => x.TableId == tableId);
             if (table == null)
@@ -261,34 +279,7 @@ namespace ManageDisco.Controllers
 
             return Ok();
         }
-
-        /// <summary>
-        /// Associa un tavolo "fisico" alla prenotazione
-        /// </summary>
-        /// <param name="table"></param>
-        /// <returns></returns>
-        // POST: api/Tables
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Table>> PostTable([FromBody]TableAssignPost table)
-        {
-            if (table == null)
-                return BadRequest("Invalid data");
-            if (table.EventId <= 0 || table.ReservationId <= 0)
-                return BadRequest("Invalid data: check selected event and reservation");
-
-            Reservation reservation = await _db.Reservation.FirstOrDefaultAsync(x => x.ReservationId == table.ReservationId && x.EventPartyId == table.EventId);
-            if (reservation == null)
-                return NotFound("No reservation found");
-
-            reservation.TableId = table.TableId;
-            _db.Entry(reservation).State = EntityState.Modified;
-
-            await _db.SaveChangesAsync();
-            
-            return Ok();
-        }
-
+                
         // DELETE: api/Tables/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTable(int id)
@@ -304,7 +295,7 @@ namespace ManageDisco.Controllers
 
             return NoContent();
         }
-
+       
         private bool TableExists(int id)
         {
             return _db.Table.Any(e => e.TableId == id);

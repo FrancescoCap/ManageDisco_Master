@@ -5,7 +5,7 @@ import { catchError, forkJoin } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { ModalModelEnum, ModalViewGroup } from '../../components/modal/modal.model';
 import { GeneralMethods } from '../../helper/general';
-import { ModalType, ProductShopHeader } from '../../model/models';
+import { LoginRequest, ModalType, ProductShopHeader } from '../../model/models';
 import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 import { UserService } from '../../service/user.service';
@@ -107,8 +107,14 @@ export class ShopComponent implements OnInit {
       productShopBase64Image: response.get("imgProduct")
     }
     product.rows = [];
-    response.get("txtTableQuantity").forEach((x:any, y:any) => {
-      product.rows?.push({ productId: x.split(":")[0], productShopRowQuantity: x.split(":")[1]});
+    var products = response.get("productId");
+    if (products == null)
+      products = [];
+
+    products.forEach((x: any, y: any) => {
+      var productId = x.split(":")[0];
+      var productQuantity = x.split(":")[1];
+      product.rows?.push({ productId: productId, productShopRowQuantity: productQuantity});
     })
   
     this.addProduct(product);
@@ -118,7 +124,9 @@ export class ShopComponent implements OnInit {
     this.isLoading = true;
 
     if (this.productsShop != null) {
-      this._api.postShop(data).subscribe((data: any) => {
+      this._api.postShop(data)
+        .pipe(catchError(err => { this.isLoading = false; return err;}))
+        .subscribe((data: any) => {
         this.isLoading = false;        
         this.initData();
       })
@@ -126,20 +134,21 @@ export class ShopComponent implements OnInit {
 
   }
 
-  purchase(productShopId:any) {
+  purchase(productShopId: any) {
+    console.log(this._user.userIsAuthenticated())
     if (!this._user.userIsAuthenticated()) {
       this._modal.showAddModal(this.onLogin, "LOGIN", GeneralMethods.getLoginModalViews());
+      return;
     }
 
     this.isLoading = true;
     this._api.purchaseProduct(productShopId).pipe(
       catchError(err => {
         this.isLoading = false;
-        console.log("error")
+        this._modal.hideModal();
         return err;
       }))
       .subscribe((data: any) => {
-        console.log("OK")
       this.isLoading = false;
       this._modal.showErrorOrMessageModal("Complimenti! Hai acquisito il premio", "ACQUISTO", true);
     })
@@ -147,7 +156,15 @@ export class ShopComponent implements OnInit {
   }
 
   onLogin = (response: any): void => {
+    var loginInfo: LoginRequest = {
+      email: response.get("email"),
+      password: response.get("password")
+    }
 
+    this._api.login(loginInfo)
+      .subscribe(() => {
+        document.location.reload();
+      })
   }
 
 }

@@ -28,6 +28,7 @@ namespace ManageDisco.Model.UserIdentity
         public const string CLAIM_USERNAME = "Username";
         public const string CLAIM_GENDER = "Gender";
         public const string CLAIM_USERAGENT = "UserAgent";
+        public const string CLAIM_EXPIRATIONDATE = "exp";
     }
 
     public class GenderCostants

@@ -63,7 +63,7 @@
           <div *ngIf="areDetailsEditableFromUser">
             <button class="col-md-6 col-12 btn btn-primary mt-md-2" (click)="closeFreeEntrance()" *ngIf="!event.freeEntranceEnabled; else openFreeEntrance"><i class="fa fa-play me-2"></i>APRI OMAGGIO</button>
             <ng-template #openFreeEntrance>
-              <button class="col-md-6 col-12 btn btn-primary mt-md-2" *ngIf="userIsAdministrator" [disabled]="!event.eventIsEnd" (click)="closeFreeEntrance()"><i class="fa fa-stop me-2"></i>CHIUDI OMAGGIO</button>
+              <button class="col-md-6 col-12 btn btn-primary mt-md-2" *ngIf="userIsAdministrator" [disabled]="event.eventIsEnd == true" (click)="closeFreeEntrance()"><i class="fa fa-stop me-2"></i>CHIUDI OMAGGIO</button>
             </ng-template>
           </div>  
         </div>

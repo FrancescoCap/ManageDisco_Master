@@ -14,6 +14,18 @@ export enum TranslatedRolesEnum {
   ADMINISTRATOR = "Amministratore"
 }
 
+export interface CouponValidation {
+  products?: CouponValidationRow[];
+}
+
+export interface CouponValidationRow {
+  _extraDescriptionToAdd?: string;
+
+  productId?: number;
+  productName?: string;
+  productQuantity?: number;
+}
+
 export interface UserProduct {
   userProductId?: number;
   userId?: string; 
@@ -52,8 +64,8 @@ export interface ProductShopRow {
 }
 
 export enum TranslatedReservationStatusEnum {
-  REJECTED = "Riufiutata",
-  APPROVED = "Approvata",
+  REJECTED = "Riufiutato",
+  APPROVED = "Approvato",
   PENDING = "In attesa"
 }
 
@@ -238,10 +250,12 @@ export interface LoginRequest {
   password?: string;
 }
 
-export interface AuthResponse {
+export interface LoginResponse {
   token?: string;
   refreshToken?: string;
   message?: string;
+  userPoints?: number;
+  userNameSurname?: string;
   operationSuccess?: boolean;
 }
 
@@ -276,6 +290,7 @@ export interface ReservationViewTable {
 }
 
 export interface ReservationPost {
+  reservationId?: number;
   eventPartyId?: number;
   reservationPeopleCount?: number;
   reservationUserCodeValue?: string;
@@ -284,6 +299,7 @@ export interface ReservationPost {
   reservationRealBudget?: number;
   reservationName?: string;
   reservationOwnerId?: string;
+  tableId?: number;
 }
 
 export interface PrCustomerView {
@@ -407,6 +423,8 @@ export interface PaymentPost {
 }
 
 export interface Table {
+  _dropId?: any;
+  _modalDropText?: string;
   _assigned?: boolean;
 
   tableId?: number;

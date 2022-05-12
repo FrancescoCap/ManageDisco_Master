@@ -132,15 +132,7 @@ export class EventDetailComponent implements OnInit {
   }
 
   initLoginModal() {
-    var modalViews: ModalViewGroup[] = [
-      {
-        type: ModalModelEnum.TextBox, viewItems: [
-          { viewId: "txtEmail", label: "Email", referenceId: "email" },
-          { viewId: "txtPassword", label: "Password", referenceId: "password" }]
-      }
-    ];
-
-    this.modal.showAddModal(this.onLogin, "LOGIN", GeneralMethods.getLoginModalViews() , ModalType.LOGIN);
+    this.modal.showAddModal(this.onLogin, "LOGIN", GeneralMethods.getLoginModalViews());
   }
 
   onLogin = (info: any): void => {
@@ -151,9 +143,10 @@ export class EventDetailComponent implements OnInit {
 
     this._api.login(loginReq).pipe(
       catchError(err => {
-        this.modal.showErrorOrMessageModal(err.message);
+        this.isLoading = false;        
         return err;
-      })).subscribe((data:any) => {
+      })).subscribe((data: any) => {
+        this.modal.hideModal();
         this.initData();
       })
   }
@@ -174,6 +167,7 @@ export class EventDetailComponent implements OnInit {
       }];
 
     if (this.user.userIsInStaff()) {
+     
       this.modaViews.push({
         type: ModalModelEnum.Table, selector:"tblCustomer", multiSelect: false, viewItems: [{ label: "Prenota per", viewId: "tblPrCustomers", referenceId: "customerId", list: this.prCustomers }]
       });
@@ -204,13 +198,15 @@ export class EventDetailComponent implements OnInit {
       reservation.reservationOwnerId = newReservation.get("customerId")![0];
 
     this._api.postReservation(reservation).pipe(
-      catchError(err => {
-        this.modal.showErrorOrMessageModal(err.message);
+      catchError(err => {       
         return err;
       })).subscribe((message: any) => {     
         //show success modal
-        if (message != null)
-          this.modal.showOperationResponseModal(message.message,"PRENOTAZIONE");
+        if (message != null) {
+          this.modal.hideModal();
+          this.modal.showOperationResponseModal(message.message, "PRENOTAZIONE");          
+        }
+          
       })
   }
 

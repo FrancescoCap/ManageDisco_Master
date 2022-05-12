@@ -1,6 +1,10 @@
 ﻿using IronBarCode;
+using ManageDisco.Context;
 using ManageDisco.Model;
 using ManageDisco.Model.UserIdentity;
+using ManageDisco.Service;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using NPOI.SS.Formula.Functions;
@@ -51,7 +55,7 @@ namespace ManageDisco.Helper
                 audience: audience,
                 claims: claims,
                 notBefore: null,
-                expires: DateTime.UtcNow.AddMinutes(5),
+                expires: DateTime.UtcNow.AddMinutes(1),
                 signingCredentials: credentials);           
 
 
@@ -249,7 +253,7 @@ namespace ManageDisco.Helper
         /// Restituisce la stringa formattata in base64 dell'immagine no_image.webp
         /// </summary>
         /// <returns></returns>
-        public static string GetBase64NoImage(string defaultAddress, string ftpUser, string ftpPassword)
+        public static string GetBase64DefaultNoImage(string defaultAddress, string ftpUser, string ftpPassword)
         {
             var photoStream = GetFileStreamToFtp($"{defaultAddress}/{NO_IMAGE_PHOTONAME}", ftpUser, ftpPassword);
             var photoBytes = GetBytesFromStream(photoStream);
@@ -307,6 +311,60 @@ namespace ManageDisco.Helper
             }
             formData = formData.Substring(0, formData.Length - 1);
             return formData;
+        }
+
+        public async Task<AuthenticationResponse> GenerateTokens(DiscoContext db, User user, HttpContext context, UserManager<User> userManager, Encryption encryption, IConfiguration configuration)
+        {           
+
+            List<Claim> claims = new List<Claim>();
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
+            claims.Add(new Claim(ClaimTypes.Email, user.Email));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, new Guid().ToString()));
+            /**CUSTOM CLAIMS*/
+            claims.Add(new Claim(CustomClaim.CLAIM_USERCODE, user.UserCode != null ? user.UserCode : ""));
+            string userAgent = context.Request.Headers["User-Agent"];
+
+            claims.Add(new Claim(CustomClaim.CLAIM_USERAGENT, userAgent));
+
+            var userRoles = await userManager.GetRolesAsync(user);
+            foreach (string role in userRoles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            //token
+            var token = HelperMethods.GenerateJwtToken(claims, configuration["Jwt:SecurityKey"], configuration["Jwt:ValidIssuer"], configuration["Jwt:ValidAudience"]);
+            token = encryption.EncryptCookie(token, "cookieAuth");
+
+            string clientSession = HelperMethods.GenerateRandomString(15, false);
+            string oldClientSession = context.Session.GetString(CookieConstants.CLIENT_SESSION);
+            string session = !String.IsNullOrEmpty(oldClientSession) ? oldClientSession : clientSession;
+
+            var refreshToken = await GenerateRefreshTokn(db, 468, user.Id, session);
+
+            AuthenticationResponse response = new AuthenticationResponse();
+            response.Token = token;
+            response.RefreshToken = refreshToken.RefreshTokenValue;
+            response.ClientSession = session;
+
+            return response;
+        }
+
+        private async Task<RefreshToken> GenerateRefreshTokn(DiscoContext db, int length, string userId, string clientSession, bool withSpecialChars = true)
+        {
+            RefreshToken refreshToken = new RefreshToken()
+            {
+                RefreshTokenValue = HelperMethods.GenerateRandomString(length, withSpecialChars),
+                RefreshTokenLifetime = DateTime.Now.ToUniversalTime().AddMonths(1).Ticks,
+                RefreshTokenUserId = userId,
+                RefreshTokenIsValid = true,
+                RefreshTokenClientSession = clientSession
+            };
+
+            db.RefreshToken.Add(refreshToken);
+            await db.SaveChangesAsync();
+
+            return refreshToken;
         }
     }
 }

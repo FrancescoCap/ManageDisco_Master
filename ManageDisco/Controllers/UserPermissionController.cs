@@ -83,6 +83,9 @@ namespace ManageDisco.Controllers
             return Ok(userPermissionTable);                
         }
 
+        /*
+         * Api per il settaggio dei permessi
+         */
         [Authorize(Roles = RolesConstants.ROLE_ADMINISTRATOR)]
         [HttpPut]
         public async Task<IActionResult> PostPermissionUser([FromBody] UserPermissionPut userPermissionInfo)
@@ -96,10 +99,23 @@ namespace ManageDisco.Controllers
 
             UserPermission userPermission = await _db.UserPermission.FirstOrDefaultAsync(x => x.UserId == userPermissionInfo.UserId && x.PermissionActionId == userPermissionInfo.PermissionId);
             if (userPermission == null)
-                return NotFound("Riga di permesso per l'utente non trovata");
-
-            userPermission.PermissionActionAllowed = !userPermission.PermissionActionAllowed;
-            _db.Entry(userPermission).State = EntityState.Modified;
+            {
+                //Se è uguale a null significa che il permesso non c'è e che di default è false.
+                //Aggiungo quindi una riga con il permesso richiesto a true
+                UserPermission newUserPermission = new UserPermission()
+                {
+                    PermissionActionId = userPermissionInfo.PermissionId,
+                    UserId = userPermissionInfo.UserId,
+                    PermissionActionAllowed = true
+                };
+                await _db.UserPermission.AddAsync(newUserPermission);
+            }
+            else
+            {
+                userPermission.PermissionActionAllowed = !userPermission.PermissionActionAllowed;
+                _db.Entry(userPermission).State = EntityState.Modified;
+            }
+           
             await _db.SaveChangesAsync();
 
             return Ok();

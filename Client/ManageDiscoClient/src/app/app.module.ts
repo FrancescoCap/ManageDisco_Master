@@ -15,8 +15,14 @@ import { CarouselModule } from './components/carousel/carousel.module';
 import { SwiperModule } from 'swiper/angular';
 import { LoadingModule } from './components/loading/loading.module';
 import { UserService } from './service/user.service';
+import { CookieService } from 'ngx-cookie-service';
+import { Subject } from 'rxjs';
+import { TableService } from './service/table.service';
+import { TableViewModule } from './components/tableview/table.module';
+
 
 const routes:Routes = [ 
+  { path: '', loadChildren: () => import('./views/home/home.module').then(m => m.HomeModule)},
   { path: 'Login', loadChildren: () => import('./views/login/login.module').then(m => m.LoginModule)},
   { path: 'SignUp', loadChildren: () => import('./views/registration/registration.module').then(m => m.RegistrationModule)},
   { path: 'Home', loadChildren: () => import('./views/home/home.module').then(m => m.HomeModule)},
@@ -37,6 +43,10 @@ const routes:Routes = [
 ]
 export const server_URL = "http://192.168.1.69:5000/api/";
 export const client_URL = "http://192.168.1.69:4200";
+export const LOCALSTORARE_LOGIN_HEADER = "loginHeader";
+export const LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU = "loginHeaderEnableMenu";
+export const LOCALSTORARE_LAST_PAGE_REQUEST = "lastPageRequest";
+export const onLoginResponse: Subject<string> = new Subject<string>();
 
 @NgModule({
   declarations: [
@@ -50,18 +60,22 @@ export const client_URL = "http://192.168.1.69:4200";
     CarouselModule,
     LoadingModule,
     SwiperModule,
-    PdfViewerModule,    
+    PdfViewerModule,
+    TableViewModule,
     RouterModule.forRoot(routes)
   ],
   providers: [
     ApiCaller,
     Endpoints,
     ApiHttpService,
+    CookieService,
     GeneralService,
     UserService,
+    TableService,
     ModalService,
     { provide: "urlRedirect", useValue:"/Login"},
     { provide: HTTP_INTERCEPTORS, useClass: ApiInterceptor, multi: true }
+  /*  { provide: "UserService", useValue: onLoginListener, multi: true }*/
   ],
   bootstrap: [AppComponent]
 })

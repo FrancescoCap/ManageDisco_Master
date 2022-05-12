@@ -5,93 +5,94 @@
       <h3>{{header}}</h3>
     </div>
     <div class="modal-body-bg body-round-border p-2">
-      <!--<form>-->
-      <div class="col-12 text-center">
-        <div class="col-12 m-0 p-0" *ngIf="lists != null && lists.length > 0">
-          <div class="col-12 d-flex row" *ngFor="let viewGroup Of lists">
-            <div class="col-12" *ngFor="let viewItem of viewGroup.viewItems;let i = index">
-              <div class="col-12 col-lg-5 mx-auto">
-                <label class="col-12 input-title" *ngIf="viewGroup.type != 3 && viewGroup.type != 6">{{viewItem.label}}</label>
-                <div class="col-12 mx-auto">
-                  <!--dropdown inputs-->
-                  <select *ngIf="viewGroup.type == 1"
-                          [name]="viewItem.viewId"
-                          class="col-10 col-lg-12 p-2"
-                          [id]="viewItem.viewId"
-                          [ngModel]="values.get(viewItem.referenceId)"
-                          (ngModelChange)="values.set(viewItem.referenceId, $event)">
-                    <option *ngFor="let listItem of viewItem.list"
-                            [value]="listItem._dropId">
-                      {{listItem._modalDropText}}
-                    </option>
-                  </select>
-                </div>
-                <div class="col-12 mx-auto">
-                  <!--textbox inputs-->
-                  <input *ngIf="viewGroup.type == 0 && viewItem.hasNgModel == true;else inputNoModel"
-                         class="col-10 col-lg-12"
-                         type="text"
-                         [id]="viewItem.referenceId"
-                         [(ngModel)]="modelOut"
-                         (ngModelChange)="onChange(viewItem.referenceId, $event)"
-                         (change)="viewItem.validationFunc != null ? inputChange(viewItem, $event) : null" />
-                  <!--"inputNOMODEL" da intendersi come senza nessun model collegato agli altri dati-->
-                  <ng-template #inputNoModel>
-                    <input *ngIf="viewGroup.type == 0"
+      <!--<form #frmInput="ngForm">-->
+        <div class="col-12 text-center">
+          <div class="col-12 m-0 p-0" *ngIf="lists != null && lists.length > 0">
+            <div class="col-12 d-flex row" *ngFor="let viewGroup Of lists">
+              <div class="col-12" *ngFor="let viewItem of viewGroup.viewItems;let viewIndex = index">
+                <div class="col-12 col-lg-5 mx-auto">
+                  <label class="col-12 input-title" *ngIf="viewGroup.type != 3 && viewGroup.type != 6">{{viewItem.label}}</label>
+                  <div class="col-12 mx-auto">
+                    <!--dropdown inputs-->
+                    <select *ngIf="viewGroup.type == 1"
+                            [name]="viewItem.viewId"
+                            class="col-10 col-lg-12 p-2"
+                            [id]="viewItem.viewId"
+                            [ngModel]="values.get(viewItem.referenceId)"
+                            (ngModelChange)="values.set(viewItem.referenceId, $event)">
+                      <option *ngFor="let listItem of viewItem.list"
+                              [value]="listItem._dropId">
+                        {{listItem._modalDropText}}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="col-12 mx-auto">
+                    <!--textbox inputs-->
+                    <input *ngIf="viewGroup.type == 0 && viewItem.hasNgModel == true;else inputNoModel"
                            class="col-10 col-lg-12"
                            type="text"
-                           placeholder=""
-                           [ngModel]="values.get(viewItem.referenceId)"
-                           (ngModelChange)="values.set(viewItem.referenceId, $event)"
-                           (input)="viewItem.validationFunc != null ? inputChange(viewItem, $event) : null" />
-                  </ng-template>
-                  <div class="col-lg-12 col-12" *ngIf="viewItem.extraDescription != null"><small>{{viewItem.extraDescription}}</small></div>
+                           [id]="viewItem.referenceId"
+                           [ngModel]="modelOut"
+                           (ngModelChange)="onChange($event,viewItem.referenceId)"
+                           (change)="viewItem.validationFunc != null ? inputChange(viewItem, $event) : onChange($event,viewItem.referenceId)"/>
+                    <!--"inputNOMODEL" da intendersi come senza nessun model collegato agli altri dati-->
+                    <ng-template #inputNoModel>
+                      <input *ngIf="viewGroup.type == 0"
+                             class="col-10 col-lg-12"
+                             type="text"
+                             [ngModel]="values.get(viewItem.referenceId)"
+                             
+                             (change)="viewItem.validationFunc != null ? inputChange(viewItem, $event) : onChange($event,viewItem.referenceId)"/>
+                    </ng-template>
+                    <div class="col-lg-12 col-12 text-start" *ngIf="viewItem.extraDescription != null && viewItem.extraDescription.observers.length > 0">
+                      <small style="white-space:pre-line;" class="text-start col-12">{{viewItem.extraDescriptionString}}</small>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <!--textarea-->
-              <div class="col-12" *ngIf="viewGroup.type == 5">
-                <textarea id="viewGroup.viewId" class="col-10 col-lg-10" [ngModel]="values.get(viewItem.referenceId)" (ngModelChange)="values.set(viewItem.referenceId, $event)"></textarea>
-              </div>
-              <div class="col-12 p-2 mx-auto">
-                <!--image input-->
-                <input id="{{viewItem.viewId}}"
-                       *ngIf="viewGroup.type == 2"
-                       class="col-10 col-lg-12"
-                       type="file"
-                       accept="image/webp"
-                       (change)="onFileChanged($event,viewItem.referenceId)" />
-              </div>
-              <!--table input-->
-              <div class="col-12 text-center mx-auto" *ngIf="viewGroup.type == 3">
-                <label class="col-12">{{viewItem.label}}</label>
-                <div class="col-12 col-lg-5 mx-auto text-center card-body table-inputs" style="overflow-x:auto;overflow-y:auto; border: 1px solid #000">
-                  <div class="col-10 col-lg-12 text-start" *ngFor="let listData of viewItem.list;let i = index">
-                    <!--qui ho la lista dati-->
-                    <input class="col-1"
-                           type="checkbox"
-                           [checked]="this.values.get(viewItem.referenceId)?.includes(listData._dropId)"
-                           (change)="onCheckboxChangeState(viewItem.referenceId, listData, $event, viewGroup.selector)" />
-                    <input *ngIf="viewGroup.txtTableQuantity" type="number" class="col-2 col-lg-2" (change)="onTxtTableQuantityChange('txtTableQuantity', $event, listData._dropId)" />
-                    {{listData._modalDropText}} <small *ngIf="listData._valueOut">- {{listData._valueOut | currency: 'EUR'}}</small>
+                <!--textarea-->
+                <div class="col-12" *ngIf="viewGroup.type == 5">
+                  <textarea id="viewGroup.viewId" class="col-10 col-lg-10" [ngModel]="values.get(viewItem.referenceId)" (ngModelChange)="values.set(viewItem.referenceId, $event)"></textarea>
+                </div>
+                <div class="col-12 p-2 mx-auto">
+                  <!--image input-->
+                  <input id="{{viewItem.viewId}}"
+                         *ngIf="viewGroup.type == 2"
+                         class="col-10 col-lg-12"
+                         type="file"                         
+                         accept="image/webp"
+                         (change)="onFileChanged($event,viewItem.referenceId)" />
+                </div>
+                <!--table input-->
+                <div class="col-12 text-center mx-auto" *ngIf="viewGroup.type == 3">
+                  <label class="col-12">{{viewItem.label}}</label>
+                  <div class="col-12 col-lg-5 mx-auto text-center card-body table-inputs" style="overflow-x:auto;overflow-y:auto; border: 1px solid #000">
+                    <div class="col-10 col-lg-12 text-start" *ngFor="let listItem of viewItem.list;let idx = index">
+                      <!--qui ho la lista dati-->
+                      <input class="col-1"
+                             type="checkbox"
+                             (change)="onCheckboxChangeState(idx,viewItem.referenceId, $event, viewGroup.txtTableQuantity, listItem, viewItem.connectToReferenceView)" />
+
+                      <input type="text" *ngIf="viewGroup.txtTableQuantity" (input)="onTxtTableQuantityChange(idx,viewItem.referenceId, $event, listItem)" [value]="viewQuantityValuesMap.get(idx)" [disabled]="disableViewQuantityMap.get(idx)" class="col-2 col-lg-2 text-end" />
+
+                      {{listItem._modalDropText}} <small *ngIf="listItem._valueOut">- {{listItem._valueOut | currency: 'EUR'}}</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12" *ngIf="viewGroup.type == 6">
+                  <div class="row text-start p-1">
+                    <input type="checkbox" id="viewItem.viewId" class="col-1" />
+                    <label [for]="viewItem.viewId" class="col-11">{{viewItem.label}}</label>
                   </div>
                 </div>
               </div>
-              <div class="col-12" *ngIf="viewGroup.type == 6">
-                <div class="row text-start p-1">
-                  <input type="checkbox" id="viewItem.viewId" class="col-1" />
-                  <label [for]="viewItem.viewId" class="col-11">{{viewItem.label}}</label>
-                </div>                
-              </div>
             </div>
           </div>
-
+          <div class="row mt-3 justify-content-center">
+            <button type="button" class="col-5 col-lg-2 btn btn-secondary m-1" (click)="onCloseModal()">Annulla</button>
+            <button class="col-5 col-lg-2 btn btn-primary m-1" (click)="onConfirmModal()">OK</button>
+          </div>
         </div>
-        <div class="row mt-3 justify-content-center">
-          <button type="button" class="col-5 col-lg-2 btn btn-secondary m-1" (click)="onCloseModal()">Annulla</button>
-          <button class="col-5 col-lg-2 btn btn-primary m-1" (click)="onConfirmModal()">OK</button>
-        </div>
-        <!--</form>-->
-      </div>
+      <!--</form>-->
     </div>
 
 

@@ -49,6 +49,7 @@ namespace ManageDisco.Context
         public DbSet<RefreshToken> RefreshToken { get; set; }
         public DbSet<PermissionAction> PermissionAction { get; set; }
         public DbSet<UserPermission> UserPermission { get; set; }
+        public DbSet<AnonymusAllowed> AnonymusAllowed { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseLoggerFactory(loggerFactory);

@@ -16,13 +16,13 @@
             <div class="input-group-prepend">
               <span class="input-group-text h-100" style="padding-top:15%"></span>
             </div>
-            <input name="password" passwordValidator  compare-password="confirmPassword" required #password="ngModel" type="password" class="form-control h-25" placeholder="Password" [(ngModel)]="registrationRequest.password">
+            <input name="password" passwordValidator parent="true" compare-password="confirmPassword" required #password="ngModel" type="password" class="form-control h-25" placeholder="Password" [(ngModel)]="registrationRequest.password">
           </div>
           <div class="input-group form-group pt-2 pb-2">
             <div class="input-group-prepend">
               <span class="input-group-text h-100" style="padding-top:15%"></span>
             </div>
-            <input name="confirmPassword" passwordValidator parent="true" compare-password="password" required #confirmPassword="ngModel" [(ngModel)]="repeatedPassword" type="password" class="form-control h-25" placeholder="Conferma password">
+            <input name="confirmPassword" passwordValidator compare-password="password" required #confirmPassword="ngModel" [(ngModel)]="repeatedPassword" type="password" class="form-control h-25" placeholder="Conferma password">
           </div>
           <div class="input-group form-group pt-2 pb-2">
             <div class="input-group-prepend">
@@ -68,7 +68,7 @@
             <label class="col-12" style="color:red" *ngIf="password.dirty && password.errors?.['passwordFormat']">
               La password deve essere lunga almeno 7 caratteri, contenere almeno un numero, un carattere maiuscolo e un carattere speciale fra @, !, $, %, &, #
             </label>
-            <label class="col-12" style="color:red" *ngIf="password.dirty && confirmPassword.dirty && password.errors?.['passwordMismatch']">Le password non corrispondono</label>
+            <label class="col-12" style="color:red" *ngIf="password.dirty && confirmPassword.dirty && confirmPassword.errors?.['passwordMismatch']">Le password non corrispondono</label>
             <label class="col-12" style="color:red" *ngIf="email.dirty && email.errors?.['invalidEmail']">Email non valida</label>
           </div>
           <div class="form-group">

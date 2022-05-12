@@ -1,6 +1,6 @@
 import { ViewChild, ViewContainerRef } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
-import { catchError } from 'rxjs';
+import { catchError, concatMap, Observable, of, toArray } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { ModalModelEnum, ModalViewGroup } from '../../components/modal/modal.model';
 import { ModalType, PaymentOverview, PaymentPost, ReservationPayments, User } from '../../model/models';
@@ -40,6 +40,7 @@ export class PaymentsComponent implements OnInit {
   selectedPayment?: any;
   modalViews?: ModalViewGroup[];
   userIsAdministrator = false;
+  calls?: Observable<any>;
 
   constructor(private _api: ApiCaller,
     private _services: GeneralService,
@@ -100,22 +101,41 @@ export class PaymentsComponent implements OnInit {
   }
 
   onPaymentAdded = (info: any): void => {
-    this.paymentInfo = {
-      reservationPaymentAmount: info.get("paymentAmount"),
-      reservationPaymentDescription: info.get("paymentDescription"),
-      userId: this.userIdExpanded
-    }
+    this.isLoading = true;
+    this.paymentInfo = this.getPaymentObject(info);
 
-    this._api.postPayment(this.paymentInfo).pipe(
-      catchError(err => {
-        console.log(err);
-        return err;
-      })).subscribe(data => {
+    this.calls = of(this._api.postPayment(this.paymentInfo),
+      this._api.getPaymentsOverview(""),
+      this._api.getPaymentsOverviewDetails(this.userIdExpanded));
+
+    this.calls
+      .pipe(
+        concatMap(value => { return value }),
+        toArray(),
+        catchError(err => {
+          this.isLoading = false; return err;
+        }))
+      .subscribe((data:any) => {
+        this.payments = data[1];
+        this.paymentsDetails = data[2];
+        this.initDetailsFlags();
+
         this.addNewPayment = false;
-        this.loadPaymentsDetail(this.userIdExpanded);
+        this._modal.hideModal();
+        this.isLoading = false;
+        //this.loadPaymentsDetail(this.userIdExpanded);        
       });
   }
 
+  private getPaymentObject(data: any) {
+    return {
+      reservationPaymentAmount: data.get("paymentAmount"),
+      reservationPaymentDescription: data.get("paymentDescription"),
+      userId: this.userIdExpanded
+    };
+  }
+
+  //reset user selection
   initDetailsFlags() {
    this.payments?.forEach(x => {
       this.paymentDetailsMap.set(x.userId, false);
@@ -132,7 +152,7 @@ export class PaymentsComponent implements OnInit {
   }
 
   loadPaymentsDetail(userId: any) {
-  
+    
     if (!this._services.isMobileView() && !this._services.isTabletView()) {
       this.userIdExpanded = userId;
       this.paymentDetailsMap.clear();
@@ -158,34 +178,22 @@ export class PaymentsComponent implements OnInit {
   }
    
   getPaymentOverview() {
-    this._api.getPaymentsOverview(this.userIdExpanded).pipe(
-      catchError(err => {
-        this._modal.showErrorOrMessageModal(err.message, "ERRORE");
-        return err;
-      })).subscribe((data: any) => {
-        this.payments = data;        
+    this._api.getPaymentsOverview(this.userIdExpanded)
+      .subscribe((data: any) => {
+        this.payments = data;
         this.initDetailsFlags();
 
         this.userCanPay = this._user.userIsAdminstrator();
-
-        setTimeout(() => {
-          this.isLoading = false;
-        }, 1000)
-
+        this.isLoading = false;
       })
   }
   
   getPaymentsOverviewDetails() {   
-    this._api.getPaymentsOverviewDetails(this.userIdExpanded).pipe(
-      catchError(err => {
-        console.log(err);
-        return err;
-      })).subscribe(data => {
+    this._api.getPaymentsOverviewDetails(this.userIdExpanded)
+      .subscribe(data => {
         this.paymentsDetails = data;
       });
   }
-
-
 }
 
 

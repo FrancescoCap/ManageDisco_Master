@@ -16,7 +16,11 @@
       </div>
     </div>
     <div *ngIf="!isMobileView && !isTabletView;else mobileTemplate">
-      <div class="row col-12 p-2 tblheader-bk" data-value="tblHeader">
+
+      <!--Table component-->
+      <app-tableview [data-list]="tableData" [max-rows-page]="tableRowPage"></app-tableview>
+
+      <!--<div class="row col-12 p-2 tblheader-bk" data-value="tblHeader">
         <div class="col-1">Data</div>
         <div class="col-1">Codice prenotazione</div>
         <div class="col-2">Evento</div>
@@ -50,16 +54,16 @@
             <div class="col-6 m-0 p-0" *ngIf="reserve.canAcceptReservation">
               <i id="btnAcceptReservation_{{reserve.reservationId}}" class="col-4 btn-icon fa fa-check" (click)="handleReservation($event)"></i>
               <i id="btnRefuseReservation_{{reserve.reservationId}}" class="btn-icon fa fa-times col-4" (click)="handleReservation($event)"></i>
-            </div>
+            </div>-->
             <!-- TODO farsi passare gli stati di prenotazione dal server resource e gestirli-->
-            <div class="col-6 m-0 p-0" *ngIf="reserve.canAcceptBudget">
+            <!--<div class="col-6 m-0 p-0" *ngIf="reserve.canAcceptBudget">
               <i id="btnConfirmBudget_{{reserve.reservationId}}" *ngIf="reserve.reservationRealBudget == 0" class="btn-icon fa fa-euro col-4 p-2" (click)="handleReservation($event)"></i>
               <i id="btnEditBudget" *ngIf="!editBudget" class="btn-icon col-4 p-2 fa fa-edit" (click)="handleReservation($event)"></i>
               <i id="btnOkEdtBudget_{{reserve.reservationId}}" *ngIf="editBudget" class="btn-icon col-4 fa fa-check" (click)="handleReservation($event)"></i>
             </div>
           </div>
         </div>
-      </div>
+      </div>-->
       <div class="no-data" *ngIf="reservations == null || reservations.length == 0">
         NON CI SONO PRENOTAZIONI PER QUESTO EVENTO
       </div>

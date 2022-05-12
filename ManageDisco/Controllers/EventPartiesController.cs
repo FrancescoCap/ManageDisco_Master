@@ -70,7 +70,8 @@ namespace ManageDisco.Controllers
             return Ok(partyOverview);
         }
 
-        // GET: api/EventParties
+        
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<EventPartyOverview>> GetEvents([FromQuery]bool WithReservation)
         {
@@ -204,6 +205,12 @@ namespace ManageDisco.Controllers
 
             if (eventParty.FreeEntranceDescription == String.Empty)
                 eventParty.FreeEntranceDescription = "-";
+            if (String.IsNullOrEmpty(eventParty.Name))
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Inserire un nome per l'evento." });
+            if (eventParty.Date == null)
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Inserire una data per l'evento." });
+            if (eventParty.EntrancePrice == 0 || eventParty.TablePrice == 0)
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Inserire i prezzi per l'evento." });
 
             _db.Entry(eventParty).State = EntityState.Added;
             await _db.SaveChangesAsync();

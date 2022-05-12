@@ -62,6 +62,8 @@ namespace ManageDisco.Model.UserIdentity
         public string Token { get; set; }
         public string RefreshToken { get; set; }
         public string ClientSession { get; set; }
+        public decimal UserPoints { get; set; }
+        public string UserNameSurname { get; set; }
         public string Message { get; set; }
         public bool OperationSuccess { get; set; }
     }

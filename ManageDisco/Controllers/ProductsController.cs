@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ManageDisco.Context;
 using ManageDisco.Model;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ManageDisco.Controllers
 {
@@ -20,6 +21,7 @@ namespace ManageDisco.Controllers
         }
 
         // GET: api/Products
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductCatalogView>>> GetProduct([FromQuery] int catalogId, [FromQuery] bool shop)
         {
@@ -90,6 +92,17 @@ namespace ManageDisco.Controllers
         [HttpPost]        
         public async Task<ActionResult<Product>> PostProduct([FromBody] Product product)
         {
+            if (product == null)
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Dati non validi." });
+            if (product.CatalogId < 1)
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Selezionare un catalogo valido." });
+            if (product.ProductName == null)
+                return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Inserire un nome prodotto." });
+            if (product.ProductShopTypeId <= 0)
+            {
+                product.ProductShopTypeId = _db.ProductShopType.FirstOrDefault(x => x.ProductShopTypeDescription == ProductShopTypeContants.PRODUCT_SHOP_TYPE_TABLE).ProductShopTypeId;
+            }
+
             _db.Product.Add(product);
             await _db.SaveChangesAsync();
 

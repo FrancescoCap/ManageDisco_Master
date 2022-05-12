@@ -37,6 +37,19 @@ body {
   }
 }
 
+#loginHeader {
+  cursor: pointer;
+  line-height: 1.5rem;
+}
+
+#loginHeader > li {
+    line-height: 2.2rem;
+}
+
+#loginHeader:hover  {
+
+}
+
 nav a {
   text-decoration: none;
 }
@@ -66,6 +79,12 @@ nav .content {
 nav .content .links {
   margin-left: 80px;
   display: flex;
+}
+
+@media screen and (min-width: 1200px) and (max-width: 1600px) {
+  nav .content .links {
+    margin-left: 0px;
+  }
 }
 
 .content .logo a {

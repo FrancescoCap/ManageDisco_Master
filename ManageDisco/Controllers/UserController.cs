@@ -78,8 +78,6 @@ namespace ManageDisco.Controllers
             if (user == null)
                 return NotFound();
 
-
-
             return Ok(user);
         }
 
@@ -127,6 +125,7 @@ namespace ManageDisco.Controllers
                     Token = "",
                     RefreshToken = "",
                     Message = "Email o password errati"
+                    
                 };
                 return BadRequest(response);
             }
@@ -148,26 +147,32 @@ namespace ManageDisco.Controllers
             //var token = HelperMethods.GenerateJwtToken(claims, _configuration["Jwt:SecurityKey"], _configuration["Jwt:ValidIssuer"], _configuration["Jwt:ValidAudience"]);
             //token = _encryption.EncryptCookie(token, "cookieAuth");      
 
-            response = await GenerateTokens(user);
-
+            response = await new HelperMethods().GenerateTokens(_db, user, HttpContext, _userManager, _encryption, _configuration);
+            response.UserPoints = user.Points;
+            response.UserNameSurname = String.Format("{0} {1}", user.Name, user.Surname);
             //delete old cookie if user login wihout logout operation           
             areCookiesToAdd(false);
-            areCookiesToAdd(true, response.Token, response.RefreshToken);
+            
+            string pr_ref = "";
+            bool auth_type_full = false;
+            bool auth_type_standard = false;
             if (HelperMethods.UserIsPrOrAdministrator(user, (List<string>)userRoles))
             {
-                Response.Cookies.Append(CookieConstants.AUTH_STANDARD_COOKIE, "True", new CookieOptions() { SameSite = SameSiteMode.Strict });
+                
+                auth_type_standard = true;
                 if (HelperMethods.UserIsAdministrator((List<string>)userRoles))
-                    Response.Cookies.Append(CookieConstants.AUTH_FULL_COOKIE, "True", new CookieOptions() {  SameSite = SameSiteMode.Strict });
+                {
+                    auth_type_full = true;
+                }                  
 
             }else if (HelperMethods.UserIsCustomer((List<string>)userRoles))
             {
                 var prId = _db.PrCustomer.FirstOrDefaultAsync(x => x.PrCustomerCustomerid == user.Id).Result.PrCustomerPrId;
-                var prCode = _db.Users.FirstOrDefaultAsync(x => x.Id == prId).Result.UserCode;
-                Response.Cookies.Append(CookieConstants.PR_REF_COOKIE, prCode, new CookieOptions() { SameSite = SameSiteMode.Strict });
+                pr_ref = _db.Users.FirstOrDefaultAsync(x => x.Id == prId).Result.UserCode;
+                
             }
-           
-            HttpContext.Session.SetString(CookieConstants.CLIENT_SESSION, response.ClientSession);
-
+            areCookiesToAdd(true, response.Token, response.RefreshToken, userRoles.Contains(RolesConstants.ROLE_ADMINISTRATOR), pr_ref, Convert.ToString(auth_type_standard), response.ClientSession);
+                                   
             return Ok(response);
         }
         
@@ -400,17 +405,24 @@ namespace ManageDisco.Controllers
         {
             var refreshCookie = HttpContext.Request.Cookies.FirstOrDefault(x => x.Key == CookieConstants.REFRESH_COOKIE);
             var refreshTokenValue = refreshCookie.Value;
-            var clientSession = Encoding.UTF8.GetString(HttpContext.Session.Get(CookieConstants.CLIENT_SESSION));
+            if (String.IsNullOrEmpty(refreshTokenValue))
+                return Unauthorized();
+
+            string clientSession = "";
+            if (_db.RefreshToken.Any(x => x.RefreshTokenValue == refreshTokenValue && x.RefreshTokenIsValid == true))
+                clientSession = _db.RefreshToken.FirstOrDefault(x => x.RefreshTokenValue == refreshTokenValue && x.RefreshTokenIsValid == true).RefreshTokenClientSession;
+            //Se entro qui significa che il client non mi ha restituito il client session --> qualcosa non va: blocco la chiamata
+            //if (String.IsNullOrEmpty(clientSession))
+            //    return BadRequest();
+
             //To avoid multiple refresh token generation check if it was already provided
-            bool refreshTokenIsAlreadyProvided = _db.RefreshToken.Where(x => x.RefreshTokenClientSession == clientSession).Any(x => x.RefreshTokenIsValid == true)
+            bool refreshTokenIsAlreadyProvided = _db.RefreshToken.Any(x => x.RefreshTokenClientSession == clientSession && x.RefreshTokenIsValid == true)
                 && _db.RefreshToken.Where(x => x.RefreshTokenClientSession == clientSession).Count(x => x.RefreshTokenIsValid == true) > 1;
             RefreshToken refreshTokenOld = await _db.RefreshToken.FirstOrDefaultAsync(x => x.RefreshTokenValue == refreshTokenValue);
             
-            if (!refreshTokenIsAlreadyProvided && refreshTokenOld.RefreshTokenIsValid)
+            if (!refreshTokenIsAlreadyProvided &&  refreshTokenOld.RefreshTokenIsValid)
             {
-                //check if refresh token exist 
-                
-
+                //check if refresh token old exist 
                 if (refreshTokenOld == null)
                     return BadRequest();
 
@@ -425,14 +437,23 @@ namespace ManageDisco.Controllers
 
                 refreshTokenOld.RefreshTokenIsValid = false;
                 _db.Entry(refreshTokenOld).State = EntityState.Modified;
+                
                 await _db.SaveChangesAsync();
 
-                var tokens = await GenerateTokens(user);
-                areCookiesToAdd(true, tokens.Token, tokens.RefreshToken);
+                var tokens = await new HelperMethods().GenerateTokens(_db, user, HttpContext, _userManager, _encryption, _configuration);
+                if (tokens == null)
+                    return Ok();
+
+                string pr_ref = HttpContext.Request.Cookies.Where(x => x.Key == CookieConstants.PR_REF_COOKIE).FirstOrDefault().Value;
+               
+                string auth_standard = HttpContext.Request.Cookies.Where(x => x.Key == CookieConstants.AUTH_STANDARD_COOKIE).FirstOrDefault().Value;
+              
+                areCookiesToAdd(true, tokens.Token, tokens.RefreshToken, await _userManager.IsInRoleAsync(user, RolesConstants.ROLE_ADMINISTRATOR), pr_ref, auth_standard, tokens.ClientSession);
+                return Ok();
             }
             
 
-            return Ok();
+            return Unauthorized();
         }
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
@@ -451,11 +472,7 @@ namespace ManageDisco.Controllers
                 return Ok(new GeneralReponse() { OperationSuccess = false, Message =  "Il numero di telefono è stato già confermato"});
             if (user.Id != refer)
             {
-                Response.Cookies.Delete("_auth");
-                Response.Cookies.Delete("isAuth");
-                Response.Cookies.Delete("authorization");
-                Response.Cookies.Delete("authorization_full");
-                Response.Cookies.Delete("pr_ref");
+                areCookiesToAdd(false);
                 return Ok(new GeneralReponse() { OperationSuccess = false, Message = "Il numero di telefono e l'account non corrispondono" });
             }
                 
@@ -480,15 +497,18 @@ namespace ManageDisco.Controllers
             await _twilioService.TriggerTwilio(formData);
         }
         
-        private void areCookiesToAdd(bool add, params string[] args)
+        private void areCookiesToAdd(bool add, params Object[] args)
         {
             //handle only global Cookies
             if (add)
             {
-                Response.Cookies.Append(CookieConstants.AUTHORIZATION_COOKIE, args[0], new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
+                Response.Cookies.Append(CookieConstants.AUTHORIZATION_COOKIE, (string)args[0], new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
                 Response.Cookies.Append(CookieConstants.ISAUTH_COOKIE, "1", new CookieOptions() { SameSite = SameSiteMode.Strict });
-                Response.Cookies.Append(CookieConstants.REFRESH_COOKIE, args[1], new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict});
-                //Response.Cookies.Append(CookieConstants.CLIENT_SESSION, args[2]);
+                Response.Cookies.Append(CookieConstants.REFRESH_COOKIE, (string)args[1], new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict, Expires = DateTime.Now.AddMonths(1) });
+                Response.Cookies.Append(CookieConstants.AUTH_FULL_COOKIE, Convert.ToString((bool)args[2]), new CookieOptions() { SameSite = SameSiteMode.Strict });
+                Response.Cookies.Append(CookieConstants.PR_REF_COOKIE, (string)args[3], new CookieOptions() { SameSite = SameSiteMode.Strict });
+                Response.Cookies.Append(CookieConstants.AUTH_STANDARD_COOKIE, (string)args[4], new CookieOptions() { SameSite = SameSiteMode.Strict });
+                Response.Cookies.Append(CookieConstants.CLIENT_SESSION, (string)args[5], new CookieOptions() { SameSite = SameSiteMode.Strict });
             }
             else
             {
@@ -501,58 +521,12 @@ namespace ManageDisco.Controllers
                 Response.Cookies.Delete(CookieConstants.CLIENT_SESSION);
             }
         }
-        public async Task<RefreshToken> GenerateRefreshTokn(int length, string userId, string clientSession, bool withSpecialChars = true )
+
+        private void AddSessionCookie(string key, string value)
         {
-            RefreshToken refreshToken = new RefreshToken()
-            {
-                RefreshTokenValue = HelperMethods.GenerateRandomString(length, withSpecialChars),
-                RefreshTokenLifetime = DateTime.Now.ToUniversalTime().Ticks,
-                RefreshTokenUserId = userId,
-                RefreshTokenIsValid = true,
-                RefreshTokenClientSession = clientSession
-            };
-
-            _db.RefreshToken.Add(refreshToken);
-            await _db.SaveChangesAsync();
-
-            return refreshToken;
-
-        }      
-        
-        private async Task<AuthenticationResponse> GenerateTokens(User user)
-        {
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
-            claims.Add(new Claim(ClaimTypes.Email, user.Email));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, new Guid().ToString()));            
-            /**CUSTOM CLAIMS*/
-            claims.Add(new Claim(CustomClaim.CLAIM_USERCODE, user.UserCode != null ? user.UserCode : ""));
-            string userAgent = HttpContext.Request.Headers["User-Agent"];
-            
-            claims.Add(new Claim(CustomClaim.CLAIM_USERAGENT, userAgent));
-
-            var userRoles = await _userManager.GetRolesAsync(user);
-            foreach (string role in userRoles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
-
-            //token
-            var token = HelperMethods.GenerateJwtToken(claims, _configuration["Jwt:SecurityKey"], _configuration["Jwt:ValidIssuer"], _configuration["Jwt:ValidAudience"]);
-            token = _encryption.EncryptCookie(token, "cookieAuth");
-
-            string clientSession = HelperMethods.GenerateRandomString(15, false);
-            string oldClientSession = HttpContext.Session.GetString(CookieConstants.CLIENT_SESSION); 
-            string session = !String.IsNullOrEmpty(oldClientSession) ? oldClientSession : clientSession;
-
-            var refreshToken = await GenerateRefreshTokn(468, user.Id, session);
-
-            AuthenticationResponse response = new AuthenticationResponse();
-            response.Token = token;
-            response.RefreshToken = refreshToken.RefreshTokenValue;
-            response.ClientSession = session;
-
-            return response;
+            Response.Cookies.Append(key, value, new CookieOptions() { SameSite = SameSiteMode.Strict });
         }
+
+       
     }
 }

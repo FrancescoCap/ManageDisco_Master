@@ -39,7 +39,6 @@ export class PasswordValidator implements Validator {
      "K",
      "X",
   ] 
-
   specialChars: string[] = [
     "@",
     "!",
@@ -67,7 +66,7 @@ export class PasswordValidator implements Validator {
 
   validate(control: AbstractControl): ValidationErrors | null {
     const compare_password = control.root.get(this.comparer);
-    const password = control.value;    
+    const password = control.value;
 
     if (control.value == null)
       return { 'passwordValue': true };
@@ -79,7 +78,6 @@ export class PasswordValidator implements Validator {
       return { 'passwordFormat': true };    
    
     if (!this.passwordMatch(password, compare_password?.value)) {
-      console.log("mismatch")
       return { 'passwordMismatch': true };
     }
     
