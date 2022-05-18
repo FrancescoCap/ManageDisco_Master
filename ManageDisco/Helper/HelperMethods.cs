@@ -337,7 +337,7 @@ namespace ManageDisco.Helper
             token = encryption.EncryptCookie(token, "cookieAuth");
 
             string clientSession = HelperMethods.GenerateRandomString(15, false);
-            string oldClientSession = context.Session.GetString(CookieConstants.CLIENT_SESSION);
+            string oldClientSession = context.Session.GetString(CookieService.CLIENT_SESSION);
             string session = !String.IsNullOrEmpty(oldClientSession) ? oldClientSession : clientSession;
 
             var refreshToken = await GenerateRefreshTokn(db, 468, user.Id, session);

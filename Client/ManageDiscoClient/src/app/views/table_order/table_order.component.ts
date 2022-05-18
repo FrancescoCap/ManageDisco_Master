@@ -1,14 +1,10 @@
-import { AfterViewInit, ComponentRef, Output, ViewChild } from '@angular/core';
-import { EventEmitter } from '@angular/core';
-import { Component, ComponentFactoryResolver, OnInit, Type, ViewContainerRef } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
-import { observable } from 'rxjs';
+import { AfterViewInit, ViewChild } from '@angular/core';
+import { Component, ComponentFactoryResolver, ViewContainerRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { catchError, forkJoin, Observable } from 'rxjs';
 import { ApiCaller } from '../../api/api';
-import { ModalComponent } from '../../components/modal/modal.component';
-import { ModalModelEnum, ModalModelList, ModalViewGroup } from '../../components/modal/modal.model';
-import { CouponValidation, EventParty, EventPartyView, ModalType, NewTableOrderData, Product, TableEventHeader, TableEvents, TableOrderHeader, TableOrderPut, TableOrderRow } from '../../model/models';
+import { ModalModelEnum, ModalViewGroup } from '../../components/modal/modal.model';
+import { CouponValidation, EventPartyView, ModalType, Product, TableEventHeader, TableOrderHeader, TableOrderPut, TableOrderRow } from '../../model/models';
 import { ModalService } from '../../service/modal.service';
 
 @Component({
@@ -42,7 +38,6 @@ export class TableOrderComponent implements AfterViewInit {
   isLoading = false;
 
   constructor(private _api: ApiCaller,
-    private _componentFactory: ComponentFactoryResolver,
     private _modalService: ModalService) {
   }
 
@@ -77,28 +72,12 @@ export class TableOrderComponent implements AfterViewInit {
   }
 
   getEvents() {
-    return this._api.getEvents();/*.pipe(catchError(err => {
-      this._modalService.showErrorOrMessageModal(err.message, "ERRORE");
-      return err;
-    })).subscribe((data: any) => {
-      this.events = data;
-      if (this.eventTables != null && this.eventTables.tables != null)
-        this.isLoading = false;
-    })*/
+    return this._api.getEvents();
   }
 
   //Restituisce i tavoli confermati e sistemati sulla mappa per l'evento richiesto
   getEventTables(eventId: number) {
-    return this._api.getEventTables(eventId);/*.pipe(catchError(err => {
-      this._modalService.showErrorOrMessageModal(err.message, "ERRORE");
-      return err;
-    })).subscribe((data: any) => {     
-      this.eventTables = data;
-      this.eventTablesFull = this.eventTables.tables;
-      this.selectedEvent = data.eventId;
-      if (this.events != null && this.events.events != null)
-        this.isLoading = false;
-    })*/
+    return this._api.getEventTables(eventId);
   }
 
   onEventChange() {
@@ -142,6 +121,7 @@ export class TableOrderComponent implements AfterViewInit {
       exitChanged: info.get("orderExit"),
       productsSpendingAmount: info.get("orderBudget"),
       shopCoupon: info.get("coupon"),
+      eventId: this.selectedEvent,
       productsId: {}
     };
     var rows = info.get("productsId");
@@ -158,9 +138,10 @@ export class TableOrderComponent implements AfterViewInit {
 
     this._api.putTablOrder(this.tblId, order).pipe(
       catchError(err => {
-        this._modalService.showErrorOrMessageModal(err.message);
+        this.isLoading = false;
+        this._modalService.hideModal();
         return err;
-      })).subscribe(x => {this.initData()});
+      })).subscribe(x => { this._modalService.hideModal(); this.initData()});
     
   }
 
@@ -186,7 +167,7 @@ export class TableOrderComponent implements AfterViewInit {
   }
 
   couponValidation = (code: string) => {
-    this._api.checkCouponValidation(code).pipe(catchError(err => { this._modalService.showErrorOrMessageModal(err.message, "ERRORE"); return err; }))
+    this._api.checkCouponValidation(code).pipe(catchError(err => { return err; }))
       .subscribe((data: CouponValidation) => {
         var extraDescriptionString: string = "";
         data.products?.forEach(x => {
@@ -198,10 +179,10 @@ export class TableOrderComponent implements AfterViewInit {
       })
   }
 
-  onModalClose(state: any) {
+  onModalClose = (data: any): void => {  
+    this._modalService.hideModal();
   }
-
- 
+   
   editOrderTable(tableName: any, tableId: any) {
     const calls: Observable<any>[] = [
       this._api.getTableOrderRows(tableId),
@@ -290,7 +271,7 @@ export class TableOrderComponent implements AfterViewInit {
       }]
     }];
     const tableName = this.eventTables.tables.find(x => x.tableId == tableId)?.tableName;
-    this._modalService.showListViewModal("Storico ordini per " + tableName, modalViews);
+    this._modalService.showListViewModal(this.onModalClose,`Storico ordini per ${tableName}`, modalViews);
   }
 }
 

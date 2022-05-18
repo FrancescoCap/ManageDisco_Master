@@ -1,6 +1,8 @@
 import { EventEmitter } from "@angular/core";
 
 export interface TableViewDataModel {
+  isPdfExportable?: boolean;
+  onExportPdfCallback?: Function;
   headers: TableViewHeader[];
   rows: TableViewRow[];
   onDataListChange?: EventEmitter<any>;
@@ -27,6 +29,8 @@ export interface TableViewCellIcon {
   class?: string;
   referenceId?: string; //item id for reference click
   isToShow?: boolean;
+  isImage?: boolean;
+  imagePath?: string;
   onClickCallback?: Function;
 }
 

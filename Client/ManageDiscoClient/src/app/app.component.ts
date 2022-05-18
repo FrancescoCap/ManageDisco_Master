@@ -21,6 +21,7 @@ export class AppComponent implements OnInit {
   menu?: HeaderMenu[];
   homeInfo?: HomeInfo;
   isMobileView = false;
+  isTabletView = false;
   isAuthenticated = false;
   isMenuLoaded = false;
 
@@ -29,13 +30,15 @@ export class AppComponent implements OnInit {
   authorizationStateString = "Login";
   isLoginHeaderMenuEnabled = false;
 
+  showChildLogout = false;
+
   constructor(private _api: ApiCaller,    
     private _generalService: GeneralService,
     private _user: UserService) {}
 
   ngOnInit(): void {
     //this.redirectToHomeifLogged();
-    this.isMobileView = this._generalService.isMobileView();
+    this.isMobileView = this._generalService.isMobileView() || this._generalService.isTabletView();
     this.isAuthenticated = this._user!.userIsAuthenticated();
     this.getFooterAndHeader();
     
@@ -70,7 +73,6 @@ export class AppComponent implements OnInit {
   }
 
   onLoginLogoutClick() {
-    console.log("Click")
     if (this._user!.userIsAuthenticated())
       this.logout();
     else
@@ -89,6 +91,10 @@ export class AppComponent implements OnInit {
       
       this.goToLoginPage();
     })
+  }
+
+  openMobileChildLogout() {
+    this.showChildLogout = !this.showChildLogout;
   }
 
 }

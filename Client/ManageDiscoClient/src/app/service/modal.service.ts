@@ -87,7 +87,7 @@ export class ModalService {
     this.modalComponentRef?.instance.modalVisibilityListener?.next(false);
   }
 
-  public showListViewModal(title:string, data:ModalViewGroup[]) {
+  public showListViewModal(onConfirmCallback: (...data: any[]) => any,  title:string, data:ModalViewGroup[]) {
     this.initComponentRef();
 
     if (this.modalComponentRef != null) {
@@ -96,6 +96,11 @@ export class ModalService {
       this.modalComponentRef.instance.lists = data;
       this.modalComponentRef.instance.header = title;
       this.modalComponentRef.instance.visibile = true;
+      this.modalComponentRef.instance.modalConfirmed.subscribe((event: any) => {        
+        onConfirmCallback(event);
+      })
+      this.modalComponentRef.instance.showModal();
+      this.modalComponentRef.instance.modalVisibilityListener?.next(true);
     }
   }
 

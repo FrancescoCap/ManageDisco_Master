@@ -95,6 +95,13 @@ export interface EventTableOrder {
   totalOrderTable?: number;
   tableCount?: number;
   peopleCountFromTable?: number;
+  tableCoupons?: EventTableOrderCoupon[];
+}
+
+export interface EventTableOrderCoupon {
+  tableName?: string;
+  couponCode?: string;
+  couponDescription?: string;
 }
 
 export enum ModalType {
@@ -194,6 +201,13 @@ export interface NavigationLabelChild {
   index?: number;
   label?: string;
   isActive?: boolean;
+}
+
+export interface UserInfoPut {
+  name?: string;
+  surname?: string;
+  email?: string;
+  phoneNumber?: string;
 }
 
 export interface UserInfoView {
@@ -467,6 +481,7 @@ export interface TableOrderPut {
   productsId?: {[key:number]: number}//Map<number,number>;
   productsSpendingAmount?: number;
   exitChanged?: number;
+  eventId?: number;
   shopCoupon?: string;
 }
 

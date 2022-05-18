@@ -1,0 +1,26 @@
+<div class="col-12">
+  <label id="no-data" class="col-12">Storico prenotazioni</label>
+  <small id="col-12">Visualizza tutte le prenotazioni effettuate a tuo nome. </small>
+</div>
+
+<app-tableview *ngIf="!isMobileTemplate; else mobileReservationTemplate" [setLoading]="isLoading" [data-list]="reservationTableList" [max-rows-page]="maxTablePageRows"></app-tableview>
+
+<ng-template #mobileReservationTemplate>
+  <div style="overflow:auto; height:620px; max-height:780px;" *ngIf="reservation != null && reservation.length > 0">
+    <div class="col-12 p-2" *ngFor="let r Of reservation">
+      <div class="col-12"><b>Data:</b> {{r.reservationDate | date: 'dd/MM/yyyy'}}</div>
+      <div class="col-12"><b>Codice prenotazione:</b> {{r.reservationCode}}</div>
+      <div class="col-12"><b>Tipo prenotazione:</b> {{r.reservationTypeValue}}</div>
+      <div class="col-12"><b>Nome prenotazione:</b> {{r.reservationName}}</div>
+      <div class="col-12"><b>Nr. persone:</b> {{r.reservationPeopleCount}}</div>
+      <div class="col-12"><b>Budget previsto:</b> {{r.reservationExpectedBudget | currency: 'EUR'}}</div>
+      <div class="col-12"><b>Stato:</b> {{r.reservationStatus}}</div>
+      <div class="col-12"><b>Budget effettivo:</b> {{r.reservationRealBudget |currency: 'EUR'}}</div>
+      <div class="col-12"><b>Codice PR:</b> {{r.reservationUserCode}}</div>
+      <div class="col-12 dropdown-divider"></div>
+    </div>
+  </div>
+  <div class="no-data" *ngIf="reservation == null || reservation.length == 0">
+    NON CI SONO PRENOTAZIONI PER QUESTO EVENTO
+  </div>
+</ng-template>

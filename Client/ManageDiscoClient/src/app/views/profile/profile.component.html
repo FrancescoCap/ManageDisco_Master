@@ -5,7 +5,7 @@
        [ngClass]="{'row flex-column': isMobileView || isTabletView}"
        [ngStyle]="{'height': isMobileView || isTabletView ? '50px':''}"
        style="position:static"
-       *ngIf="!user!.isCustomer">
+       *ngIf="!userIsCustomer">
     <div class="p-2" [ngClass]="isMobileView ? 'w-auto' : (isTabletView ? 'col-md-4' : 'col-lg-12')" *ngFor="let m Of navigationLabel" [style.background-color]="getLabelColor(m.index)">
       <div class="col-lg-12">
         <a style="text-decoration:unset; color:#000"><label (click)="onNavigationLabelClick(m.index)">{{m.label}}</label></a>
@@ -13,135 +13,17 @@
     </div>
   </div>
 
-  <div [ngClass]="user != null && user.isCustomer ? 'col-lg-12 col-12' : 'col-lg-10'">
-    <div class="col-12 col-lg-12 p-3 p-lg-5 mx-auto div-container" style="border:1px solid #000" *ngIf="user != null && pageViews[PROFILE_VIEW_INDEX] && !isLoading">
-      <div class="col-12 col-lg-12 p-lg-3">
-        <label class="col-12 col-lg-12 text-center lbl-subtitle lbl-subtitle-bg" *ngFor="let c Of navigationLabel[PROFILE_VIEW_INDEX].child" (click)="onChildLabelClick(PROFILE_VIEW_INDEX, c.index)">{{c.label}}</label>
-      </div>
-      <div class="col-12 col-lg-12" *ngIf="navigationLabel[PROFILE_VIEW_INDEX].child[PROFILE_MYDATA_VIEW_INDEX].isActive && !isLoading">
-        <div class="col-12">
-          <label id="no-data" class="col-12">Riepilogo dati</label>
-          <small id="col-12">Visualizza i tuoi dati.</small>
-        </div>
-        <!--User data-->
-        <div class="col-12 col-lg-12 p-2 row">
-          <div class="col-10 text-center text-lg-start col-lg-3 p-2 m-0">
-            <img class="col-8 col-md-4 col-lg-5 ms-4" style="border:1px dashed #000; background: #cbc5c5" src="../../../assets/computer-icons-user-profile-password-login-end-user-8397fa9c574355b8ae57e8decb559d1e.png" />
-          </div>
-          <div class="col-12 col-lg-7 m-0" *ngIf="userEdit == false; else edtEmail">
-            <i class="col-12 fa fa-edit text-end" (click)="userInfoEnableEdit()"></i>
-            <div class="col-12">Nome: {{user!.userName}} </div>
-            <div class="col-12">Cognome: {{user!.userSurname}}</div>
-            <div class="col-12">Data di nascita:</div>
-            <div class="col-12">Email: {{user!.userEmail}}</div>
-            <div class="col-12">Cellulare: {{user!.userPhoneNumber}} <i (click)="onPhoneNumberClicked()" *ngIf="!user!.isPhoneNumberConfirmed" style="color:yellow" class="fa fa-exclamation-triangle"></i></div>
-            <div class="col-8">Saldo punti: {{user!.userPoints}}</div>
-            <div class="col-12"><input class="col-lg-8 col-10" type="text" *ngIf="user.invitationLink" [value]="user.invitationLink" /></div>
-          </div>
-          <ng-template #edtEmail>
-            <div class="row col-8">
-              <div class="col-8">Nome: <input type="text" class="col-12" [(ngModel)]="user!.userName" /></div>
-              <div class="col-8">Cognome: <input type="text" class="col-12" [(ngModel)]="user!.userSurname" /></div>
-              <div class="col-8">Email: <input type="text" class="col-12" [(ngModel)]="user!.userEmail" /></div>
-              <div class="col-8">Cellulare: <input type="text" class="col-12" [(ngModel)]="user!.userPhoneNumber" /></div>
-              <div class="col-8"><button class="col-4 p-2 btn btn-info mt-2" (click)="confirmUserEdit()">Conferma</button></div>
-
-            </div>
-
-          </ng-template>
-        </div>
-        <div class="col-12 mb-5" *ngIf="user.isCustomer">
-          <label class="col-12" style="font-size: 20px">Il mio PR</label>
-          <!--Pr data (only for user view)-->
-          <div class="col-12 p-2 row">
-            <div class="col-10 text-center text-lg-start col-lg-3 p-2 m-0">
-              <img class="col-8 col-md-4 col-lg-5 ms-4" style="border:1px dashed #000; background: #cbc5c5" src="../../../assets/computer-icons-user-profile-password-login-end-user-8397fa9c574355b8ae57e8decb559d1e.png" />
-            </div>
-            <div class="col-7 m-0">
-              <div class="col-12 m-0 p-0">Nome: {{user!.prName}}</div>
-              <div class="col-12 m-0 p-0">Cognome: {{user!.prSurname}}</div>
-              <div class="col-12 m-0 p-0">Data di nascita:</div>
-              <div class="col-12 m-0 p-0">Email: {{user!.prEmail}}</div>
-
-              <div class="col-12 m-0">Codice: {{user!.prCode}}</div>
-            </div>
-            <div class="col-auto change-pr" (click)="changePr()">
-              <img src="../../../assets/exchange.png" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-12" *ngIf="navigationLabel[PROFILE_VIEW_INDEX].child[PROFILE_AWARDS_VIEW_INDEX].isActive && !isLoading">
-        <div class="col-12 mt-4">
-          <div class="card-header row">
-            <div class="col-3 text-center">Nome</div>
-            <div class="col-3 text-center">Descrizione</div>
-            <div class="col-3 text-center">Valido</div>
-            <div class="col-3 text-center">Codice</div>
-          </div>
-          <div *ngIf="userProducts != null && userProducts.length > 0">
-            <div class="col-12 row card-body p-lg-3" *ngFor="let prod Of userProducts">
-              <div class="col-3 text-center">{{prod.productShopHeader!.productShopHeaderName}}</div>
-              <div class="col-3 text-center">{{prod.productShopHeader!.productShopHeaderDescription}}</div>
-              <div class="col-3 text-center">
-                <img style="width:20px;height:20px" [src]="prod.userProductUsed == false ? '../../../assets/circle_green_full.png': '../../../assets/circle_red_full.png'" />
-              </div>
-              <div class="col-3 text-center">{{prod.userProductCode}}</div>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div [ngClass]="userIsCustomer ? 'col-lg-12 col-12' : 'col-lg-10'">
+    <div class="col-12 col-lg-12 p-3 p-lg-5 mx-auto div-container" style="border:1px solid #000" *ngIf="pageViews[PROFILE_VIEW_INDEX]">
+      <app-user-info (loading)="onChildLoading($event)"></app-user-info>
     </div>
 
     <div class="col-12 col-lg-10 p-2 p-lg-5 div-container" style="border:1px solid #000" *ngIf="pageViews[RESERVATION_VIEW_INDEX] && !isLoading">
       <!-- User reservation -->
-      <div class="col-lg-12">
-        <div class="col-12">
-          <label id="no-data" class="col-12">Le mie prenotazioni</label>
-          <small id="col-12">Visualizza lo storico delle tue prenotazioni.</small>
-        </div>
-        <div class="col-12 mt-4" *ngIf="!isMobileView; else mobileReservationTemplate">
-          <div class="card-header row">
-            <div class="col-3 text-start">Data prenotazione</div>
-            <div class="col-3 text-start">Nome prenotazione</div>
-            <div class="col-3 text-start">Evento</div>
-            <div class="col-3 text-end">Budget</div>
-          </div>
-          <div *ngIf="userReservation != null && userReservation.length > 0">
-            <div class="col-12 row card-body" *ngFor="let r Of userReservation">
-              <div class="col-3 text-start">{{r.reservationDate | date: 'dd/MM/yyyy'}}</div>
-              <div class="col-3 text-start">{{r.reservationName}}</div>
-              <div class="col-3 text-start">{{r.eventName}}</div>
-              <div class="col-3 text-end">{{r.reservationRealBudget | currency: 'EUR'}}</div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-      <ng-template #mobileReservationTemplate>
-        <div style="overflow:auto; height:620px; max-height:780px;" *ngIf="userReservation != null && userReservation.length > 0">
-          <div class="col-12 p-2" *ngFor="let r Of userReservation">
-            <div class="col-12"><b>Data:</b> {{r.reservationDate | date: 'dd/MM/yyyy'}}</div>
-            <div class="col-12"><b>Codice prenotazione:</b> {{r.reservationCode}}</div>
-            <div class="col-12"><b>Tipo prenotazione:</b> {{r.reservationTypeValue}}</div>
-            <div class="col-12"><b>Nome prenotazione:</b> {{r.reservationName}}</div>
-            <div class="col-12"><b>Nr. persone:</b> {{r.reservationPeopleCount}}</div>
-            <div class="col-12"><b>Budget previsto:</b> {{r.reservationExpectedBudget | currency: 'EUR'}}</div>
-            <div class="col-12"><b>Stato:</b> {{r.reservationStatus}}</div>
-            <div class="col-12"><b>Budget effettivo:</b> {{r.reservationRealBudget |currency: 'EUR'}}</div>
-            <div class="col-12"><b>Codice PR:</b> {{r.reservationUserCode}}</div>
-            <div class="col-12 dropdown-divider"></div>
-          </div>
-        </div>
-        <div class="no-data" *ngIf="userReservation == null || userReservation.length == 0">
-          NON CI SONO PRENOTAZIONI PER QUESTO EVENTO
-        </div>
-      </ng-template>
+      <app-profile-userreservation></app-profile-userreservation>
     </div>
 
-
-    <div class="col-12 col-lg-10 p-2 p-lg-5 div-container" style="border:1px solid #000" *ngIf="pageViews[COLLABORATORS_VIEW_INDEX] && !isLoading">
+    <div class="col-12 col-lg-10 p-2 p-lg-5 div-container" style="border:1px solid #000" *ngIf="pageViews[COLLABORATORS_VIEW_INDEX]">
       <div *ngIf="userIsAdministrator;else notAllowed">
         <div class="col-12">
           <label id="no-data" class="col-12">Nuovo collaboratore</label>
@@ -194,102 +76,23 @@
         <label id="no-data" class="col-12">Statistiche</label>
         <small class="col-12">Visualizza le statistiche per evento.</small>
       </div>
-      <div class="row col-12">
+      <div class="row col-12 mb-3">
         <div class="row">
-          <select class="col-10 col-lg-4 p-2" [(ngModel)]="selectedEvent" (change)="eventStatChange()">
+          <select class="col-10 col-lg-4 p-2" [(ngModel)]="selectedEvent">
             <option [value]="0">Filtra per evento</option>
             <option *ngFor="let event Of events" [value]="event.id">{{event.name}} - {{event.date | date: 'dd/MM/yyyy'}}</option>
           </select>
         </div>
       </div>
-      <div class="row mt-3" *ngIf="statistics != null">
-        <div class="col-12" *ngIf="statistics.eventTable != null">
-          <div class="col-12">
-            <label>Numero tavoli: {{statistics.eventTable.tableCount}}</label>
-          </div>
-          <div class="col-12">
-            <label>Totale incasso da tavoli: {{statistics.eventTable.totalOrderTable | currency:'EUR'}}</label>
-          </div>
-          <div class="col-12">
-            <label>Totale exit cambiati: {{statistics.eventTable.peopleCountFromTable}}</label>
-          </div>
-        </div>
-        <div class="col-12" *ngIf="statistics.freeEntrance != null">
-          <div class="col-12">
-            <label>Coupon inviati: {{statistics.freeEntrance.couponSent}}</label>
-          </div>
-          <div class="col-12">
-            <label>Coupon confermati: {{statistics.freeEntrance.couponValidated}}%</label>
-          </div>
-        </div>
-      </div>
-      <div *ngIf="!isMobileView; else mobileStatisticsTemplate">
-        <!--TABELLA OMAGGI-->
-        <div class="row col-12 p-2 mt-3 tblheader-bk" data-value="tblHeader">
-          <div class="col-4">Nome</div>
-          <div class="col-4">Cognome</div>
-          <div class="col-4">Validato</div>
-        </div>
-        <div class="row" data-value="tblBody" *ngIf="statistics != null && statistics.freeEntrance != null">
-          <div class="row p-2" data-value=tblRow *ngFor="let freeEntrance Of statistics.freeEntrance.couponList">
-            <div class="col-4">{{freeEntrance.name}}</div>
-            <div class="col-4">{{freeEntrance.surname}}</div>
-            <div class="col-2">
-              <img style="width:20px;height:20px" [src]="freeEntrance.validated == false ? '../../../assets/circle_red_full.png': '../../../assets/circle_green_full.png'" />
-            </div>
-          </div>
-          <div class="row justify-content-end">
-            <div class="col-auto text-end">
-              <label class="p-2 text-decoration-underline"
-                     (click)="freeEntranceChangePage(number)"
-                     style="color:blue;cursor:pointer;"
-                     [ngStyle]="{'background-color': number == freeEntranceSelectedPage ? 'blue' : '#fff'}"
-                     [style.color]="number == freeEntranceSelectedPage ? '#fff' : 'blue'"
-                     *ngFor="let number Of freeEntrancePagesCollection">{{number}}</label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <ng-template #mobileStatisticsTemplate>
-        <div style="overflow:auto; height:620px; max-height:780px;" *ngIf="statistics != null && statistics.freeEntrance != null">
-          <div class="col-12 p-4 row" *ngFor="let freeEntrance Of statistics.freeEntrance.couponList | slice:freeEntranceVisibleItems-10:freeEntranceVisibleItems">
-            <div class="col-6">{{freeEntrance.name}} {{freeEntrance.surname}}</div>
-            <div class="col-6 text-end">
-              <img style="width:20px;height:20px" [src]="freeEntrance.validated == false ? '../../../assets/circle_red_full.png': '../../../assets/circle_green_full.png'" />
-            </div>
-            <div class="col-12 dropdown-divider"></div>
-          </div>
-        </div>
-        <div class="no-data" *ngIf="userReservation == null || userReservation.length == 0">
-          NON CI SONO PRENOTAZIONI PER QUESTO EVENTO
-        </div>
-      </ng-template>
+      <app-event-statistics [eventId]="onEventChangeCaller" [isMobileTemplate]="isMobileView || isTabletView"></app-event-statistics>
     </div>
 
-    <div class="col-12 col-lg-10 p-2 p-lg-5 div-container" style="border:1px solid #000" *ngIf="pageViews[PERMISSION_VIEW_INDEX] && !isLoading">
-      
-      <div class="col-12">
-        <label id="no-data" class="col-12">Permessi</label>
-        <small class="col-12">Gestisci i permessi degli altri componenti dello staff.</small>
-      </div>
-        <div class="d-flex p-lg-2">
-          <div class="col-3"></div>
-          <div class="col-3" *ngFor="let permission of userPermission!.userPermissionTableHeaderCol!">
-            <label>{{permission}}</label>
-          </div>
-        </div>
-        <div class="col-12 d-flex p-lg-2" *ngFor="let cell of userPermission!.rows!">
-          <div class="col-12 d-flex">
-            <label class="col-3">{{cell.user}}</label>
-            <div class="row col-3" style="overflow:auto" *ngFor="let state of cell.userPermissionTableCell">
-              <input type="checkbox" class="col-1" [checked]="state.permissionState" (change)="onPermissionStateChange(state.userId, state.permissionId)" />            
-            </div>
-          </div>
-        </div>
-
+    <div class="col-12 col-lg-10 p-2 p-lg-5 div-container" style="border:1px solid #000" *ngIf="pageViews[PERMISSION_VIEW_INDEX]">
+      <app-permission></app-permission>
     </div>
   </div>
-  </div>
+  
+</div>
 
-  <app-loading [loading]="isLoading"></app-loading>
-  <ng-template #modalContainer></ng-template>
+<app-loading [loadingListener]="loadingSubject"></app-loading>
+<ng-template #modalContainer></ng-template>

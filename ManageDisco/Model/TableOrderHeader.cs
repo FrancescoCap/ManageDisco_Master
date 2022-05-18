@@ -14,6 +14,7 @@ namespace ManageDisco.Model
         public decimal TableOrderHeaderExit { get; set; }
         public int TableId { get; set; }
         public Table Table { get; set; }
+        public string TableOrderHeaderCouponCode { get; set; }
     }
     public class TableOrderSummary
     {

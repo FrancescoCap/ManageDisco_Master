@@ -10,6 +10,10 @@ using ManageDisco.Model;
 using ManageDisco.Helper;
 using ManageDisco.Model.UserIdentity;
 using Microsoft.AspNetCore.Authorization;
+using System.IO;
+using PdfSharpCore.Pdf;
+using PdfSharpCore.Pdf.Advanced;
+using PdfSharpCore.Drawing;
 
 namespace ManageDisco.Controllers
 {
@@ -25,7 +29,7 @@ namespace ManageDisco.Controllers
 
         // GET: api/Reservations
         [HttpGet]
-        public async Task<IActionResult> GetReservation([FromQuery] int eventId, [FromQuery]int id)
+        public async Task<IActionResult> GetReservation([FromQuery] int eventId, [FromQuery] int id)
         {
             IQueryable<ReservationView> reservationViews = _db.Reservation
                 .Select(x => new ReservationView()
@@ -52,7 +56,7 @@ namespace ManageDisco.Controllers
                     TableId = x.TableId != null ? x.TableId : 0,
                     ReservationTablAssigned = $"{x.Table.TableAreaDescription} - {x.Table.TableNumber}"
                 });
-            
+
 
             if (_user.Roles.Any(x => x.Contains(RolesConstants.ROLE_PR)))
             {
@@ -71,7 +75,9 @@ namespace ManageDisco.Controllers
             if (id > 0)
                 reservationViews = reservationViews.Where(x => x.ReservationId == id);
 
-            return Ok(await reservationViews.ToListAsync());
+            var reservationList = await reservationViews.ToListAsync();
+
+            return Ok(reservationList.OrderByDescending(x => x.ReservationExpectedBudget).ThenByDescending(x => x.ReservationRealBudget).ThenByDescending(x => x.ReservationDate));
         }
 
         /// <summary>
@@ -179,14 +185,14 @@ namespace ManageDisco.Controllers
                     ReservationStatus = x.ReservationStatus.ReservationStatusValue,
                     ReservationTablAssigned = x.Table.TableNumber,
                     UserId = x.UserId,
-                    CanAcceptReservation = x.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_PENDING && _user.Roles.Contains(RolesConstants.ROLE_ADMINISTRATOR), 
+                    CanAcceptReservation = x.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_PENDING && _user.Roles.Contains(RolesConstants.ROLE_ADMINISTRATOR),
                     //E' concettualmente sbagliato bloccare la funzionalità da qui. Dovrebbe essere un attributo a livello Utente
                     CanAcceptBudget = x.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_APPROVED &&
                             DateTime.Compare(x.EventParty.Date, DateTime.Today) > 0,
                     ReservationName = x.ReservationTableName,
                     TableId = x.TableId != 0 ? x.TableId.Value : 0
-                });
-           
+                }).OrderByDescending(x => x.ReservationExpectedBudget).ThenByDescending(x => x.ReservationRealBudget).ThenByDescending(x => x.ReservationDate);
+
 
             if (resStatus > 0)
                 reservationViewTable.Reservations = reservationViewTable.Reservations.Where(x => x.ReservationStatusId == resStatus);
@@ -198,10 +204,30 @@ namespace ManageDisco.Controllers
                 if (HelperMethods.UserIsPr(_user))
                     reservationViewTable.Reservations = reservationViewTable.Reservations.Where(p => p.UserId == _user.Id);
             }
+
             reservationViewTable.CanAssignTable = HelperMethods.UserIsAdministrator(_user);
 
-
             return Ok(reservationViewTable);
+        }
+
+        [Authorize(Roles = RolesConstants.ROLE_ADMINISTRATOR + "," + RolesConstants.ROLE_PR + "," + RolesConstants.ROLE_WAREHOUSE_WORKER)]
+        [HttpGet]
+        [Route("Table/PdfExport")]
+        public async Task<IActionResult> ExportReservationsTablesPdf([FromQuery]int eventId)
+        {
+            if (eventId <= 0)
+                return BadRequest(new GeneralReponse() { Message = "Per esportare i tavoli è necessario selezionare un evento.", OperationSuccess = false });
+                       
+            var eventParty = await _db.Events.FirstOrDefaultAsync(x => x.Id == eventId);
+
+            FileHelper pdfHelper = new FileHelper();
+            pdfHelper.SetPdfHeader($"Lista tavoli {eventParty.Name.ToUpper()} {eventParty.Date.ToShortDateString()}", XBrushes.Black, 20, "Calibri", true);
+            pdfHelper.SetPdfRows(await GetTableRowsForExport(eventId), XBrushes.Black, 12, "Calibri", false);
+
+            FileStreamResult file = new FileStreamResult(pdfHelper.GeneratePdf("test.pdf"), "application/pdf");
+            file.FileDownloadName = "Test.pdf";
+
+            return file;
         }
 
         // PUT: api/Reservations/5
@@ -223,11 +249,10 @@ namespace ManageDisco.Controllers
             if (reservation.ReservationType != 0)
                 reservationOld.ReservationTypeId = reservation.ReservationType;
 
-            reservationOld.ReservationTableName = reservation.ReservationName;
-            reservationOld.ReservationExpectedBudget = reservation.ReservationExpectedBudget;
-            reservationOld.ReservationRealBudget = reservation.ReservationRealBudget;
-            reservationOld.ReservationPeopleCount = reservation.ReservationPeopleCount;
-           
+            reservationOld.ReservationTableName = !String.IsNullOrEmpty(reservation.ReservationName) ? reservation.ReservationName : reservationOld.ReservationTableName;
+            reservationOld.ReservationExpectedBudget = reservation.ReservationExpectedBudget != reservationOld.ReservationExpectedBudget && reservation.ReservationExpectedBudget > 0 ? reservation.ReservationExpectedBudget : reservationOld.ReservationExpectedBudget;
+            reservationOld.ReservationRealBudget = reservation.ReservationRealBudget != reservationOld.ReservationRealBudget && reservation.ReservationRealBudget > 0 ? reservation.ReservationRealBudget : reservationOld.ReservationRealBudget;
+            reservationOld.ReservationPeopleCount = reservation.ReservationPeopleCount != reservationOld.ReservationPeopleCount && reservation.ReservationPeopleCount > 0 ? reservation.ReservationPeopleCount : reservationOld.ReservationPeopleCount;
 
 
             _db.Entry(reservationOld).State = EntityState.Modified;
@@ -263,10 +288,10 @@ namespace ManageDisco.Controllers
             Reservation reservation = await _db.Reservation.FirstOrDefaultAsync(x => x.ReservationId == reservationId);
 
             if (reservation == null)
-                return NotFound(new GeneralReponse() { Message = "Non è stata trovata nessuna prenotazione con questo identificativo.", OperationSuccess = false});
+                return NotFound(new GeneralReponse() { Message = "Non è stata trovata nessuna prenotazione con questo identificativo.", OperationSuccess = false });
 
             if (reservation.TableId == null)
-                return BadRequest(new GeneralReponse() { Message = "Per la conferma del budget il tavolo deve essere prima assegnato.", OperationSuccess = false} );
+                return BadRequest(new GeneralReponse() { Message = "Per la conferma del budget il tavolo deve essere prima assegnato.", OperationSuccess = false });
 
             reservation.ReservationRealBudget = euro;
             _db.Entry(reservation).State = EntityState.Modified;
@@ -274,7 +299,7 @@ namespace ManageDisco.Controllers
             /**************** 
              * budget confermato quindi aumento il credito del dipendente nei confronti del locale
              * Tutta la gestione dei dati è fatta tramite trigger
-             ***************/          
+             ***************/
 
             await _db.SaveChangesAsync();
 
@@ -333,7 +358,7 @@ namespace ManageDisco.Controllers
 
             reservation.UserIdOwner = HelperMethods.UserIsPrOrAdministrator(_user) ? reservationData.ReservationOwnerId : _user.Id;
             //Id del pr
-            reservation.UserId = HelperMethods.UserIsPrOrAdministrator(_user) ? _user.Id : 
+            reservation.UserId = HelperMethods.UserIsPrOrAdministrator(_user) ? _user.Id :
                 _db.PrCustomer.FirstOrDefaultAsync(x => x.PrCustomerCustomerid == _user.Id).Result.PrCustomerPrId;
 
             if ((reservation.ReservationTypeId == 2 ||
@@ -349,7 +374,7 @@ namespace ManageDisco.Controllers
                 {
                     if (HelperMethods.UserIsAdministrator(_user))
                         confirmMessage = $"Il tavolo precedentemente assegnato a {alreadyPresentTableReservation.ReservationTableName} e stato ora prenotato per {reservation.ReservationTableName}";
-                    
+
                 }
             }
 
@@ -358,46 +383,6 @@ namespace ManageDisco.Controllers
 
             return Ok(new ReservationResponse() { ReservationCode = reservation.ReservationCode, Message = confirmMessage });
         }
-
-        /// <summary>
-        /// Associa un tavolo "fisico" alla prenotazione
-        /// </summary>
-        /// <param name="table"></param>
-        /// <returns></returns>
-        // POST: api/Tables
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        [Route("AssignTable")]
-        public async Task<ActionResult<Table>> PostTable([FromBody] TableAssignPost table)
-        {
-            if (table == null)
-                return BadRequest(new GeneralReponse() { Message = "Formato dati non valido.", OperationSuccess = false });
-            //if (table.EventId <= 0 || table.ReservationId <= 0)
-            //    return BadRequest(new GeneralReponse() { Message = "Selezionare un evento e una prenotazione valida.", OperationSuccess = false });           
-
-            Reservation reservation = await _db.Reservation.FirstOrDefaultAsync(x => x.ReservationId == table.ReservationId);
-            if (reservation == null)
-                return NotFound(new GeneralReponse() { Message = "Nessuna prenotazione trovata.", OperationSuccess = false });
-
-            //Controllo che il tavolo non sia già assegnato. In caso provvedo all'eventuale scambio
-            Reservation oldReservation = _db.Reservation.FirstOrDefault(x => x.TableId == table.TableId && x.EventPartyId == table.EventId); //recupero l'eventuale tavolo già posizionato per l'evento
-            if (oldReservation != null)
-            {
-                if (await ChangeReservationTable(reservation, oldReservation))
-                    return Ok(new GeneralReponse() { Message = $"Il tavolo precedentemente assegnato a {oldReservation.ReservationTableName} e stato ora prenotato per {reservation.ReservationTableName}", OperationSuccess = false });
-                else
-                    return BadRequest(new GeneralReponse() { Message = "Il tavolo è stato già assegnato.", OperationSuccess = false });
-            }
-
-
-            reservation.TableId = table.TableId;
-            _db.Entry(reservation).State = EntityState.Modified;
-
-            await _db.SaveChangesAsync();
-
-            return Ok();
-        }
-
 
         [HttpGet("Event")]
         public async Task<IActionResult> GetEventReservation([FromQuery] int eventId)
@@ -426,6 +411,101 @@ namespace ManageDisco.Controllers
         }
 
         /// <summary>
+        /// Associa un tavolo "fisico" alla prenotazione
+        /// </summary>
+        /// <param name="table"></param>
+        /// <returns></returns>
+        // POST: api/Tables
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        [Route("AssignTable")]
+        public async Task<ActionResult<Table>> PostTable([FromBody] TableAssignPost table)
+        {
+            if (table == null)
+                return BadRequest(new GeneralReponse() { Message = "Formato dati non valido.", OperationSuccess = false });
+            //if (table.EventId <= 0 || table.ReservationId <= 0)
+            //    return BadRequest(new GeneralReponse() { Message = "Selezionare un evento e una prenotazione valida.", OperationSuccess = false });           
+
+            Reservation reservation = await _db.Reservation.FirstOrDefaultAsync(x => x.ReservationId == table.ReservationId);
+            if (reservation == null)
+                return NotFound(new GeneralReponse() { Message = "Nessuna prenotazione trovata.", OperationSuccess = false });
+            if (reservation.ReservationStatusId != 2)
+                return BadRequest(new GeneralReponse() { Message = "Il tavolo non è stato accettato.", OperationSuccess = false });
+
+            //Controllo che il tavolo non sia già assegnato. In caso provvedo all'eventuale scambio
+            Reservation oldReservation = _db.Reservation.FirstOrDefault(x => x.TableId == table.TableId && x.EventPartyId == table.EventId); //recupero l'eventuale tavolo già posizionato per l'evento
+            if (oldReservation != null)
+            {
+                if (await ChangeReservationTable(reservation, oldReservation))
+                    return Ok(new GeneralReponse() { Message = $"Il tavolo precedentemente assegnato a {oldReservation.ReservationTableName} e stato ora prenotato per {reservation.ReservationTableName}", OperationSuccess = false });
+                else
+                    return BadRequest(new GeneralReponse() { Message = $"Il tavolo è stato già assegnato a {oldReservation.ReservationTableName}.", OperationSuccess = false });
+            }
+
+
+            reservation.TableId = table.TableId;
+            _db.Entry(reservation).State = EntityState.Modified;
+
+            await _db.SaveChangesAsync();
+
+            return Ok(new GeneralReponse() { Message = $"Il tavolo è stato assegnato a {reservation.ReservationTableName}", OperationSuccess = false });
+        }
+
+        /// <summary>
+        /// Genera una proposta di assegnazione dei tavoli per le prenotazioni.
+        /// I criteri sono:
+        /// 1. Delta più alto fra la quota minima necessaria per il tavolo e il budget previsto per lo stesso
+        /// 2. Totale prenotazioni effettuate dal pr nel corso della stagione
+        /// 3. Data di prenotazione
+        /// Se dopo questi 3 confronti non è stato possibile assegnare un tavolo alla prenotazione, l'amministratore dovrà procedere a mano.
+        /// </summary>
+        /// <param name="eventId"></param>
+        /// <returns></returns>
+        [Authorize(Roles = RolesConstants.ROLE_ADMINISTRATOR)]
+        [HttpPost]
+        [Route("AutoAssign")]
+        public async Task<IActionResult> AutoAssignTable([FromQuery] int eventId)
+        {
+            //Lista contenitore di tutti i tavoli che rispettati i 3 criteri sono rimasti scoperti
+            List<string> conflictTable = new List<string>();
+            List<Reservation> tablesUsedId = new List<Reservation>();
+
+            if (eventId < 1)
+                return BadRequest();
+
+            var discoTables = await _db.Table.ToListAsync();
+            var reservation = await _db.Reservation.Where(x => x.EventPartyId == eventId && x.ReservationExpectedBudget > 0).OrderByDescending(x => x.ReservationExpectedBudget).ThenByDescending(x => x.ReservationRealBudget).ThenByDescending(x => x.ReservationDate).ToListAsync();
+            foreach (Reservation r in reservation)
+            {
+                Table freeTable = GetFirstAvaiableTable(r, eventId, r.ReservationExpectedBudget);
+                if (freeTable == null)  //probably suitable condition table are finished
+                    continue;
+
+                var actualReservation = reservation.FirstOrDefault(x => x.TableId == freeTable.TableId);
+
+                if (actualReservation == null)
+                {
+                    //Non c'è una preotazione su questo tavolo
+                    Reservation newReservation = reservation.FirstOrDefault(x => x.ReservationId == r.ReservationId);
+                    newReservation.TableId = freeTable.TableId;
+                    _db.Entry(newReservation).State = EntityState.Modified;                    
+                }
+                else
+                {
+                    //il tavolo è già impegnato. Devo fare i confronti ed eventualmente sostituire
+                    bool tableChangeOwner = await ChangeReservationTable(r, actualReservation);
+                    Table firstAvaiableTable = GetFirstAvaiableTable(actualReservation, eventId, actualReservation.ReservationExpectedBudget);
+                    actualReservation.TableId = firstAvaiableTable != null ? firstAvaiableTable.TableId : null;
+                }
+                await _db.SaveChangesAsync();
+            }
+            
+            return Ok();
+        }
+
+
+        //}
+        /// <summary>
         /// A seguito di due prenotazioni che richiedono lo stesso tavolo, confonta fra il tavolo già presente e quello della nuova richiesta chi presenta il budget più alto.
         /// A seconda del risultato provvede ad assegnare il tavolo a quello economicamente migliore.
         /// </summary>
@@ -440,21 +520,65 @@ namespace ManageDisco.Controllers
 
                 _db.Entry(oldReservation).State = EntityState.Modified;
                 _db.Entry(newReservation).State = EntityState.Modified;
-                                
+                await _db.SaveChangesAsync();
                 tableChanged = true;
             }
             else
             {
                 tableChanged = false;
             }
+            
 
-           
             return tableChanged;
         }
 
-        private bool ReservationExists(int eventId)
+        private Table GetFirstAvaiableTable(Reservation reservation, int eventId, decimal reservationBudget)
         {
-            return _db.Reservation.Any(x => x.UserId == _user.Id && x.EventPartyId == eventId && x.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_APPROVED);
+            Table table = null;
+
+            Dictionary<int, decimal> tableReservationBudget = new Dictionary<int, decimal>();
+            
+            var filteredTables = _db.Table.Where(x => x.TableMinBudget <= reservation.ReservationExpectedBudget).ToList();
+            foreach (Table t in filteredTables)
+            {
+                var actualTableReservation = _db.Reservation.FirstOrDefault(x => x.TableId == t.TableId && x.EventPartyId == eventId);
+                if (actualTableReservation == null)
+                {
+                    table = t;
+                    break;
+                }
+                else //se entro qui significa che c'è già una prenotazione per quel tavolo
+                {
+                    //se la prenotazione sotto processo ha un budget superiore rispetto alla prenotazione già assegnata per quel tavolo restituisco quel tavolo perché va fatta una sostituzione
+                    if (reservation.ReservationExpectedBudget > actualTableReservation.ReservationExpectedBudget)
+                    {
+                        table = t;
+                        break;
+                    }
+                }
+            }          
+
+            return table;
         }
+
+        private async Task<string[]> GetTableRowsForExport(int eventId)
+        {
+            IQueryable< Reservation> reservationsTemp = _db.Reservation.Include(i => i.Table).Where(x => x.EventPartyId == eventId && x.TableId != null);
+            if (HelperMethods.UserIsPr(_user) || (HelperMethods.UserIsInStaff(_user) && !HelperMethods.UserIsAdministrator(_user)))
+            {
+                //if user is PR or WAREHOUSE_WORKER, export only their reservations
+                reservationsTemp = reservationsTemp.Where(x => x.UserId == _user.Id);
+            }
+            Reservation[] reservations = await reservationsTemp.ToArrayAsync();
+            string[] values = new string[reservations.Length];
+
+            for (int i = 0; i < reservations.Length; i++)
+            {
+                values[i] = string.Format("{0} - {1}:{2} ({3} persone)", reservations[i].ReservationTableName, reservations[i].Table.TableAreaDescription, reservations[i].Table.TableNumber, reservations[i].ReservationPeopleCount);
+            }
+
+            return values;
+        }
+
     }
 }

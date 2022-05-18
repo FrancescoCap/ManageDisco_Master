@@ -1,0 +1,5 @@
+<div class="col-12">
+  <label id="no-data" class="col-12">Permessi</label>
+  <small class="col-12">Gestisci i permessi degli altri componenti dello staff.</small>
+</div>
+<app-tableview *ngIf="!isMobileTemplate" [setLoading]="isLoading" [data-list]="permissionTableList" [max-rows-page]="maxTablePageRows"></app-tableview>

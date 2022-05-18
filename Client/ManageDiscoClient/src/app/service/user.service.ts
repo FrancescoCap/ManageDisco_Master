@@ -29,21 +29,21 @@ export class UserService {
   }
 
   public userIsAdminstrator() {
-    return document.cookie.includes(CookieConstants.AUTH_FULL_COOKIE + "=True");
+    return document.cookie.includes(CookieConstants.AUTH_FULL_COOKIE + "=1");
   }
 
   public userIsCustomer() {
     return this.userIsAuthenticated() &&
-      !document.cookie.includes(CookieConstants.AUTH_FULL_COOKIE + "=True") &&
-      !document.cookie.includes(CookieConstants.AUTH_STANDARD_COOKIE + "=True");
+      !document.cookie.includes(CookieConstants.AUTH_FULL_COOKIE + "=1") &&
+      !document.cookie.includes(CookieConstants.AUTH_STANDARD_COOKIE + "=1");
   }
 
   public userIsPr() {
-    return document.cookie.includes(CookieConstants.AUTH_STANDARD_COOKIE + "=True") && !document.cookie.includes(CookieConstants.AUTH_FULL_COOKIE + "=True");
+    return document.cookie.includes(CookieConstants.AUTH_STANDARD_COOKIE + "=1") && !document.cookie.includes(CookieConstants.AUTH_FULL_COOKIE + "=1");
   }
 
   public userIsInStaff() {
-    return document.cookie.includes(CookieConstants.AUTH_STANDARD_COOKIE + "=True") || document.cookie.includes(CookieConstants.AUTH_FULL_COOKIE + "=True");
+    return document.cookie.includes(CookieConstants.AUTH_STANDARD_COOKIE + "=1") || document.cookie.includes(CookieConstants.AUTH_FULL_COOKIE + "=1");
   }
 
   public userIsGuest() {

@@ -30,5 +30,6 @@ namespace ManageDisco.Model
         /// Reppresenta un coupon per omaggi tavolo acquistati dallo shop
         /// </summary>
         public string ShopCoupon { get; set; }
+        public int EventId { get; set; }
     }
 }

@@ -121,7 +121,7 @@ export class ModalComponent implements OnInit {
     }
   }
   
-  onTxtTableQuantityChange(rowIndex: number, referenceId: any, event: any, object?: any) {
+  onTxtTableQuantityChange(rowIndex: number, referenceId: any, event: any, object?: any, connectToReferenceView?: string) {
     var valueInput = event.target.value;
     var oldValueInput = +this.viewQuantityValuesMap.get(rowIndex)!;
     this.viewQuantityValuesMap.set(rowIndex, valueInput);
@@ -130,6 +130,9 @@ export class ModalComponent implements OnInit {
       this.modelOut += (valueInput * object._valueOut) - (oldValueInput * object._valueOut);
       var objectIndex = this.values.get(referenceId)?.findIndex(x => x.split(":")[0] == object._dropId);
       this.values.get(referenceId)![objectIndex!] = object._dropId + ":" + valueInput;
+      //refresh quantity
+      if (connectToReferenceView != null)
+        this.values.set(connectToReferenceView, this.modelOut);
     }
   }
 
@@ -151,13 +154,13 @@ export class ModalComponent implements OnInit {
     switch (this.modalType) {
       case ModalType.NEW_RESERVATION:
       case ModalType.NEW_PRODUCT:
+      case ModalType.LISTVIEW:
         this.modalConfirmed.emit(this.values);
         break;
       case ModalType.LOGIN:
         this.modalConfirmed.emit(this.values);
         break; 
-    }
-    //this.visibile = false;
+    }   
   }
   
   onCloseModal() {
@@ -290,14 +293,13 @@ export class ModalComponent implements OnInit {
   }
 
   inputChange(viewItem: ViewItem, event: any) {
-    setTimeout(function () {
+    setTimeout(() => {
+      var value = event.target.value;
       if (viewItem.validationFunc != null) {
-        //Call callback only if coupon code are completed. It is not suitable for other validation
-        if (event.target.value.length == 6) {
-          viewItem.validationFunc(event.target.value);
-          viewItem.extraDescription?.subscribe((value: any) => { viewItem.extraDescriptionString = value });
-        }        
+          viewItem.validationFunc(value);
+          viewItem.extraDescription?.subscribe((value: any) => { viewItem.extraDescriptionString = value });  
       }
+      this.values.set(viewItem.referenceId, value);
     },500)   
   }
 }

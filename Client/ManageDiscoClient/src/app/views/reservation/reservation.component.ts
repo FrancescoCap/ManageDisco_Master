@@ -79,8 +79,7 @@ export class ReservationComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.isMobileView = this._generalService.isMobileView();
-    this.isTabletView = this._generalService.isTabletView();
+    this.isMobileView = this._generalService.isMobileView() || this._generalService.isTabletView();
     this.initData();
     this.tableData.onDataListChange = new EventEmitter<any>();
   }
@@ -194,15 +193,20 @@ export class ReservationComponent implements OnInit {
 
   onEditReservation = (reservationId: number): void => {
     var reservation = this.getReservationDetails(reservationId);
-    var views = GeneralMethods.getEditReservationModalViews(
-      reservation.reservationName,
-      reservation.reservationPeopleCount,
-      reservation.reservationExpectedBudget,
-      reservation.reservationRealBudget);
 
-    this.reservationIdSelected = reservationId;
+    if (this.isMobileView) {
+      this.editBudget = true;
+    } else {
+      var views = GeneralMethods.getEditReservationModalViews(
+        reservation.reservationName,
+        reservation.reservationPeopleCount,
+        reservation.reservationExpectedBudget,
+        reservation.reservationRealBudget);
 
-    this._modal.showAddModal(this.onReservationEditConfirm, "MODIFICA PRENOTAZIONE", views);
+      this.reservationIdSelected = reservationId;
+
+      this._modal.showAddModal(this.onReservationEditConfirm, "MODIFICA PRENOTAZIONE", views);
+    }
   }
 
   getReservationDetails(reservationId:number):Reservation {
@@ -223,6 +227,15 @@ export class ReservationComponent implements OnInit {
     this.editReservation(reservation);
   }
 
+  onReservationMobileEditConfirm(reservationId:number, budget: number) {
+    var reservationUpdated: ReservationPost = {
+      reservationId: reservationId,
+      reservationRealBudget: budget
+    }
+
+    this.editReservation(reservationUpdated);
+  }
+
   editReservation(data: ReservationPost) {
     this.isLoading = true;
     this.calls = of(this._api.putReservation(data), this._api.getReservations(this.eventFilter, 0));
@@ -237,11 +250,13 @@ export class ReservationComponent implements OnInit {
       this.reservations = data[1];
       this.setDataForTableView();
       this._modal.hideModal();
+      this.editBudget = false;
       this.isLoading = false;
     })
   }
 
-  handleReservation(evt:any) {
+  handleReservation(evt: any) {
+    console.log("Ciao")
     var button = evt.target;
     var status = 1;
     var reserveId = button.id.split("_")[1];

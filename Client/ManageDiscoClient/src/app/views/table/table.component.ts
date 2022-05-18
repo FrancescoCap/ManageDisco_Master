@@ -1,5 +1,7 @@
 import { Component, EventEmitter, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { toArray } from 'rxjs';
+import { concatMap } from 'rxjs';
 import { Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { ApiCaller } from '../../api/api';
@@ -9,6 +11,7 @@ import { GeneralMethods } from '../../helper/general';
 import { AssignTablePost, EventParty, EventPartyView, Reservation, ReservationStatus, ReservationViewTable, Table, TableMapFileInfo } from '../../model/models';
 import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
+import { UserService } from '../../service/user.service';
 
 @Component({
   selector: 'app-table',
@@ -17,11 +20,14 @@ import { ModalService } from '../../service/modal.service';
 })
 export class TableComponent implements OnInit {
 
+  private readonly AUTOASSIGN_EVENT_ERROR_MESSAGE = "Per attivare l'autoassegnazione dei tavoli è necessario selezionare un evento.";
+
   @ViewChild("modalContainer", { read: ViewContainerRef, static: false }) modalContainer?: ViewContainerRef;
 
   selectedReservationId: number = -1;
 
   tableViewData: TableViewDataModel = {
+    isPdfExportable: true,
     headers: [
       { value: "Nome tavolo"},
       { value: "Nr.persone previste"},
@@ -41,13 +47,16 @@ export class TableComponent implements OnInit {
   isLoading = false;
   isMobileView = false;
   tableRowPage = 10;
+  userIsAdministrator = false;
 
   constructor(private api: ApiCaller,
     private _modal: ModalService,
-    private _generalService:GeneralService  ) { }
+    private _generalService: GeneralService,
+    private _userService:UserService) { }
 
   ngOnInit(): void {
     this.isMobileView = this._generalService.isMobileView();
+    this.userIsAdministrator = this._userService.userIsAdminstrator();
     this.initData();    
   }
 
@@ -94,12 +103,14 @@ export class TableComponent implements OnInit {
           { value: x.reservationTablAssigned },
           {
             value: "", icon: [
-              { class: "fa fa-map", referenceId: `map_${x.reservationId}`, isToShow: true, onClickCallback: this.onTableLocationClick }
+              { class: "fa fa-map", referenceId: `map_${x.reservationId}`, isToShow: this.userIsAdministrator, onClickCallback: this.onTableLocationClick }
             ]
           }
         ]
       })
-    });    
+    });
+
+    this.tableViewData.onExportPdfCallback = this.onPdfExport;
   }
 
   onTableLocationClick = (data: any): void => {
@@ -118,7 +129,7 @@ export class TableComponent implements OnInit {
         return err;
       })).subscribe(data => {
         this._modal.hideModal();
-        console.log(data)
+
         if (data.message != null) 
           this._modal.showErrorOrMessageModal(data.message, "ESITO", true);
 
@@ -171,5 +182,46 @@ export class TableComponent implements OnInit {
       })).subscribe((url: any) => {
         open(server_URL.replace("api/", "") + url.fileName, "", "width=800,height=600");
       })
+  }
+
+  autoAssignTable() {
+    this.isLoading = true;
+    if (this.selectedEventId <= 0) {
+      this.isLoading = false;
+      this._modal.showErrorOrMessageModal(this.AUTOASSIGN_EVENT_ERROR_MESSAGE, "ERRORE");
+      return;
+    }
+
+    var calls = of(this.api.postAutoAssignTable(this.selectedEventId), this.api.getReservations(this.selectedEventId, this.selectedResStatusId));
+
+    calls.pipe(
+      concatMap((values: any) => {
+        this.acceptedReservations = values;
+        return values;
+      }),
+      toArray(),
+      catchError(err => {
+        this.isLoading = false;
+        return err;
+      })).subscribe((data: any) => {
+        this.acceptedReservations = data[1];
+        this.setDataForTableView();
+        this.isLoading = false;
+      })
+     
+  }
+  //API call to get pdf of accepted reservations
+  onPdfExport = (): any => {
+   
+    this.isLoading = true;
+
+    this.api.exportTables(this.selectedEventId)
+      .pipe(catchError (err => { this.isLoading = false; return err;}))
+      .subscribe((file: Blob) => {
+        
+        var fileUrl = window.URL.createObjectURL(file);        
+        window.open(fileUrl);
+        this.isLoading = false;
+      });
   }
 }

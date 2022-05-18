@@ -5,7 +5,7 @@
   <div class="col-12 p-1 text-end">
     <button class="p-2 btn new-button" (click)="addProductToCatalog()"><i class="fa fa-plus"></i> NUOVO</button>
   </div>
-  <div class="row col-12 mx-auto mobile-list" *ngIf="!isMobileView && !isTabletView;else mobileBody">
+  <div class="row col-12 mx-auto" *ngIf="!isMobileView && !isTabletView;else mobileBody">
 
     <div class="row col-12 col-lg-12 p-lg-2" [class.tblheader-bk]="!isMobileView && !isTabletView"  data-value="tblHeader">
       <div class="col-lg-4">Prodotto</div>
@@ -23,18 +23,21 @@
     </div>
   </div>
   <ng-template #mobileBody>
-    <div class="row p-2 mt-2" data-value=tblRow *ngFor="let wh Of warehouse">
-      <div class="col-12 row">
-        <div class="col-10">
-          {{wh.productName}}
+    <div class="mobile-list">
+      <div class="row p-2 mt-2" data-value=tblRow *ngFor="let wh Of warehouse">
+        <div class="col-12 row">
+          <div class="col-10">
+            {{wh.productName}}
+          </div>
+          <div class="col-1 text-end">
+            <i class="fa fa-plus" (click)="addQuantity(wh.productId)"></i>
+          </div>
         </div>
-        <div class="col-1 text-end">
-          <i class="fa fa-plus" (click)="addQuantity(wh.productId)"></i>
-        </div>
-      </div>
-      <div class="col-12">Qtà: {{wh.warehouseQuantity}}</div>
+        <div class="col-12">Qtà: {{wh.warehouseQuantity}}</div>
 
+      </div>
     </div>
+   
   </ng-template>
 </div>
 <app-loading [loading]="isLoading"></app-loading>

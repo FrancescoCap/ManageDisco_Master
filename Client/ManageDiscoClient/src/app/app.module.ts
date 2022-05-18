@@ -41,12 +41,13 @@ const routes:Routes = [
   { path: 'PhoneNumber', loadChildren: () => import('./views/coupon/coupon.module').then(m => m.CouponModule)},
   { path: 'Shop', loadChildren: () => import('./views/shop/shop.module').then(m => m.ShopModule)}
 ]
-export const server_URL = "http://192.168.1.69:5000/api/";
-export const client_URL = "http://192.168.1.69:4200";
+export const server_URL = "http://3dab-79-17-232-134.ngrok.io/api/";
+export const client_URL = "http://66fe-79-17-232-134.ngrok.io";
 export const LOCALSTORARE_LOGIN_HEADER = "loginHeader";
 export const LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU = "loginHeaderEnableMenu";
 export const LOCALSTORARE_LAST_PAGE_REQUEST = "lastPageRequest";
 export const onLoginResponse: Subject<string> = new Subject<string>();
+export const maxTablePageRows = 10;
 
 @NgModule({
   declarations: [

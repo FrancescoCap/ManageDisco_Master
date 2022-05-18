@@ -213,13 +213,7 @@ namespace ManageDisco.Controllers
                         Title = "Home",
                         Link = "/HomeSettings",
                         Icon = "fas fa-hammer"
-                    });
-                    m3.child.Add(new MenuChild()
-                    {
-                        Title = "Magazzino-bottiglie",
-                        Link = "/Warehouse",
-                        Icon = "fas fa-boxes"               
-                    });
+                    });                   
                 }
                 menu.Add(m3);
             }
@@ -232,7 +226,7 @@ namespace ManageDisco.Controllers
                 {
                     Header = "Ordini",
                     Link = "#",
-                    Icon = "fad fa-tasks",
+                    Icon = "fa fa-list",
                     child = new List<MenuChild>()
                 {
                     new MenuChild()
@@ -247,7 +241,16 @@ namespace ManageDisco.Controllers
                 {
                     Header = "Magazzino",
                     Link = "/Warehouse",
-                    Icon = "far fa-inventory"
+                    Icon = "fa fa-exchange",
+                    child = new List<MenuChild>()
+                    {
+                        new MenuChild()
+                        {
+                            Title = "Magazzino-bottiglie",
+                            Link = "/Warehouse",
+                            Icon = "fas fa-boxes"
+                        }
+                    }
                 };
                 menu.Add(order);
                 menu.Add(warehouse);

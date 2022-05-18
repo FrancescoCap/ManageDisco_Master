@@ -1,0 +1,41 @@
+<div class="col-12">
+  <label id="no-data" class="col-12">Coupon ingresso omaggio:</label>
+  <div class="col-12" *ngIf="statisticsList.freeEntrance != null">
+    <div class="col-12">
+      <label>Coupon inviati: {{statisticsList.freeEntrance.couponSent}}</label>
+    </div>
+    <div class="col-12">
+      <label>Coupon confermati: {{statisticsList.freeEntrance.couponValidated}}%</label>
+    </div>
+  </div>
+</div>
+  <app-tableview *ngIf="!isMobileTemplate; else mobileStatisticsTemplate" [setLoading]="isLoading" [data-list]="statisticsFreeEntranceTableData" [max-rows-page]="rowsPerPage"></app-tableview>
+
+  <div class="col-12">
+    <label id="no-data" class="col-12">Tavoli-Coupon</label>
+    <div class="col-12" *ngIf="statisticsList.eventTable != null">
+      <div class="col-12">
+        <label>Numero tavoli: {{statisticsList.eventTable.tableCount}}</label>
+      </div>
+      <div class="col-12">
+        <label>Totale incasso da tavoli: {{statisticsList.eventTable.totalOrderTable | currency:'EUR'}}</label>
+      </div>
+      <div class="col-12">
+        <label>Totale exit cambiati: {{statisticsList.eventTable.peopleCountFromTable}}</label>
+      </div>
+    </div>
+  </div>
+
+  <app-tableview *ngIf="!isMobileTemplate; else mobileStatisticsTemplate" [setLoading]="isLoading" [data-list]="statisticsTableCouponTableData" [max-rows-page]="rowsPerPage"></app-tableview>
+
+  <ng-template #mobileStatisticsTemplate>
+    <div style="overflow:auto; height:620px; max-height:780px;" *ngIf="statisticsList != null && statisticsList.freeEntrance != null">
+      <div class="col-12 p-4 row" *ngFor="let freeEntrance Of statisticsList.freeEntrance.couponList | slice:rowsPerPage-10:rowsPerPage">
+        <div class="col-6">{{freeEntrance.name}} {{freeEntrance.surname}}</div>
+        <div class="col-6 text-end">
+          <img style="width:20px;height:20px" [src]="freeEntrance.validated == false ? '../../../assets/circle_red_full.png': '../../../assets/circle_green_full.png'" />
+        </div>
+        <div class="col-12 dropdown-divider"></div>
+      </div>
+    </div>
+  </ng-template>

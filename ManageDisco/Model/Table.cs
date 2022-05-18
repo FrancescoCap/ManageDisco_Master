@@ -17,6 +17,7 @@ namespace ManageDisco.Model
         public string TableNumber { get; set; }
         public string DiscoEntityId { get; set; }
         public DiscoEntity DiscoEntity { get; set; }
+        public decimal TableMinBudget { get; set; }
     }     
     
     public class TableAssignPost

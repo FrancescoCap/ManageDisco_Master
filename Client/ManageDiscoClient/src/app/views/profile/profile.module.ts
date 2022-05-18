@@ -5,6 +5,11 @@ import { ProfileRoutes } from "./profile.rouote";
 import { CommonModule } from "@angular/common";
 import { LoadingModule } from "../../components/loading/loading.module";
 import { DirectivesModule } from "../../directives/directive.module";
+import { TableViewModule } from "../../components/tableview/table.module";
+import { ProfileUserreservationComponent } from './profile-userreservation/profile-userreservation.component';
+import { StatisticsComponent } from "./statistics/statistics.component";
+import { PermissionComponent } from './permission/permission.component';
+import { UserInfoComponent } from './user-info/user-info.component';
 
 @NgModule({
   imports: [
@@ -12,10 +17,15 @@ import { DirectivesModule } from "../../directives/directive.module";
     CommonModule,
     LoadingModule,   
     ProfileRoutes,
+    TableViewModule,
     DirectivesModule
   ],
   declarations: [
-    ProfileComponent
+    ProfileComponent,
+    ProfileUserreservationComponent,
+    StatisticsComponent,
+    PermissionComponent,
+    UserInfoComponent
   ]
 })
 export class ProfileModule {}

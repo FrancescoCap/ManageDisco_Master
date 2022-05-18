@@ -30,8 +30,7 @@ export class ApiCaller {
   onApiError = (status: number, message: string): void => {
     if (status == 0) {  //Unable to connect to server      
       this.modalService.showErrorOrMessageModal("Impossibile raggiungere il server.");
-    } else if (status == HttpStatusCode.Unauthorized) {
-      console.log(this.router.url)
+    } else if (status == HttpStatusCode.Unauthorized) {     
       if (!this.router.url.includes("Login")) {
         //this.getRefreshToken().subscribe(() => {
         //    console.log(this.router.url)
@@ -41,6 +40,14 @@ export class ApiCaller {
     } else if (status == HttpStatusCode.BadRequest) {
       this.modalService.showErrorOrMessageModal(message, "ERRORE");
     }
+  }
+
+  public exportTables(eventId:number) {
+    return this.http.getFileCall(this.url.exportTables(eventId), this.onApiError);
+  }
+
+  public postAutoAssignTable(eventId?:number) {
+    return this.http.postCall(this.url.postAutoAssignTable(eventId), null, this.onApiError);
   }
 
   public putUserPermission(data: UserPermissionPut) {
@@ -436,7 +443,7 @@ export class ApiCaller {
   }
   //In realtà più che una put sarebbe una post perchè crea la testata d'ordine associata al tavolo con le rispettive righe
   public putTablOrder(tableId:number, data:TableOrderPut) {
-    return this.http.putCall(this.url.putTableOrder(tableId), data);
+    return this.http.putCall(this.url.putTableOrder(tableId), data, this.onApiError);
   }
 
   public getTableOrderRows(tableId: number):Observable<TableOrderHeader> {

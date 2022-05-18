@@ -33,13 +33,15 @@ namespace ManageDisco.Controllers
         IConfiguration _configuration;
         TwilioService _twilioService;
         Encryption _encryption;
+        CookieService _cookieService;
 
         public UserController(DiscoContext db, 
             UserManager<User> userManager, 
             IConfiguration configuration,
             TwilioService twilioService,
             Encryption encryption,
-            SignInManager<User> sign)
+            SignInManager<User> sign,
+            CookieService cookieService)
         {
             _db = db;
             _userManager = userManager;
@@ -47,6 +49,7 @@ namespace ManageDisco.Controllers
             _twilioService = twilioService;
             _encryption = encryption;
             _signManager = sign;
+            _cookieService = cookieService;
         }
 
         [Authorize(Roles = RolesConstants.ROLE_ADMINISTRATOR, AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
@@ -151,7 +154,7 @@ namespace ManageDisco.Controllers
             response.UserPoints = user.Points;
             response.UserNameSurname = String.Format("{0} {1}", user.Name, user.Surname);
             //delete old cookie if user login wihout logout operation           
-            areCookiesToAdd(false);
+            areCookiesToAdd(false, (List<string>) userRoles);
             
             string pr_ref = "";
             bool auth_type_full = false;
@@ -171,7 +174,17 @@ namespace ManageDisco.Controllers
                 pr_ref = _db.Users.FirstOrDefaultAsync(x => x.Id == prId).Result.UserCode;
                 
             }
-            areCookiesToAdd(true, response.Token, response.RefreshToken, userRoles.Contains(RolesConstants.ROLE_ADMINISTRATOR), pr_ref, Convert.ToString(auth_type_standard), response.ClientSession);
+
+            Dictionary<string, string> cookiesValues = new Dictionary<string, string>();
+            cookiesValues.Add(CookieService.AUTHORIZATION_COOKIE, response.Token);
+            cookiesValues.Add(CookieService.REFRESH_COOKIE, response.RefreshToken);
+            cookiesValues.Add(CookieService.AUTH_FULL_COOKIE, auth_type_full ? "1":"0");
+            cookiesValues.Add(CookieService.PR_REF_COOKIE, pr_ref);
+            cookiesValues.Add(CookieService.AUTH_STANDARD_COOKIE, auth_type_standard ? "1":"0");
+            cookiesValues.Add(CookieService.CLIENT_SESSION, response.ClientSession);            
+            cookiesValues.Add(CookieService.ISAUTH_COOKIE, "1");            
+
+            areCookiesToAdd(true, (List<string>)userRoles,cookiesValues);
                                    
             return Ok(response);
         }
@@ -375,16 +388,23 @@ namespace ManageDisco.Controllers
             user.Name = userInfo.Name;
             user.Surname = userInfo.Surname;
             user.Email = userInfo.Email;
+            user.NormalizedEmail = userInfo.Email.ToUpper();
 
             if (!userInfo.PhoneNumber.StartsWith("+39"))
                 userInfo.PhoneNumber = $"+39{userInfo.PhoneNumber}";
 
-            user.PhoneNumber = userInfo.PhoneNumber;
+            bool sendConfirmationNumberMessage = false;
+            if(user.PhoneNumber != userInfo.PhoneNumber)
+            {
+                sendConfirmationNumberMessage = true;
+                user.PhoneNumber = userInfo.PhoneNumber;
+            }
+               
 
             _db.Entry(user).State = EntityState.Modified;
             await _db.SaveChangesAsync();
 
-            if (!user.PhoneNumberConfirmed)
+            if (!user.PhoneNumberConfirmed && sendConfirmationNumberMessage)
                 await SendPhoneNumberConfirmation(user.PhoneNumber);
 
             return Ok(new AuthenticationResponse() { Message = "I dati sono stati aggiornati.", OperationSuccess = true});
@@ -394,8 +414,12 @@ namespace ManageDisco.Controllers
         [Route("Logout")]
         public async Task<IActionResult> Logout()
         {
+            var clientSession = HttpContext.Request.Cookies.FirstOrDefault(x => x.Key == CookieService.CLIENT_SESSION).Value;
+            var userSession = await _db.RefreshToken.FirstOrDefaultAsync(x => x.RefreshTokenClientSession == clientSession);
+            var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == userSession.RefreshTokenUserId); ;
+                       
 
-            areCookiesToAdd(false);
+            areCookiesToAdd(false, (List<string>) await _userManager.GetRolesAsync(user));
             return Ok();
         }
 
@@ -403,7 +427,7 @@ namespace ManageDisco.Controllers
         [Route("RefreshToken")]
         public async Task<IActionResult> RefreshToken([FromQuery]string userId)
         {
-            var refreshCookie = HttpContext.Request.Cookies.FirstOrDefault(x => x.Key == CookieConstants.REFRESH_COOKIE);
+            var refreshCookie = HttpContext.Request.Cookies.FirstOrDefault(x => x.Key == CookieService.REFRESH_COOKIE);
             var refreshTokenValue = refreshCookie.Value;
             if (String.IsNullOrEmpty(refreshTokenValue))
                 return Unauthorized();
@@ -444,11 +468,25 @@ namespace ManageDisco.Controllers
                 if (tokens == null)
                     return Ok();
 
-                string pr_ref = HttpContext.Request.Cookies.Where(x => x.Key == CookieConstants.PR_REF_COOKIE).FirstOrDefault().Value;
+                string pr_ref = HttpContext.Request.Cookies.Where(x => x.Key == CookieService.PR_REF_COOKIE).FirstOrDefault().Value;
                
-                string auth_standard = HttpContext.Request.Cookies.Where(x => x.Key == CookieConstants.AUTH_STANDARD_COOKIE).FirstOrDefault().Value;
-              
-                areCookiesToAdd(true, tokens.Token, tokens.RefreshToken, await _userManager.IsInRoleAsync(user, RolesConstants.ROLE_ADMINISTRATOR), pr_ref, auth_standard, tokens.ClientSession);
+                string auth_standard = HttpContext.Request.Cookies.Where(x => x.Key == CookieService.AUTH_STANDARD_COOKIE).FirstOrDefault().Value;
+
+                var userRoles = await _userManager.GetRolesAsync(user);
+
+                Dictionary<string, string> cookiesValues = new Dictionary<string, string>();
+                cookiesValues.Add(CookieService.AUTHORIZATION_COOKIE, tokens.Token);
+                cookiesValues.Add(CookieService.REFRESH_COOKIE, tokens.RefreshToken);
+                cookiesValues.Add(CookieService.AUTH_FULL_COOKIE, 
+                    _cookieService.IsCookieEnabledForUser(CookieService.AUTH_FULL_COOKIE, (List<string>) userRoles ) ? HttpContext.Request.Cookies.FirstOrDefault(x => x.Key == CookieService.AUTH_FULL_COOKIE).Value : "");
+                cookiesValues.Add(CookieService.PR_REF_COOKIE, pr_ref);
+                cookiesValues.Add(CookieService.AUTH_STANDARD_COOKIE,
+                     _cookieService.IsCookieEnabledForUser(CookieService.AUTH_STANDARD_COOKIE, (List<string>) userRoles) ? HttpContext.Request.Cookies.FirstOrDefault(x => x.Key == CookieService.AUTH_STANDARD_COOKIE).Value : "");
+                
+                cookiesValues.Add(CookieService.CLIENT_SESSION, tokens.ClientSession);
+                cookiesValues.Add(CookieService.ISAUTH_COOKIE, "1");
+
+                areCookiesToAdd(true, (List<string>) userRoles, cookiesValues);
                 return Ok();
             }
             
@@ -472,7 +510,7 @@ namespace ManageDisco.Controllers
                 return Ok(new GeneralReponse() { OperationSuccess = false, Message =  "Il numero di telefono è stato già confermato"});
             if (user.Id != refer)
             {
-                areCookiesToAdd(false);
+                areCookiesToAdd(false, (List<string>) await _userManager.GetRolesAsync(user));
                 return Ok(new GeneralReponse() { OperationSuccess = false, Message = "Il numero di telefono e l'account non corrispondono" });
             }
                 
@@ -497,36 +535,53 @@ namespace ManageDisco.Controllers
             await _twilioService.TriggerTwilio(formData);
         }
         
-        private void areCookiesToAdd(bool add, params Object[] args)
+        private void areCookiesToAdd(bool add, List<string> roles, Dictionary<string,string> values = null)
         {
-            //handle only global Cookies
-            if (add)
-            {
-                Response.Cookies.Append(CookieConstants.AUTHORIZATION_COOKIE, (string)args[0], new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
-                Response.Cookies.Append(CookieConstants.ISAUTH_COOKIE, "1", new CookieOptions() { SameSite = SameSiteMode.Strict });
-                Response.Cookies.Append(CookieConstants.REFRESH_COOKIE, (string)args[1], new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict, Expires = DateTime.Now.AddMonths(1) });
-                Response.Cookies.Append(CookieConstants.AUTH_FULL_COOKIE, Convert.ToString((bool)args[2]), new CookieOptions() { SameSite = SameSiteMode.Strict });
-                Response.Cookies.Append(CookieConstants.PR_REF_COOKIE, (string)args[3], new CookieOptions() { SameSite = SameSiteMode.Strict });
-                Response.Cookies.Append(CookieConstants.AUTH_STANDARD_COOKIE, (string)args[4], new CookieOptions() { SameSite = SameSiteMode.Strict });
-                Response.Cookies.Append(CookieConstants.CLIENT_SESSION, (string)args[5], new CookieOptions() { SameSite = SameSiteMode.Strict });
-            }
-            else
-            {
-                Response.Cookies.Delete(CookieConstants.AUTHORIZATION_COOKIE);
-                Response.Cookies.Delete(CookieConstants.ISAUTH_COOKIE);
-                Response.Cookies.Delete(CookieConstants.AUTH_STANDARD_COOKIE);
-                Response.Cookies.Delete(CookieConstants.AUTH_FULL_COOKIE);
-                Response.Cookies.Delete(CookieConstants.PR_REF_COOKIE);
-                Response.Cookies.Delete(CookieConstants.REFRESH_COOKIE);
-                Response.Cookies.Delete(CookieConstants.CLIENT_SESSION);
-            }
-        }
 
-        private void AddSessionCookie(string key, string value)
-        {
-            Response.Cookies.Append(key, value, new CookieOptions() { SameSite = SameSiteMode.Strict });
-        }
+            foreach(Cookie cookie in _cookieService.cookies)
+            {
+                if (_cookieService.IsCookieEnabledForUser(cookie.Name, roles))
+                {
+                    if (add)
+                    {         
+                        if(values != null)
+                        { 
+                            if (values[cookie.Name] == null)
+                                continue;                           
 
+                            Response.Cookies.Append(cookie.Name, values[cookie.Name], new CookieOptions() { HttpOnly = cookie.HttpOnly, SameSite = cookie.SameSite});
+                        }
+                    }                        
+                    else
+                        Response.Cookies.Delete(cookie.Name);
+                }
+            }
+
+            //if (add)
+            //{
+            //    Response.Cookies.Append(CookieService.AUTHORIZATION_COOKIE, (string)args[0], new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
+            //    Response.Cookies.Append(CookieService.ISAUTH_COOKIE, "1", new CookieOptions() { SameSite = SameSiteMode.Strict });
+            //    Response.Cookies.Append(CookieService.REFRESH_COOKIE, (string)args[1], new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict, Expires = DateTime.Now.AddMonths(1) });
+            //    Response.Cookies.Append(CookieService.AUTH_FULL_COOKIE, Convert.ToString((bool)args[2]), new CookieOptions() { SameSite = SameSiteMode.Strict });               
+            //    Response.Cookies.Append(CookieService.PR_REF_COOKIE, (string)args[3], new CookieOptions() { SameSite = SameSiteMode.Strict });
+            //    Response.Cookies.Append(CookieService.AUTH_STANDARD_COOKIE, (string)args[4], new CookieOptions() { SameSite = SameSiteMode.Strict });
+            //    Response.Cookies.Append(CookieService.CLIENT_SESSION, (string)args[5], new CookieOptions() { SameSite = SameSiteMode.Strict });
+            //}
+            //else
+            //{
+            //    foreach(string cookie in cookieList.Keys)
+            //    {
+            //        cookieList.Remove(cookie);
+            //    }
+            //    //Response.Cookies.Delete(CookieConstants.AUTHORIZATION_COOKIE);
+            //    //Response.Cookies.Delete(CookieConstants.ISAUTH_COOKIE);
+            //    //Response.Cookies.Delete(CookieConstants.AUTH_STANDARD_COOKIE);
+            //    //Response.Cookies.Delete(CookieConstants.AUTH_FULL_COOKIE);
+            //    //Response.Cookies.Delete(CookieConstants.PR_REF_COOKIE);
+            //    //Response.Cookies.Delete(CookieConstants.REFRESH_COOKIE);
+            //    //Response.Cookies.Delete(CookieConstants.CLIENT_SESSION);
+            //}
+        }
        
     }
 }

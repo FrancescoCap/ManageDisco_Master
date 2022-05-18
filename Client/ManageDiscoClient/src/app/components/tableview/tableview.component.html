@@ -1,21 +1,30 @@
-<div class="col-lg-12">
-  <table class="table">
+<div class="col-lg-12" *ngIf="!isLoading;else loadingTemplate">
+  <div class="row text-end p-2" *ngIf="dataList.isPdfExportable"><i class="fa fa-file-pdf-o" (click)="onPdfExportClick(dataList.onExportPdfCallback!)"></i></div>
+  <table class="table" *ngIf="dataList.rows != null && dataList.rows.length > 0; else noDataTemplate">
     <thead class="thead-dark">
-      <tr>
-        <th *ngFor="let h of dataList.headers">{{h.value}}</th>
+      <tr> 
+        <th [class]="colDimensionClass" *ngFor="let h of dataList.headers">{{h.value}}</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let r of dataList.rows | slice: startRowIndex - maxRowsPage : startRowIndex">
-        <td *ngFor="let c of r.cells">{{c.value}}
+        <td [class]="colDimensionClass" *ngFor="let c of r.cells">{{c.value}}
           <label *ngIf="c.isCurrency">€</label>
-            <div *ngIf="c.icon != null" class="row col-12">
-              <i [id]="i.referenceId" *ngFor="let i Of c.icon" [class]="i.class" [ngStyle]="{'visibility': i.isToShow ? 'visible': 'hidden' }" class="p-2 col-3" (click)="onIconClick(i.onClickCallback!, i.referenceId)"></i>
-          </div>
+          <div *ngIf="c.icon != null" class="row">
+            <div *ngFor="let i Of c.icon" class="col-1">
+              <i [id]="i.referenceId" *ngIf="i.imagePath == null; else image" [class]="i.class" [ngStyle]="{'visibility': i.isToShow ? 'visible': 'hidden' }" (click)="onIconClick(i.onClickCallback!, i.referenceId)"></i>
+              <ng-template #image>
+                <img class="p-1" [src]="i.imagePath" style="width:30px;height:30px" (click)="onIconClick(i.onClickCallback!, i.referenceId)"/>
+              </ng-template>
+            </div>
+          </div>         
         </td>        
       </tr>     
     </tbody>
   </table>
+
+  <ng-template #noDataTemplate><div class="col-12 noData">NON SONO STATI RESTITUITI DATI</div></ng-template>
+
   <div class="row">
     <!--<div class="col-6 text-start">
       <label>pagina {{selectedPage}} di {{pagesArray.length}} </label>
@@ -25,3 +34,6 @@
     </div>
   </div>
 </div>
+<ng-template #loadingTemplate>
+  <label class="noData"><i class="fa fa-spinner"></i> Caricamento in corso</label>
+</ng-template>

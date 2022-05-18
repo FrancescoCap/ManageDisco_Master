@@ -33,6 +33,16 @@ namespace ManageDisco.Model
         /// Nr. di exit cambiati
         /// </summary>
         public decimal PeopleCountFromTable { get; set; }
+        public List<EventTableOrderCoupon> TableCoupons { get; set; }
 
+    }
+    /// <summary>
+    /// Rappresenta i tavoli che hanno utilizzato un coupon
+    /// </summary>
+    public class EventTableOrderCoupon
+    {
+        public string TableName { get; set; }
+        public string CouponCode { get; set; }
+        public string CouponDescription { get; set; }
     }
 }

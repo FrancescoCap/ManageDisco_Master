@@ -26,44 +26,6 @@ namespace ManageDisco.Controllers
             return await _db.Table.ToListAsync();
         }
 
-        
-        //[HttpGet("Assignable")]
-        //public async Task<IActionResult> GetTable([FromQuery]int eventId)
-        //{
-        //    var nextEventId = await _db.Events
-        //        .Select(x => new EventParty()
-        //        {
-        //            Id = x.Id,
-        //            Date = x.Date
-        //        }).OrderByDescending(x => x.Date).FirstOrDefaultAsync();
-
-
-        //    ////if (eventId <= 0)
-        //    ////{
-        //    ////    return Ok(await _db.Table.ToListAsync());
-        //    ////}
-        //    ////Tavoli già assegnati per questo evento
-        //    ////IQueryable<ReservationView> assignedTables = _db.Reservation
-        //    ////    .Include(i => i.Table)
-        //    ////    .Select(x => new ReservationView()
-        //    ////    {
-        //    ////        TableId = x.Table.TableId,
-        //    ////        ReservationName = x.ReservationTableName,
-        //    ////        ReservationPeopleCount = x.ReservationPeopleCount,
-        //    ////        ReservationExpectedBudget = x.ReservationExpectedBudget,
-        //    ////        ReservationTablAssigned = x.Table.TableAreaDescription + " " + x.Table.TableNumber
-        //    ////    });
-
-        //    ////if (eventId > 0)
-        //    ////{
-        //    ////    assignedTables = assignedTables.Where(x => x.EventId == eventId);
-        //    ////}
-
-        //    ////List<ReservationView> avaiableTables = await assignedTables.ToListAsync();
-
-
-        //    return Ok(avaiableTables);
-        //}
 
         [HttpGet]
         [Route("Map")]
@@ -76,6 +38,7 @@ namespace ManageDisco.Controllers
 
             return base.Ok(new TableMapReponse() { Path = @"C:\Users\Francesco\source\repos\ManageDisco\ManageDisco\Resource\pianta_tavoli.pdf", FileName="pianta_tavoli.pdf" });
         }
+
         /// <summary>
         /// Restituisce i tavoli presenti per un determinato evento
         /// </summary>
@@ -110,6 +73,7 @@ namespace ManageDisco.Controllers
 
             return Ok(header);                        
         }
+
         /// <summary>
         /// Restituisce la lista degli ordini effettuati dal tavolo
         /// </summary>
@@ -223,12 +187,22 @@ namespace ManageDisco.Controllers
                 {
                     TableId = tableId,
                     TableOrderHeaderExit = orderInfo.ExitChanged,
-                    TableOrderHeaderSpending = orderInfo.ProductsSpendingAmount
+                    TableOrderHeaderSpending = orderInfo.ProductsSpendingAmount,
+                    TableOrderHeaderCouponCode = orderInfo.ShopCoupon
                 };
                 _db.TableOrderHeader.Add(orderHeader);
             }
             else
             {
+                //Utilizzo di un solo coupon per tavolo ad ogni evento
+                if (!String.IsNullOrEmpty(orderInfo.ShopCoupon))
+                {
+                    if (IsCouponAlreadyUsed(orderHeader))
+                        return BadRequest(new GeneralReponse() { Message = "Il tavolo ha già usufruito di un coupon.", OperationSuccess = false });
+                    else
+                        orderHeader.TableOrderHeaderCouponCode = orderInfo.ShopCoupon;
+                }                
+
                 orderHeader.TableOrderHeaderExit = orderHeader.TableOrderHeaderExit + orderInfo.ExitChanged;
                 orderHeader.TableOrderHeaderSpending = orderHeader.TableOrderHeaderSpending + orderInfo.ProductsSpendingAmount;
                 _db.Entry(orderHeader).State = EntityState.Modified;
@@ -245,16 +219,17 @@ namespace ManageDisco.Controllers
                 });
             }
 
-            //add coupon products if client sent
+            //add coupon products if client sent.
+            //Set validate = false for coupon and add product rows inherited from it
             if (!String.IsNullOrEmpty(orderInfo.ShopCoupon))
             {
-                var userOwner = _db.Reservation.FirstOrDefaultAsync(x => x.TableId == table.TableId).Result.UserIdOwner;
+                var userOwner = _db.Reservation.FirstOrDefaultAsync(x => x.TableId == table.TableId && x.EventPartyId == orderInfo.EventId).Result.UserIdOwner;
                 if (_db.UserProduct.Any(x => x.UserId == userOwner && x.UserProductCode == orderInfo.ShopCoupon && x.UserProductUsed == false))
                 {
                     var userProduct = await _db.UserProduct.FirstOrDefaultAsync(x => x.UserProductCode == orderInfo.ShopCoupon);
                     ProductShopHeader shopProduct = await _db.ProductShopHeader.FirstOrDefaultAsync(x => x.ProductShopHeaderIdId == userProduct.ProductShopHeaderId);
                     if (shopProduct == null)
-                        return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Il prodotto non è più disponibile" });
+                        return BadRequest(new GeneralReponse() { OperationSuccess = false, Message = "Il prodotto non è più disponibile." });
 
                     var productShopRows = await _db.ProductShopRow.Where(x => x.ProductShopHeaderId == shopProduct.ProductShopHeaderIdId).ToListAsync();
                     productShopRows.ForEach(x =>
@@ -270,11 +245,14 @@ namespace ManageDisco.Controllers
 
                     userProduct.UserProductUsed = true;
                     _db.Entry(userProduct).State = EntityState.Modified;
+
+                    SaveCouponHistory(orderInfo.EventId, orderHeader.TableId, orderInfo.ShopCoupon);
                 }
 
             }
 
-            _db.TableOrderRow.AddRange(orderRows);
+            _db.TableOrderRow.AddRange(orderRows);           
+
             await _db.SaveChangesAsync();
 
             return Ok();
@@ -299,6 +277,21 @@ namespace ManageDisco.Controllers
         private bool TableExists(int id)
         {
             return _db.Table.Any(e => e.TableId == id);
+        }
+
+        private bool IsCouponAlreadyUsed(TableOrderHeader header)
+        {
+            return !String.IsNullOrEmpty(header.TableOrderHeaderCouponCode);
+        }
+
+        private void SaveCouponHistory(int eventId, int tableId, string coupon)
+        {
+            _db.TableCouponUsed.Add(new TableCouponUsed()
+            {
+                TableCouponEventId = eventId,
+                TableCouponTableId = tableId,
+                TableCouponCouponCode = coupon
+            });
         }
     }
 }

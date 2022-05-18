@@ -1,0 +1,59 @@
+<div class="col-12 col-lg-12">
+  <label class="col-12 col-lg-12 text-center lbl-subtitle lbl-subtitle-bg" [class.tab-selected]="section.isActive" *ngFor="let section of sections" (click)="onSectionClick(section.index)">{{section.label}}</label>
+</div>
+<div class="col-12 col-lg-12" *ngIf="activeSection == VIEW_USER_DATA">
+  <div class="col-12">
+    <label id="no-data" class="col-12">Riepilogo dati</label>
+    <small id="col-12">Visualizza i tuoi dati.</small>
+  </div>
+  <!--User data-->
+  <div class="col-12 col-lg-12 p-2 row">
+    <div class="col-10 text-center text-lg-start col-lg-3 p-2 m-0">
+      <img class="col-8 col-md-4 col-lg-5 ms-4" style="border:1px dashed #000; background: #cbc5c5" src="../../../assets/computer-icons-user-profile-password-login-end-user-8397fa9c574355b8ae57e8decb559d1e.png" />
+    </div>
+    <div class="col-12 col-lg-7 m-0" *ngIf="!enableEdit; else edtEmail">
+      <i class="col-12 fa fa-edit text-end" (click)="onEditInfoClick()"></i>
+      <div class="col-12">Nome: {{user?.userName}}</div>
+      <div class="col-12">Cognome: {{user?.userSurname}}</div>
+      <div class="col-12">Data di nascita:</div>
+      <div class="col-12">Email: {{user?.userEmail}}</div>
+      <div class="col-12">Cellulare: {{user?.userPhoneNumber}}<i style="color:yellow" class="fa fa-exclamation-triangle" (click)="onPhoneNumberWarningClick()"></i></div>
+      <div class="col-8">Saldo punti: {{user?.userPoints}}</div>
+      <div class="col-12"><input class="col-lg-8 col-10" type="text" *ngIf="!userIsCustomer" [value]="user?.invitationLink"/></div>
+    </div>
+    <ng-template #edtEmail>
+      <div class="row col-8">
+        <div class="col-8"><label class="col-12 col-lg-3">Nome:</label><input type="text" class="col-12 col-lg-3" [(ngModel)]="userEditInfo.name"/></div>
+        <div class="col-8"><label class="col-12 col-lg-3">Cognome:</label><input type="text" class="col-12 col-lg-3" [(ngModel)]="userEditInfo.surname"/></div>
+        <div class="col-8"><label class="col-12 col-lg-3">Email:</label><input type="text" class="col-12 col-lg-3" [(ngModel)]="userEditInfo.email"/></div>
+        <div class="col-8"><label class="col-12 col-lg-3">Cellulare:</label><input type="text" class="col-12 col-lg-3" [(ngModel)]="userEditInfo.phoneNumber"/></div>
+        <div class="col-8"><button class="col-4 col-lg-2 p-2 p-lg-0 btn btn-info mt-2" (click)="onConfirmEditing()">Conferma</button></div>
+
+      </div>
+
+    </ng-template>
+  </div>
+  <div class="col-12 mb-5" *ngIf="userIsCustomer">
+    <label class="col-12" style="font-size: 20px">Il mio PR <img class="change-pr" src="../../../assets/exchange.png" (click)="onChangePrClick()"/></label>
+    <!--Pr data (only for user view)-->
+    <div class="col-12 p-2 row">
+      <div class="col-10 text-center text-lg-start col-lg-3 p-2 m-0">
+        <img class="col-8 col-md-4 col-lg-5 ms-4" style="border:1px dashed #000; background: #cbc5c5" src="../../../assets/computer-icons-user-profile-password-login-end-user-8397fa9c574355b8ae57e8decb559d1e.png" />
+      </div>
+      <div class="col-7 m-0">
+        <div class="col-12 m-0 p-0">Nome: {{user?.prName}}</div>
+        <div class="col-12 m-0 p-0">Cognome: {{user?.prSurname}}</div>
+        <div class="col-12 m-0 p-0">Data di nascita:</div>
+        <div class="col-12 m-0 p-0">Email: {{user?.prEmail}}</div>
+
+        <div class="col-12 m-0">Codice: {{user?.prCode}}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="col-lg-12" *ngIf="activeSection == VIEW_USER_AWARDS">
+  <app-tableview [setLoading]="isLoading" [data-list]="userAwardsTableData" [max-rows-page]="rowsPerPage"></app-tableview>
+</div>
+
+<ng-container #modalContainer></ng-container>

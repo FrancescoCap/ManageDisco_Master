@@ -38,9 +38,9 @@ namespace ManageDisco.Controllers
             List<ReservationPayment> reservationPayment = null;
 
             if (_user.Roles.Contains(RolesConstants.ROLE_ADMINISTRATOR))
-                reservationPayment = await _db.ReservationPayment.Where(x => x.UserId == userId).OrderBy(x => x.ReservationPaymentDate).ToListAsync();
+                reservationPayment = await _db.ReservationPayment.Where(x => x.UserId == userId).OrderByDescending(x => x.ReservationPaymentDate).ToListAsync();
             else if (_user.Roles.Contains(RolesConstants.ROLE_PR))
-                reservationPayment = await _db.ReservationPayment.Where(x => x.UserId == _user.Id).OrderBy(x => x.ReservationPaymentDate).ToListAsync();
+                reservationPayment = await _db.ReservationPayment.Where(x => x.UserId == _user.Id).OrderByDescending(x => x.ReservationPaymentDate).ToListAsync();
 
             if (reservationPayment == null)
             {

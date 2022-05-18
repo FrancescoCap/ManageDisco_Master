@@ -1,5 +1,7 @@
+import { Output } from '@angular/core';
 import { Input } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-loading',
@@ -8,11 +10,17 @@ import { Component, OnInit } from '@angular/core';
 })
 export class LoadingComponent implements OnInit {
 
-  @Input("loading") loading:boolean = false;
+  @Input("loading") loading?: boolean;
+  @Input("loadingListener") loadingSubject?: Subject<boolean>;
 
   constructor() { }
 
   ngOnInit(): void {
+
+  }
+
+  ngAfterViewInit() {
+    this.loadingSubject?.subscribe((visible: boolean) => this.loading = visible);
   }
 
 }

@@ -1,3 +1,4 @@
+import { Call } from '@angular/compiler';
 import { Component, Input, OnInit, Output } from '@angular/core';
 import { EventEmitter } from '@angular/core';
 import { TableViewDataModel } from './tableview.model';
@@ -11,19 +12,22 @@ export class TableviewComponent implements OnInit {
 
   private readonly LOCALSTORAGE_LAST_PAGE = "lastPage";
 
-  @Input("data-list") dataList: TableViewDataModel = { headers: [], rows: [] };
+  @Input("setLoading") isLoading = false;
+  @Input("data-list") dataList: TableViewDataModel = { isPdfExportable: false, headers: [], rows: [] };
   @Input("max-rows-page") maxRowsPage: number = 10;
 
   tablePages: number = 1;
   pagesArray: number[] = [];
   startRowIndex: number = 0;
   selectedPage: number = 1;  
+  colDimension = 3;
+  colDimensionClass = `col-${this.colDimension}`;
 
   constructor() { }
 
   ngOnInit(): void {
     this.setPagination();
-    
+    this.setColDimension();
   }
 
   setPagination() {
@@ -41,10 +45,17 @@ export class TableviewComponent implements OnInit {
     this.startOnDataListChangeListener();
   }
 
+  setColDimension() {
+    this.colDimension = this.dataList.headers.length / 12;
+    if (this.colDimension < 1)
+      this.colDimension = 1;
+
+    this.colDimensionClass = `col-${this.colDimension.toString().split(".")[0]}`;
+  }
+
   startOnDataListChangeListener() {
     this.dataList.onDataListChange?.subscribe((newList: TableViewDataModel) => {
       this.dataList = newList;
-      console.log(this.selectedPage)
       this.setPagination();
     });
   }
@@ -66,6 +77,10 @@ export class TableviewComponent implements OnInit {
   onIconClick(callback: Function, referenceRowId: any) {
     var id = referenceRowId.toString().split("_")[referenceRowId.toString().split("_").length - 1];
     callback(id);
+  }
+
+  onPdfExportClick(callback: Function) {
+    callback();
   }
 
 }

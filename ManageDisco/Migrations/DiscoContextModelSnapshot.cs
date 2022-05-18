@@ -90,6 +90,51 @@ namespace ManageDisco.Migrations
                     b.ToTable("ContactType");
                 });
 
+            modelBuilder.Entity("ManageDisco.Model.Cookie", b =>
+                {
+                    b.Property<int>("CookieId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Domain")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("Expires")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("HttpOnly")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsEssential")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeSpan?>("MaxAge")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Path")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Roles")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SameSite")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Secure")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("CookieId");
+
+                    b.ToTable("Cookies");
+                });
+
             modelBuilder.Entity("ManageDisco.Model.Coupon", b =>
                 {
                     b.Property<int>("CouponId")
@@ -612,6 +657,9 @@ namespace ManageDisco.Migrations
                     b.Property<string>("TableAreaDescription")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("TableMinBudget")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("TableNumber")
                         .HasColumnType("nvarchar(max)");
 
@@ -620,6 +668,27 @@ namespace ManageDisco.Migrations
                     b.HasIndex("DiscoEntityId");
 
                     b.ToTable("Table");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.TableCouponUsed", b =>
+                {
+                    b.Property<int>("TableCouponId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("TableCouponCouponCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TableCouponEventId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TableCouponTableId")
+                        .HasColumnType("int");
+
+                    b.HasKey("TableCouponId");
+
+                    b.ToTable("TableCouponUsed");
                 });
 
             modelBuilder.Entity("ManageDisco.Model.TableOrderHeader", b =>
@@ -631,6 +700,9 @@ namespace ManageDisco.Migrations
 
                     b.Property<int>("TableId")
                         .HasColumnType("int");
+
+                    b.Property<string>("TableOrderHeaderCouponCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TableOrderHeaderExit")
                         .HasColumnType("decimal(18,2)");
@@ -668,6 +740,60 @@ namespace ManageDisco.Migrations
                     b.HasIndex("TableOrderHeaderId");
 
                     b.ToTable("TableOrderRow");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.TablePreOrderHeader", b =>
+                {
+                    b.Property<int>("TablePreOrderHeaderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<bool>("IsAccepted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ReservationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TableOrderHeaderCouponCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TablePreOrderHeaderExit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TablePreOrderHeaderSpending")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("TablePreOrderHeaderId");
+
+                    b.HasIndex("ReservationId");
+
+                    b.ToTable("TablePreOrderHeader");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.TablePreOrderRow", b =>
+                {
+                    b.Property<int>("TablePreOrderRowId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TablePreOrderHeaderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TablePreOrderRowQuantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("TablePreOrderRowId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("TablePreOrderHeaderId");
+
+                    b.ToTable("TablePreOrderRow");
                 });
 
             modelBuilder.Entity("ManageDisco.Model.UserIdentity.User", b =>
@@ -1176,6 +1302,36 @@ namespace ManageDisco.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("TableOrderHeader");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.TablePreOrderHeader", b =>
+                {
+                    b.HasOne("ManageDisco.Model.Reservation", "Reservation")
+                        .WithMany()
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reservation");
+                });
+
+            modelBuilder.Entity("ManageDisco.Model.TablePreOrderRow", b =>
+                {
+                    b.HasOne("ManageDisco.Model.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ManageDisco.Model.TableOrderHeader", "TablePreOrderHeader")
+                        .WithMany()
+                        .HasForeignKey("TablePreOrderHeaderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("TablePreOrderHeader");
                 });
 
             modelBuilder.Entity("ManageDisco.Model.UserIdentity.User", b =>

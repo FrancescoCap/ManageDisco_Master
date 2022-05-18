@@ -4,6 +4,14 @@ export class Endpoints {
 
   private base_url = server_URL;
 
+  exportTables(eventId:number) {
+    return this.base_url + `Reservations/Table/PdfExport?eventId=${eventId}`;
+  }
+
+  postAutoAssignTable(eventId:any) {
+    return this.base_url + `Reservations/AutoAssign?eventId=${eventId}`;
+  }
+
   putUserPermission() {
     return this.base_url + `UserPermission`;
   }
@@ -219,7 +227,7 @@ export class Endpoints {
   }
 
   public postAssignTable() {
-    return this.base_url + `Reservation/AssignTable`;
+    return this.base_url + `Reservations/AssignTable`;
   }
 
   public getTableMap() {

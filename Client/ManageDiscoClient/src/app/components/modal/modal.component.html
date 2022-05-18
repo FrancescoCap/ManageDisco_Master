@@ -72,7 +72,7 @@
                              type="checkbox"
                              (change)="onCheckboxChangeState(idx,viewItem.referenceId, $event, viewGroup.txtTableQuantity, listItem, viewItem.connectToReferenceView)" />
 
-                      <input type="text" *ngIf="viewGroup.txtTableQuantity" (input)="onTxtTableQuantityChange(idx,viewItem.referenceId, $event, listItem)" [value]="viewQuantityValuesMap.get(idx)" [disabled]="disableViewQuantityMap.get(idx)" class="col-2 col-lg-2 text-end" />
+                      <input type="text" *ngIf="viewGroup.txtTableQuantity" (input)="onTxtTableQuantityChange(idx,viewItem.referenceId, $event, listItem, viewItem.connectToReferenceView)" [value]="viewQuantityValuesMap.get(idx)" [disabled]="disableViewQuantityMap.get(idx)" class="col-2 col-lg-2 text-end" />
 
                       {{listItem._modalDropText}} <small *ngIf="listItem._valueOut">- {{listItem._valueOut | currency: 'EUR'}}</small>
                     </div>

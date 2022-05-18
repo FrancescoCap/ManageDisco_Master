@@ -16,60 +16,14 @@
       </div>
     </div>
     <div *ngIf="!isMobileView && !isTabletView;else mobileTemplate">
-
       <!--Table component-->
       <app-tableview [data-list]="tableData" [max-rows-page]="tableRowPage"></app-tableview>
-
-      <!--<div class="row col-12 p-2 tblheader-bk" data-value="tblHeader">
-        <div class="col-1">Data</div>
-        <div class="col-1">Codice prenotazione</div>
-        <div class="col-2">Evento</div>
-        <div class="col-1">Codice PR</div>
-        <div class="col-1">Tipo prenotazione</div>
-        <div class="col-1 text-end">Nome prenotazione</div>
-        <div class="col-1 text-end">Nr. persone</div>
-        <div class="col-1 text-end">Budget previsto</div>
-        <div class="col-1 text-end">Stato</div>
-        <div class="col-1 text-end">Budget effettivo</div>
-        <div class="col-1"></div>
-      </div>
-      <div class="row" data-value="tblBody">
-        <div class="row p-2" data-value=tblRow *ngFor="let reserve Of reservations">
-          <div class="col-1">{{reserve.reservationDate | date: 'dd/MM/yyyy'}}</div>
-          <div class="col-1">{{reserve.reservationCode}}</div>
-          <div class="col-2">{{reserve.eventName}}</div>
-          <div class="col-1">{{reserve.reservationUserCode}}</div>
-          <div class="col-1">{{reserve.reservationTypeValue}}</div>
-          <div class="col-1 text-end">{{reserve.reservationName}}</div>
-          <div class="col-1 text-end">{{reserve.reservationPeopleCount}}</div>
-          <div class="col-1 text-end">{{reserve.reservationExpectedBudget | currency: 'EUR'}}</div>
-          <div class="col-1 text-end">{{reserve.reservationStatus}} </div>
-          <div class="col-1 text-end" *ngIf="!editBudget">{{reserve.reservationRealBudget |currency: 'EUR'}}</div>
-
-          <div class="col-1 text-end" *ngIf="editBudget">
-            <input type="number" class="col-10" [(ngModel)]="reserve.reservationRealBudget" />
-          </div>
-
-          <div class="col-1 row text-end">
-            <div class="col-6 m-0 p-0" *ngIf="reserve.canAcceptReservation">
-              <i id="btnAcceptReservation_{{reserve.reservationId}}" class="col-4 btn-icon fa fa-check" (click)="handleReservation($event)"></i>
-              <i id="btnRefuseReservation_{{reserve.reservationId}}" class="btn-icon fa fa-times col-4" (click)="handleReservation($event)"></i>
-            </div>-->
-            <!-- TODO farsi passare gli stati di prenotazione dal server resource e gestirli-->
-            <!--<div class="col-6 m-0 p-0" *ngIf="reserve.canAcceptBudget">
-              <i id="btnConfirmBudget_{{reserve.reservationId}}" *ngIf="reserve.reservationRealBudget == 0" class="btn-icon fa fa-euro col-4 p-2" (click)="handleReservation($event)"></i>
-              <i id="btnEditBudget" *ngIf="!editBudget" class="btn-icon col-4 p-2 fa fa-edit" (click)="handleReservation($event)"></i>
-              <i id="btnOkEdtBudget_{{reserve.reservationId}}" *ngIf="editBudget" class="btn-icon col-4 fa fa-check" (click)="handleReservation($event)"></i>
-            </div>
-          </div>
-        </div>
-      </div>-->
       <div class="no-data" *ngIf="reservations == null || reservations.length == 0">
         NON CI SONO PRENOTAZIONI PER QUESTO EVENTO
       </div>
     </div>
     <ng-template #mobileTemplate>
-      <div style="overflow:auto;">
+      <div style="overflow:auto;" class="mobile-list">
         <div class="col-12 p-1 row" *ngFor="let reserve Of reservations">
           <div class="col-12">
             <div class="col-12"><b>Data:</b> {{reserve.reservationDate | date: 'dd/MM/yyyy'}}</div>
@@ -88,14 +42,14 @@
 
           <div id="btn-action-wrapper" class="col-3 row text-end">
             <div class="col-12 m-0 p-0 text-center" *ngIf="reserve.canAcceptReservation">
-              <i id="btnAcceptReservation_{{reserve.reservationId}}" class="col-md-8 col-4 btn-icon fa fa-check" (click)="handleReservation($event)"></i>
-              <i id="btnRefuseReservation_{{reserve.reservationId}}" class="btn-icon fa fa-times col-4" (click)="handleReservation($event)"></i>
+              <i id="btnAcceptReservation_{{reserve.reservationId}}" class="col-md-8 col-4 btn-icon fa fa-check" (click)="onConfirmReservation(reserve!.reservationId!)"></i>
+              <i id="btnRefuseReservation_{{reserve.reservationId}}" class="btn-icon fa fa-times col-4" (click)="onRejectReservation(reserve!.reservationId!)"></i>
             </div>
             <!-- TODO farsi passare gli stati di prenotazione dal server resource e gestirli-->
             <div class="col-12 m-0 p-0" *ngIf="reserve.canAcceptBudget">
-              <i id="btnConfirmBudget_{{reserve.reservationId}}" *ngIf="reserve.reservationRealBudget == 0" class="btn-icon fa fa-euro col-4 p-2" (click)="handleReservation($event)"></i>
-              <i id="btnEditBudget" *ngIf="!editBudget" class="btn-icon col-4 p-2 fa fa-edit" (click)="handleReservation($event)"></i>
-              <i id="btnOkEdtBudget_{{reserve.reservationId}}" *ngIf="editBudget" class="btn-icon col-4 fa fa-check" (click)="handleReservation($event)"></i>
+              <i id="btnConfirmBudget_{{reserve.reservationId}}" *ngIf="reserve.reservationRealBudget == 0" class="btn-icon fa fa-euro col-4 p-2" (click)="onConfirmBudgetInRow(reserve!.reservationId!)"></i>
+              <i id="btnEditBudget" *ngIf="!editBudget" class="btn-icon col-4 p-2 fa fa-edit" (click)="onEditReservation(reserve!.reservationId!)"></i>
+              <i id="btnOkEdtBudget_{{reserve.reservationId}}" *ngIf="editBudget" class="btn-icon col-4 fa fa-check" (click)="onReservationMobileEditConfirm(reserve!.reservationId!, reserve!.reservationRealBudget!)"></i>
             </div>
           </div>
           <div class="col-12 dropdown-divider"></div>

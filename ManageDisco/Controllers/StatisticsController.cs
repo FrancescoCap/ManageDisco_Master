@@ -52,9 +52,22 @@ namespace ManageDisco.Controllers
                     {
                         if (t != null)
                         {
-                             statistics.EventTable.TotalOrderTable += _db.TableOrderHeader.Where(x => x.TableId == t.TableId).Sum(s => s.TableOrderHeaderSpending);
+                            statistics.EventTable.TotalOrderTable += _db.TableOrderHeader.Where(x => x.TableId == t.TableId).Sum(s => s.TableOrderHeaderSpending);
                             statistics.EventTable.PeopleCountFromTable += _db.TableOrderHeader.Where(x => x.TableId == t.TableId).Sum(s => s.TableOrderHeaderExit);
                         }                       
+                    });
+                    statistics.EventTable.TableCoupons = new List<EventTableOrderCoupon>();
+                    var tableCouponUsed = _db.TableCouponUsed.ToList();
+                    tableCouponUsed.ForEach(x =>
+                    {
+                        var tableName = _db.Reservation.FirstOrDefault(t => t.TableId == x.TableCouponTableId).ReservationTableName;
+                        var couponDescription = _db.UserProduct.Include(i => i.ProductShopHeader).FirstOrDefault(c => c.UserProductCode == x.TableCouponCouponCode).ProductShopHeader.ProductShopHeaderName;
+                        statistics.EventTable.TableCoupons.Add(new EventTableOrderCoupon()
+                        {
+                            TableName = tableName,
+                            CouponCode = x.TableCouponCouponCode,
+                            CouponDescription = couponDescription
+                        });
                     });
                 })
             };

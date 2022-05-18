@@ -22,26 +22,7 @@ export class ApiInterceptor implements HttpInterceptor {
     private router: Router,
     private cookieService: CookieService) { }
 
-  //private handleAuthError(req: HttpRequest<any>, next: HttpHandler, err: HttpErrorResponse): Observable<any> {
-  //  //save last visited page
-  //  localStorage.setItem(LOCALSTORARE_LAST_PAGE_REQUEST, req.url);
-  //  //handle your auth error or rethrow
-  //  if (err.status === 401) {
-  //    this._api.getRefreshToken().pipe(        
-  //      catchError(err => {
-  //        this.cookieService.deleteAll();
-  //        this.router.navigateByUrl("/Login");
-  //        return err;
-  //      }))
-  //       .subscribe((data: any) => {
-  //         window.location.reload();
-  //        });
-  //    // if you've caught / handled the error, you don't want to rethrow it unless you also want downstream consumers to have to handle it as well.
-  //    return of(); // or EMPTY may be appropriate here
-  //  }
-  //  return throwError(err);
-  //}
-
+  
   private handleAuthError(req: HttpRequest<any>, next: HttpHandler, err: HttpErrorResponse) {
     if (!this.isRefreshingToken) {
       this.isRefreshingToken = true;
@@ -53,8 +34,11 @@ export class ApiInterceptor implements HttpInterceptor {
           return next.handle(req);
         }),
         catchError(err => {
-          this.router.navigateByUrl("/Login");
-          this._api.logout();
+          if (req.url.includes("RefreshToken")) {
+            this.router.navigateByUrl("/Login");
+            this._api.logout();
+          }
+         
           return of();
         }),
         finalize(() => {

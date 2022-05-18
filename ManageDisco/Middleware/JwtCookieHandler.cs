@@ -57,7 +57,7 @@ namespace ManageDisco.Middleware
 
                 var cookie = context.Request.Path == "/api/User/Login" || 
                     //new customer registration
-                    (context.Request.Path == "/api/User/Register" && !context.Request.Cookies.Any(x => x.Key == CookieConstants.AUTHORIZATION_COOKIE)) ? null : _encryption.DecryptCookie(context.Request.Cookies[CookieConstants.AUTHORIZATION_COOKIE]);
+                    (context.Request.Path == "/api/User/Register" && !context.Request.Cookies.Any(x => x.Key == CookieService.AUTHORIZATION_COOKIE)) ? null : _encryption.DecryptCookie(context.Request.Cookies[CookieService.AUTHORIZATION_COOKIE]);
 
                 if (cookie != null)
                 {
@@ -106,8 +106,12 @@ namespace ManageDisco.Middleware
        
         private async Task<IActionResult> HandleNoValidToken(DiscoContext db, HttpContext context)
         {
-            string controller = context.Request.Path.Value.Split("/")[2];
             string path = context.Request.Path;
+            if (String.IsNullOrEmpty(path) || path == "/")
+                return new OkResult();  //home path. Doesn't need token check
+
+            string controller = path.Split("/")[2];
+            
             AnonymusAllowed anonymus = await db.AnonymusAllowed.FirstOrDefaultAsync(x => x.Path == path && x.Controller == controller);
 
             if (anonymus != null)

@@ -48,4 +48,19 @@ export class GeneralMethods {
     }];
   }
 
+  public static getChangePrModalViews(...args: any[]): ModalViewGroup[] {
+    return [{
+      type: ModalModelEnum.TextBox, viewItems: [{
+        label: "Codice nuovo PR", referenceId: "prCode", viewId: "txtPrCode"
+      }]
+    }]
+  }
+
+  public static getSimpleMessageModalViews(message: string): ModalViewGroup[] {
+    return [{
+      type: ModalModelEnum.Label, viewItems: [{
+        defaultText: message
+      }]
+    }]
+  }
 }

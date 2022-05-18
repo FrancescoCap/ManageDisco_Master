@@ -38,7 +38,7 @@ namespace ManageDisco.Middleware
                 {
                     var cookie = context.Request.Path == "/api/User/Login" ||
                    //new customer registration
-                   (context.Request.Path == "/api/User/Register" && !context.Request.Cookies.Any(x => x.Key == CookieConstants.AUTHORIZATION_COOKIE)) ? null : _encryption.DecryptCookie(context.Request.Cookies[CookieConstants.AUTHORIZATION_COOKIE]);
+                   (context.Request.Path == "/api/User/Register" && !context.Request.Cookies.Any(x => x.Key == CookieService.AUTHORIZATION_COOKIE)) ? null : _encryption.DecryptCookie(context.Request.Cookies[CookieService.AUTHORIZATION_COOKIE]);
                     
                     var jwtInfo = new JwtSecurityTokenHandler().ReadJwtToken(cookie);
 

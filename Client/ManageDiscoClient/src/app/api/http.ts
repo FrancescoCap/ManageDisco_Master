@@ -15,9 +15,10 @@ export class ApiHttpService {
   viewChild?: ViewContainerRef;
 
   private GET: string = "GET";
+  private GET_FILE: string = "GET_FILE";
   private POST: string = "POST";
   private PUT: string = "PUT";
-  private DELETE: string = "DELETE";
+  private DELETE: string = "DELETE";  
   
   constructor(private http: HttpClient,
         private router: Router) {
@@ -25,6 +26,10 @@ export class ApiHttpService {
 
   public getCall(url: string, onErrorCallback?: (status: number, message: string) => any): Observable<any> {
      return this.initCall(this.GET, url, null, onErrorCallback, 'body');
+  }
+
+  public getFileCall(url: string, onErrorCallback?: (status: number, message: string) => any): Observable<any> {
+    return this.initCall(this.GET_FILE, url, null, onErrorCallback);
   }
 
   public postCall(url: string, data: any, onErrorCallBack?: (status: number, message: string) => any) {
@@ -49,6 +54,9 @@ export class ApiHttpService {
     switch (method) {
       case this.GET:        
         methodCall = this.http.get(url, { withCredentials: true, observe: responseObserver != null ? responseObserver : 'body' }).pipe(catchError(err => this.handleErrorResponse(err, onErrorCallback)));
+        break;
+      case this.GET_FILE:
+        methodCall = this.http.get(url, { withCredentials: true, responseType: 'blob'}).pipe(catchError(err => this.handleErrorResponse(err, onErrorCallback)));
         break;
       case this.POST:
         methodCall = this.http.post(url, data, { withCredentials: true, observe: responseObserver != null ? responseObserver : 'body' }).pipe(catchError(err => this.handleErrorResponse(err, onErrorCallback)));

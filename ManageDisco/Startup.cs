@@ -79,15 +79,16 @@ namespace ManageDisco
 
             });
 
+            
             services.AddSingleton<Encryption>();
             services.AddSingleton<TwilioService>();
-            services.AddScoped<TokenService>();
+            services.AddScoped<CookieService>();
+            services.AddScoped<TokenService>();    
 
             services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<DiscoContext>();            
 
-            services.AddControllers();
-            
+            services.AddControllers();           
 
         }
 
@@ -100,11 +101,11 @@ namespace ManageDisco
                
             }
 
-            //app.UseMiddleware<EncryptionMiddleware>();
             app.UseSession();
-            //app.UseMiddleware<Security>();
+
             app.UseMiddleware<JwtCookieHandler>();
             app.UseMiddleware<UserPermissionMiddleware>();
+           
             app.UseCors("corsPolicy");           
             app.UseRouting();
             
@@ -112,8 +113,7 @@ namespace ManageDisco
             app.UseAuthorization();
                        
             CreateRoles(service).Wait();
-            CreateProductShopType(service).Wait();
-           
+            CreateProductShopType(service).Wait();           
 
             app.UseEndpoints(endpoints =>
             {
@@ -189,8 +189,41 @@ namespace ManageDisco
 
                 await CreatePermissionActionValues(service);
                 await CreateAnonymusPath(service);
+                await InitializeCookiesTable(serviceProvider);
             }
                
+        }
+
+        private async Task InitializeCookiesTable(IServiceProvider serviceProvider)
+        {
+            var cookieService = serviceProvider.GetRequiredService<CookieService>();
+            var db = serviceProvider.GetRequiredService<DiscoContext>();
+            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+
+            List<Cookie> cookiesToAdd = new List<Cookie>();
+
+            foreach(string cookie in cookieService.GetCookiesKeyList())
+            {
+                cookiesToAdd.Add(new Cookie()
+                {
+                    Name = cookie,
+                    Value = "",
+                    Domain = configuration["NgRok:Server"],
+                    HttpOnly = cookie == CookieService.AUTHORIZATION_COOKIE || cookie == CookieService.REFRESH_COOKIE,
+                    SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict,
+                    Expires = cookie == CookieService.REFRESH_COOKIE ? DateTime.UtcNow.AddMonths(1) : DateTime.UtcNow.AddYears(1),
+                    Roles = cookie == CookieService.PR_REF_COOKIE ? "CUSTOMER" : (cookie == CookieService.AUTH_FULL_COOKIE ? "ADMINISTRATOR" : "ALL")
+                });
+            }
+
+            cookiesToAdd.ForEach(c =>
+            {
+                if (!db.Cookies.Any(x => x.Name == c.Name))
+                {
+                    db.Cookies.Add(c);
+                }
+            });
+            await db.SaveChangesAsync();            
         }
 
     }

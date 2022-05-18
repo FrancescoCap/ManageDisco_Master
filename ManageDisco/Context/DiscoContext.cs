@@ -50,6 +50,10 @@ namespace ManageDisco.Context
         public DbSet<PermissionAction> PermissionAction { get; set; }
         public DbSet<UserPermission> UserPermission { get; set; }
         public DbSet<AnonymusAllowed> AnonymusAllowed { get; set; }
+        public DbSet<TableCouponUsed> TableCouponUsed { get; set; }
+        public DbSet<TablePreOrderHeader> TablePreOrderHeader { get; set; }
+        public DbSet<TablePreOrderRow> TablePreOrderRow { get; set; }
+        public DbSet<Cookie> Cookies { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseLoggerFactory(loggerFactory);

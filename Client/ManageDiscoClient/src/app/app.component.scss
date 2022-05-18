@@ -23,9 +23,12 @@ body {
   height:1020px;
   overflow:auto
 }
+
 .body-home-container {
   padding: 71px 0 0 0;
 }
+
+
 
 @media only screen and (max-width: 600px) {
   swiper {
@@ -620,6 +623,14 @@ select {
 
 .mobile-list {
   max-height: 100%;
+}
+
+@media only screen and (max-height: 1200px) {
+  
+  .mobile-list {
+    max-height: 800px;
+    overflow: auto;
+  }
 }
 
 @media only screen and (max-width: 600px){
