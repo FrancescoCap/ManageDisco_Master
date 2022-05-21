@@ -41,8 +41,8 @@ const routes:Routes = [
   { path: 'PhoneNumber', loadChildren: () => import('./views/coupon/coupon.module').then(m => m.CouponModule)},
   { path: 'Shop', loadChildren: () => import('./views/shop/shop.module').then(m => m.ShopModule)}
 ]
-export const server_URL = "http://localhost:5000/api/";
-export const client_URL = "http://localhost:4200";
+export const server_URL = "http://managedisco-001-site1.dtempurl.com/api/";
+export const client_URL = "http://managedisco-001-site1.dtempurl.com/";
 export const LOCALSTORARE_LOGIN_HEADER = "loginHeader";
 export const LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU = "loginHeaderEnableMenu";
 export const LOCALSTORARE_LAST_PAGE_REQUEST = "lastPageRequest";
