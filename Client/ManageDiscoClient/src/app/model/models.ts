@@ -1,4 +1,5 @@
 export enum CookieConstants {
+  ISAUTHENTICATED = "authenticated",
   AUTHORIZATION_COOKIE = "c_us",
   REFRESH_COOKIE = "c_r",
   ISAUTH_COOKIE = "c_in",

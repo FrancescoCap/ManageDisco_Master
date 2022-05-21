@@ -66,4 +66,7 @@ export class UserService {
   public getPoints() {
     return this._points;
   }
+  public removeLocalCookie(cookieName:string) {
+    document.cookie = cookieName + "=false";
+  }
 }
