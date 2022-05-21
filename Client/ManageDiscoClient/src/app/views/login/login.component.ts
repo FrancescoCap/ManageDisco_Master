@@ -4,7 +4,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { ApiCaller } from '../../api/api';
-import { client_URL, LOCALSTORARE_LOGIN_HEADER, LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, onLoginResponse } from '../../app.module';
+import { client_URL, LOCALSTORARE_LOGIN_HEADER, LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, onLoginResponse, onMenuChange } from '../../app.module';
 import {LoginRequest } from '../../model/models';
 import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
@@ -28,18 +28,19 @@ export class LoginComponent implements OnInit {
 
   constructor(private _api: ApiCaller,
     private _generalService: GeneralService,
-    private _cookie: CookieService) {
+    private _cookie: CookieService,
+    private _router: Router) {
   }
 
   ngOnInit(): void {
-    this.isMobileView = this._generalService.isMobileView();
-    this._cookie.deleteAll();
+    this.isMobileView = this._generalService.isMobileView();    
     onLoginResponse.next("Login");
     localStorage.setItem(LOCALSTORARE_LOGIN_HEADER, "Login");    
   }
 
   ngAfterViewInit() {
     this._api.setModalContainer(this.modalContainer!);
+    this._cookie.deleteAll();
   }
 
   public login() {
@@ -49,9 +50,11 @@ export class LoginComponent implements OnInit {
       })).subscribe((data: any) => {               
         var headerString = "Bentornato " + data.body.userNameSurname + '<br>' + "Saldo punti: " + data.body.userPoints;
         onLoginResponse.next(headerString);
+        onMenuChange.next(true);
+
         localStorage.setItem(LOCALSTORARE_LOGIN_HEADER, headerString);
         localStorage.setItem(LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, "1");
-        document.location.href = `${client_URL}/Home`;
+        this._router.navigateByUrl("Home");
     });
   }
 
