@@ -36,18 +36,20 @@ namespace ManageDisco
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
-        {           
-            //non funzionano le migrazioni. Probabilmente il problema è qui
+        {
+            services.AddTransient<ExceptionHandlerMiddleware>();
+
             services.AddDbContext<DiscoContext>(options => { 
                 options.UseSqlServer(Configuration.GetConnectionString("connString"));              
                
             });
-            
+
             services.AddAntiforgery(options =>
             {
                 options.Cookie.Name = "ATF-F";
                 options.Cookie.HttpOnly = false;
             });
+
             services.AddAuthentication(options => { 
             })                       
                 .AddJwtBearer(opions => {
@@ -68,18 +70,15 @@ namespace ManageDisco
             services.AddCors(options =>
             {
                 options.AddPolicy("corsPolicy", policy => {
+                    //policy.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod();
                     policy.AllowCredentials();
-                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins().WithOrigins(new string[] { "http://localhost:4200", ngRokClientRewrite }); 
+                    policy.AllowAnyMethod().AllowAnyHeader().WithOrigins().WithOrigins(new string[] { ngRokClientRewrite }).SetIsOriginAllowed(c => true); 
                     
                 });
             });
-
             services.AddDistributedMemoryCache();
-            services.AddSession(options => {
+            services.AddSession();
 
-            });
-
-            
             services.AddSingleton<Encryption>();
             services.AddSingleton<TwilioService>();
             services.AddScoped<CookieService>();
@@ -98,22 +97,22 @@ namespace ManageDisco
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-               
+
             }
 
             app.UseSession();
 
+            app.UseRouting();
+            app.UseCors("corsPolicy");
+            app.UseMiddleware<ExceptionHandlerMiddleware>();
             app.UseMiddleware<JwtCookieHandler>();
             app.UseMiddleware<UserPermissionMiddleware>();
-           
-            app.UseCors("corsPolicy");           
-            app.UseRouting();
-            
+
             app.UseAuthentication();            
             app.UseAuthorization();
-                       
+
             CreateRoles(service).Wait();
-            CreateProductShopType(service).Wait();           
+            CreateProductShopType(service).Wait();
 
             app.UseEndpoints(endpoints =>
             {
@@ -164,11 +163,12 @@ namespace ManageDisco
             }
         }
 
-        public async Task CreatePermissionActionValues(DiscoContext db)
+        public async Task CreatePermissionActionValues(IServiceProvider serviceProvider)
         {
-
+            var db = serviceProvider.GetRequiredService<DiscoContext>();
             var permissionActionExist = await db.PermissionAction.ToListAsync();
             var permissionsToInsert = PermissionActionList.GetToInsertPermissions(permissionActionExist);
+           
             await db.PermissionAction.AddRangeAsync(permissionsToInsert);
             await db.SaveChangesAsync();
 
@@ -187,7 +187,7 @@ namespace ManageDisco
                 }
                 await service.SaveChangesAsync();
 
-                await CreatePermissionActionValues(service);
+                await CreatePermissionActionValues(serviceProvider);
                 await CreateAnonymusPath(service);
                 await InitializeCookiesTable(serviceProvider);
             }

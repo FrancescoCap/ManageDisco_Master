@@ -31,4 +31,10 @@
     <PackageReference Include="Twilio.AspNet.Core" Version="5.68.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Resource\PermissionAction.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

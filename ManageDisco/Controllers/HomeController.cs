@@ -56,10 +56,10 @@ namespace ManageDisco.Controllers
 
                        photos.ForEach(f =>
                        {
-                           string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(
-                               HelperMethods.GetFileStreamToFtp(f.EventPhotoImagePath, ftpUser, ftpPassword)));
+                           //string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(
+                           //    HelperMethods.GetFileStreamToFtp(f.EventPhotoImagePath, ftpUser, ftpPassword)));
 
-                           x.LinkImage.Add(base64Value);
+                           //x.LinkImage.Add(base64Value);
                        });
                     });
                 }),
@@ -112,15 +112,15 @@ namespace ManageDisco.Controllers
                         }
 
                     });
-                     homeData.HomePhoto.ForEach(x =>
-                     {
-                           var imgByte = HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(x.HomePhotoPath, ftpUser, ftpPassword));
-                           string base64Image = Convert.ToBase64String(imgByte);
+                     //homeData.HomePhoto.ForEach(x =>
+                     //{
+                     //      var imgByte = HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(x.HomePhotoPath, ftpUser, ftpPassword));
+                     //      string base64Image = Convert.ToBase64String(imgByte);
 
-                         x.Base64Image.Add(base64Image);
-                         x.HomePhotoPath = x.HomePhotoPath.Split('/').Last();
+                     //    x.Base64Image.Add(base64Image);
+                     //    x.HomePhotoPath = x.HomePhotoPath.Split('/').Last();
 
-                     });
+                     //});
 
                 }),
                 new Task(() =>
@@ -200,16 +200,16 @@ namespace ManageDisco.Controllers
                 * Se il file è già presente sull'ftp significa che è un aggiornamento dell'immagine e quindi non ho necesittà di scrivere
                 * il riferimento al path nel db altrimenti le immagini verrebbero duplicate 
                 */
-               if (!HelperMethods.CheckFileFromFtp(ftpAddress, ftpUser, ftpPassword, fileName + "." + fileExtension))
-               {
-                   _db.HomePhoto.Add(new HomePhoto()
-                   {
-                       HomePhotoPath = $"{ftpAddress}/{fileName}.{fileExtension}",
-                       PhotoTypeId = x.PhotoTypeId
-                   });
-               }
+               //if (!HelperMethods.CheckFileFromFtp(ftpAddress, ftpUser, ftpPassword, fileName + "." + fileExtension))
+               //{
+               //    _db.HomePhoto.Add(new HomePhoto()
+               //    {
+               //        HomePhotoPath = $"{ftpAddress}/{fileName}.{fileExtension}",
+               //        PhotoTypeId = x.PhotoTypeId
+               //    });
+               //}
 
-               HelperMethods.UploadFileToFtp(ftpAddress, ftpUser, ftpPassword, $"{fileName}.{fileExtension}", Convert.FromBase64String(imgContent));
+               //HelperMethods.UploadFileToFtp(ftpAddress, ftpUser, ftpPassword, $"{fileName}.{fileExtension}", Convert.FromBase64String(imgContent));
                /*  Il salvataggio non lo faccio in asincrono perchè altrimenti parte l'upload della foto successiva generando l'eccezione
                *   sull'utilizzo di una stessa instaza DbContext su due thread differenti.
                *   Ho bisogno di salvare all'interno del ciclo perchè photoIndex deve essere sempre aggiornato con il count
@@ -232,7 +232,7 @@ namespace ManageDisco.Controllers
 
             //siccome a db non devo cambiare il titolo perchè è sempre lo stesso, per aggiornare la foto devo solo cambiare la foto sull'ftp
             byte[] photoBytes = Convert.FromBase64String(photo.Base64NewPhoto);
-            await HelperMethods.UploadFileToFtp(ftpAddress, ftpUser, ftpPassword, photo.PhotoName, photoBytes);
+            //await HelperMethods.UploadFileToFtp(ftpAddress, ftpUser, ftpPassword, photo.PhotoName, photoBytes);
 
             return Ok();
         }

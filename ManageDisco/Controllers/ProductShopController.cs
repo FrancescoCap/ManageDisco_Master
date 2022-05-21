@@ -42,10 +42,10 @@ namespace ManageDisco.Controllers
                     ProductShopImagePath = x.ProductShopImagePath
                 }).ToListAsync();
 
-            header.ForEach(x =>
-            {
-                x.productShopBase64Image = !String.IsNullOrEmpty(x.ProductShopImagePath) ? HelperMethods.GetBase64Image(x.ProductShopImagePath, ftpUser, ftpPassword) : HelperMethods.GetBase64DefaultNoImage(ftpAddress, ftpUser,ftpPassword);
-            });
+            //header.ForEach(x =>
+            //{
+            //    x.productShopBase64Image = !String.IsNullOrEmpty(x.ProductShopImagePath) ? /*HelperMethods.GetBase64Image(x.ProductShopImagePath, ftpUser, ftpPassword)*/"" : HelperMethods.GetBase64DefaultNoImage(ftpAddress, ftpUser,ftpPassword);
+            //});
 
             return Ok(header);
         }
@@ -116,8 +116,8 @@ namespace ManageDisco.Controllers
 
 
             await _db.SaveChangesAsync();
-            if(!String.IsNullOrEmpty(productShop.ProductShopBase64Image))
-                await HelperMethods.UploadFileToFtp(ftpAddress, ftpUser, ftpPassword, fileName, Convert.FromBase64String(productShop.ProductShopBase64Image.Split(",").Last()));
+            //if(!String.IsNullOrEmpty(productShop.ProductShopBase64Image))
+            //    await HelperMethods.UploadFileToFtp(ftpAddress, ftpUser, ftpPassword, fileName, Convert.FromBase64String(productShop.ProductShopBase64Image.Split(",").Last()));
 
             return Ok();
         }

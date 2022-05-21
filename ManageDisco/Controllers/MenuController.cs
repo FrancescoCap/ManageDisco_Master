@@ -14,72 +14,18 @@ using System.Threading.Tasks;
 
 namespace ManageDisco.Controllers
 {
+    [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
     public class MenuController : BaseController
     {
         public MenuController(DiscoContext db) : base(db)
         {
-        }
-
-        [AllowAnonymous]
-        [HttpGet]
-        [Route("General")]
-        public async Task<IActionResult> GetStandardMenu()
-        {
-            List<HeaderMenu> menu = new List<HeaderMenu>();
-           
-            HeaderMenu home = new HeaderMenu()
-            {
-                Header = "Home",
-                Link = "/Home"
-            };
-
-            HeaderMenu events = new HeaderMenu()
-            {
-                Header = "Eventi",
-                Link = "/Events",
-                child = new List<MenuChild>()
-                {
-                    new MenuChild()
-                    {
-                        Title = "Programmazione eventi",
-                        Link = "/Events"
-                    }
-                }
-            };
-
-            HeaderMenu catalog = new HeaderMenu()
-            {
-                Header = "Listino",
-                Link = "#",
-                child = new List<MenuChild>()
-                {
-                    new MenuChild()
-                    {
-                        Title = "Bottiglie",
-                        Link = "/Product"
-                    }
-                }
-            };
-
-            HeaderMenu shop = new HeaderMenu()
-            {
-                Header = "Shop",
-                Link = "Shop"
-            };
-
-            menu.Add(home);
-            menu.Add(events);
-            menu.Add(shop);
-            menu.Add(catalog);
-
-            return Ok(menu);
-        }
-
+        }        
+       
      
         [HttpGet]
-        public async Task<IActionResult> GetMenu()
+        public async Task<IActionResult> GetMenu([FromQuery]bool isAnonymus)
         {
             List<HeaderMenu> menu = new List<HeaderMenu>();
             #region commonMenu
@@ -109,20 +55,7 @@ namespace ManageDisco.Controllers
             {
                 Header = "Gestione generale",
                 Link = "/MyProfile",
-                Icon = "fas fa-cogs",
-                child = new List<MenuChild>()
-                {
-                    //new MenuChild()
-                    //{
-                    //    Title ="I miei dati",
-                    //    Link = "/MyProfile"
-                    //},
-                    //new MenuChild()
-                    //{
-                    //     Title = "Impostazione PR",
-                    //     Link = "/Pr"
-                    //}
-                }               
+                Icon = "fas fa-cogs"                    
             };
 
             HeaderMenu catalog = new HeaderMenu()
@@ -140,6 +73,7 @@ namespace ManageDisco.Controllers
                     }
                 }
             };
+
             HeaderMenu shop = new HeaderMenu()
             {
                 Header = "Shop",
@@ -150,6 +84,12 @@ namespace ManageDisco.Controllers
             menu.Add(home);
             menu.Add(events);
             menu.Add(shop);
+            menu.Add(catalog);
+
+            //if is an anonymus user, menu above is enough
+            if (isAnonymus)
+                return Ok(menu);
+
             #region Customer only option
             if (!HelperMethods.UserIsInStaff(_user))
             {
@@ -162,7 +102,7 @@ namespace ManageDisco.Controllers
                 menu.Add(customerReservations);
             }
             #endregion
-            menu.Add(catalog);
+          
             #endregion
 
             #region PR & Administrator menu

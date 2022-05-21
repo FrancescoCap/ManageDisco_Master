@@ -35,7 +35,7 @@ namespace ManageDisco.Controllers
         public IActionResult GetCoupon([FromQuery] string refer)
         {
             refer = refer.Replace("\"", ""); //Perchè quando riceve il parametro aggiunge in automatico " in fondo?
-            return Ok(new { value = HelperMethods.GetBase64Image($"{ftpAddress}/Coupons/{refer}_coupon.webp", ftpUser, ftpPassword) });
+            return Ok(new { value = ""/*HelperMethods.GetBase64Image($"{ftpAddress}/Coupons/{refer}_coupon.webp", ftpUser, ftpPassword)*/ });
         }
         /// <summary>
         /// Validazione coupon acquistato dallo shop

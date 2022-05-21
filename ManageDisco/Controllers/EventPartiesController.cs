@@ -51,13 +51,13 @@ namespace ManageDisco.Controllers
                 }).OrderByDescending(x => x.Date).ToListAsync();
 
 
-            events.ForEach(x =>
-            {
-                var address = _db.EventPhoto.FirstOrDefault(p => p.EventPhotoEventId == x.Id).EventPhotoImagePath;
-                string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPassword)));
-                x.ImagePreview = base64Value;
+            //events.ForEach(x =>
+            //{
+            //    var address = _db.EventPhoto.FirstOrDefault(p => p.EventPhotoEventId == x.Id).EventPhotoImagePath;
+            //    string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPassword)));
+            //    x.ImagePreview = base64Value;
 
-            });
+            //});
 
 
 
@@ -92,12 +92,12 @@ namespace ManageDisco.Controllers
                 }).OrderByDescending(x => x.Date).ToListAsync();
                       
 
-            events.ForEach(x =>
-            {
-                var address = _db.EventPhoto.FirstOrDefault(p => p.EventPhotoEventId == x.Id).EventPhotoImagePath;
-                string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPassword)));
-                x.ImagePreview = base64Value;
-            });       
+            //events.ForEach(x =>
+            //{
+            //    var address = _db.EventPhoto.FirstOrDefault(p => p.EventPhotoEventId == x.Id).EventPhotoImagePath;
+            //    string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPassword)));
+            //    x.ImagePreview = base64Value;
+            //});       
 
             EventPartyOverview partyOverview = new EventPartyOverview();
             partyOverview.Events = events;
@@ -133,11 +133,11 @@ namespace ManageDisco.Controllers
 
             if (eventImgs != null && eventImgs.Count > 0)
             {
-                eventImgs.ForEach(x =>
-                {
-                    var imgBytes = HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(x.EventPhotoImagePath, ftpUser, ftpPassword));
-                    eventParty.LinkImage.Add(Convert.ToBase64String(imgBytes));
-                });
+                //eventImgs.ForEach(x =>
+                //{
+                //    var imgBytes = HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(x.EventPhotoImagePath, ftpUser, ftpPassword));
+                //    eventParty.LinkImage.Add(Convert.ToBase64String(imgBytes));
+                //});
 
             }
 
@@ -179,11 +179,11 @@ namespace ManageDisco.Controllers
 
             if (eventImgs != null && eventImgs.Count > 0)
             {
-                eventImgs.ForEach(x =>
-                {
-                    var imgBytes = HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(x.EventPhotoImagePath, ftpUser, ftpPassword));
-                    eventParty.LinkImage.Add(Convert.ToBase64String(imgBytes));
-                });
+                //eventImgs.ForEach(x =>
+                //{
+                //    var imgBytes = HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(x.EventPhotoImagePath, ftpUser, ftpPassword));
+                //    eventParty.LinkImage.Add(Convert.ToBase64String(imgBytes));
+                //});
                 
             }
 
@@ -227,17 +227,17 @@ namespace ManageDisco.Controllers
                 var imgContent = s.Split(',').Last();
                 string fileName = photoIndex.ToString() + "_" + eventParty.Id;
                 string fileExtension = "webp";
-                await HelperMethods.UploadFileToFtp(ftpAddress, ftpUser, ftpPassword, $"{fileName}.{fileExtension}", Convert.FromBase64String(imgContent));
+                //await HelperMethods.UploadFileToFtp(ftpAddress, ftpUser, ftpPassword, $"{fileName}.{fileExtension}", Convert.FromBase64String(imgContent));
                 //Devo gestire l'index dell'array del tipo di foto. Se entro qui vuol dire che devo inserire le foto del dettaglio
                 if (photoTypeIndex > eventPhotoType.Count - 1)
                     photoTypeIndex = eventPhotoType.Count-1;
 
-                _db.EventPhoto.Add(new EventPhoto()
-                {
-                    EventPhotoEventId = eventParty.Id,
-                    EventPhotoImagePath = $"{ftpAddress}/{fileName}.{fileExtension}",
-                    PhotoTypeId = eventPhotoType[photoTypeIndex].PhotoTypeId
-                });
+                //_db.EventPhoto.Add(new EventPhoto()
+                //{
+                //    EventPhotoEventId = eventParty.Id,
+                //    EventPhotoImagePath = $"{ftpAddress}/{fileName}.{fileExtension}",
+                //    PhotoTypeId = eventPhotoType[photoTypeIndex].PhotoTypeId
+                //});
                 
                 photoIndex++;
                 photoTypeIndex++;

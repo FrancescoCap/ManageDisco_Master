@@ -89,11 +89,11 @@ namespace ManageDisco.Controllers
                 var ftpUsername = _conf["Ftp:User"];
                 var ftpPassword = _conf["Ftp:Pass"];
 
-                HelperMethods.UploadFileToFtp(
-                    $"{ftpAddress}/Coupons",
-                    ftpUsername, ftpPassword,
-                    $"{couponGenerationResponse.UserId}_coupon.webp",
-                    HelperMethods.ConvertBitmapToByteArray(couponGenerationResponse.ImageStream));
+                //HelperMethods.UploadFileToFtp(
+                //    $"{ftpAddress}/Coupons",
+                //    ftpUsername, ftpPassword,
+                //    $"{couponGenerationResponse.UserId}_coupon.webp",
+                //    HelperMethods.ConvertBitmapToByteArray(couponGenerationResponse.ImageStream));
             /*
              * L'inivio di immagini funziona. Questo è un URL di un'immagine casuale.
              * Quando andrò in produzione dovrò sostituirlo con l'indirizzo FTP associato al coupon

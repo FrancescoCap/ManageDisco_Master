@@ -19,6 +19,7 @@ namespace ManageDisco.Context
         {
         }
 
+        public DbSet<Log> Log { get; set; }
         public DbSet<IdentityRole> Roles { get; set; }
         public DbSet<EventParty> Events { get; set; }
         public DbSet<ReservationType> ReservationType { get; set; }
