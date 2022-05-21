@@ -42,7 +42,7 @@ const routes:Routes = [
   { path: 'PhoneNumber', loadChildren: () => import('./views/coupon/coupon.module').then(m => m.CouponModule)},
   { path: 'Shop', loadChildren: () => import('./views/shop/shop.module').then(m => m.ShopModule)}
 ]
-export const server_URL = "http://managedisco-001-site1.dtempurl.com/api/";
+export const server_URL = "http://managedisco.com/api/";
 
 export const LOCALSTORARE_LOGIN_HEADER = "loginHeader";
 export const LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU = "loginHeaderEnableMenu";
