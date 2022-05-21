@@ -5,7 +5,7 @@ import { concatMap, mergeMap } from 'rxjs';
 import { toArray } from 'rxjs';
 import { forkJoin, Observable, of, Subject } from 'rxjs';
 import { ApiCaller } from './api/api';
-import { client_URL, LOCALSTORARE_LOGIN_HEADER, LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, onLoginResponse } from './app.module';
+import { client_URL, LOCALSTORARE_LOGIN_HEADER, LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, onLoginResponse, onMenuChange } from './app.module';
 import { HeaderMenu, HomeInfo } from './model/models';
 import { GeneralService } from './service/general.service';
 import { UserService } from './service/user.service';
@@ -34,7 +34,8 @@ export class AppComponent implements OnInit {
 
   constructor(private _api: ApiCaller,    
     private _generalService: GeneralService,
-    private _user: UserService) {}
+    private _user: UserService,
+    private _router:Router  ) { }
 
   ngOnInit(): void {
     //this.redirectToHomeifLogged();
@@ -48,9 +49,19 @@ export class AppComponent implements OnInit {
   }
 
   ngAfterViewInit() {
+    this.startListeners();
+  }
+
+  startListeners() {
     onLoginResponse.subscribe((value: string) => {
       this.authorizationStateString = value;
-    })
+    });
+
+    onMenuChange.subscribe(() => {
+      this._api.getMenu().subscribe((menu: HeaderMenu[]) => {
+        this.menu = menu;
+      })
+    });
   }
 
   getFooterAndHeader() {
@@ -80,8 +91,8 @@ export class AppComponent implements OnInit {
   }
 
   goToLoginPage() {
-    //uso il document.location altrimenti quando vado nella maschera di login non si aggiorna il menù
-    document.location.href = `${client_URL}/Login`
+    onMenuChange.next(true);
+    this._router.navigateByUrl("Login");
   }
 
   logout() {

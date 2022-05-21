@@ -45,15 +45,7 @@ namespace ManageDisco.Middleware
                 if (context.Request.Path.Value.Contains("/api/User/Login"))
                 {
                     context.Session.Clear();
-                }
-                //bool appendCookieFromClosedBrowser = context.Request.Cookies.Any(x => x.Key == CookieConstants.REFRESH_COOKIE) && !context.Request.Cookies.Any(x => x.Key == CookieConstants.AUTHORIZATION_COOKIE);
-                //if (appendCookieFromClosedBrowser)
-                //{
-                //    var refreshToken = context.Request.Cookies.FirstOrDefault(x => x.Key == CookieConstants.REFRESH_COOKIE);
-                //    AuthenticationResponse newTokens = await AttachNewTokens(db, context, userManager, _encryption, refreshToken.Value);
-                //    context.Response.Cookies.Append(CookieConstants.AUTHORIZATION_COOKIE, newTokens.Token);
-                //    context.Response.Cookies.Append(CookieConstants.REFRESH_COOKIE, newTokens.RefreshToken);
-                //}              
+                }          
 
                 var cookie = context.Request.Path == "/api/User/Login" || 
                     //new customer registration
@@ -64,20 +56,7 @@ namespace ManageDisco.Middleware
                     var jwtInfo = new JwtSecurityTokenHandler().ReadJwtToken(cookie);
                     var tokenExpirationDateString = jwtInfo.Claims.FirstOrDefault(x => x.Type == CustomClaim.CLAIM_EXPIRATIONDATE).Value;
                     var tokenExpirationDateMilliseconds = double.Parse(tokenExpirationDateString);
-                    ////if token is expired, redirect to general API
-                    //if (jwtInfo.ValidTo.CompareTo(DateTime.UtcNow) < 0) //expired
-                    //{
-                    //    var userId = jwtInfo.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
-                    //    var refreshToken = db.RefreshToken.FirstOrDefault(x => x.RefreshTokenUserId == userId && x.RefreshTokenIsValid == true).RefreshTokenLifetime;
-                    //    var refreshTokenExpireDate = new DateTime(refreshToken);
 
-                    //    if (refreshTokenExpireDate.CompareTo(DateTime.UtcNow) > 0)
-                    //        context.Request.Path = "/api/User/RefreshToken";
-                    //    else
-                    //        await HandleNoValidToken(db, context);
-                    //}
-                    //else
-                    //{
                     //if token is used with another agent means that was copied
                     string userAgent = jwtInfo.Claims.FirstOrDefault(x => x.Type == CustomClaim.CLAIM_USERAGENT).Value;
                         string agentCaller = context.Request.Headers["User-Agent"];
@@ -93,10 +72,18 @@ namespace ManageDisco.Middleware
                 }
                 else
                 {
-                    //Se entro qui singifica che l'utente è anonimo e non loggato
-                    //Rendirizzo verso un endpoint per l'accesso anonimo.
-                    //Per convenzione l'API dovrà avere un punto di access con path General
-                    await HandleNoValidToken(db, context);                   
+                    if (context.Request.Path.Value.Contains("RefreshToken"))
+                    {
+                        //if no cookie authorization is present and the path is RefreshToken not need to handle request. Result is always unauthorized
+                        return;
+                    }
+                    else
+                    {
+                        //Se entro qui singifica che l'utente è anonimo e non loggato
+                        //Rendirizzo verso un endpoint per l'accesso anonimo.
+                        //Per convenzione l'API dovrà avere un punto di access con path General
+                        await HandleNoValidToken(db, context);
+                    }                           
                 }
             }          
            
@@ -117,6 +104,7 @@ namespace ManageDisco.Middleware
             if (anonymus != null)
             {
                 context.Request.Path = anonymus.RedirectedPath;
+                context.Request.QueryString = context.Request.QueryString.Add("isAnonymus", "true");
                 return new OkResult();
             }
             else

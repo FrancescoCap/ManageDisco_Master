@@ -1,7 +1,7 @@
 import { ViewChild } from '@angular/core';
 import { ViewContainerRef } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { client_URL } from '../../app.module';
@@ -24,7 +24,8 @@ export class RegistrationComponent implements OnInit {
 
   constructor(private _api: ApiCaller,
     private _modal: ModalService,
-    private _route: ActivatedRoute  ) { }
+    private _route: ActivatedRoute,
+    private _router: Router) { }
 
   ngOnInit(): void {
     this._route.queryParams.subscribe(params => {
@@ -58,8 +59,7 @@ export class RegistrationComponent implements OnInit {
   }
 
   onRegistrationResponseModalClose = (data: any): void => {
-    setTimeout(function () {
-      document.location.href = client_URL + "/Login";
-    }, 1000);
+    setTimeout(() => { }, 1000);
+    this._router.navigateByUrl("Home");
   }
 }
