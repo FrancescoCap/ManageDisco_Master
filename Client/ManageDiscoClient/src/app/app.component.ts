@@ -35,7 +35,7 @@ export class AppComponent implements OnInit {
   constructor(private _api: ApiCaller,    
     private _generalService: GeneralService,
     private _user: UserService,
-    private _router:Router  ) { }
+    private _router:Router) { }
 
   ngOnInit(): void {
     //this.redirectToHomeifLogged();

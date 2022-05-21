@@ -4,8 +4,8 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { ApiCaller } from '../../api/api';
-import { client_URL, LOCALSTORARE_LOGIN_HEADER, LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, onLoginResponse, onMenuChange } from '../../app.module';
-import {LoginRequest } from '../../model/models';
+import { client_URL, LOCALSTORARE_ISAUTHENTICATED, LOCALSTORARE_LOGIN_HEADER, LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, onLoginResponse, onMenuChange } from '../../app.module';
+import {CookieConstants, LoginRequest } from '../../model/models';
 import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 import { UserService } from '../../service/user.service';
@@ -33,14 +33,15 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.isMobileView = this._generalService.isMobileView();    
-    onLoginResponse.next("Login");
+    this.isMobileView = this._generalService.isMobileView();
+   
     localStorage.setItem(LOCALSTORARE_LOGIN_HEADER, "Login");    
   }
 
   ngAfterViewInit() {
-    this._api.setModalContainer(this.modalContainer!);
     this._cookie.deleteAll();
+    onLoginResponse.next("Login");
+    this._api.setModalContainer(this.modalContainer!);    
   }
 
   public login() {
@@ -52,6 +53,7 @@ export class LoginComponent implements OnInit {
         onLoginResponse.next(headerString);
         onMenuChange.next(true);
 
+        document.cookie = CookieConstants.ISAUTHENTICATED + "=true";
         localStorage.setItem(LOCALSTORARE_LOGIN_HEADER, headerString);
         localStorage.setItem(LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, "1");
         this._router.navigateByUrl("Home");
