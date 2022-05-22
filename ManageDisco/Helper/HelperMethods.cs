@@ -229,16 +229,18 @@ namespace ManageDisco.Helper
                 ftpWebRequest.Method = WebRequestMethods.Ftp.DownloadFile;
 
                 return ftpWebRequest.GetResponse().GetResponseStream();
-
             }
             catch (Exception ex)
             {
-                return null;
+                throw new Exception(ex.Message);
             }
         }
 
         public static byte[] GetBytesFromStream(Stream stream)
         {
+            if (stream == null)
+                throw new NullReferenceException("GetBytesFromStream: stream is null");
+
             byte[] bytes;
             using (MemoryStream memory = new MemoryStream())
             {
@@ -255,8 +257,16 @@ namespace ManageDisco.Helper
         /// <returns></returns>
         public static string GetBase64DefaultNoImage(string defaultAddress, string ftpUser, string ftpPassword)
         {
-            var photoStream = GetFileStreamToFtp($"{defaultAddress}/{NO_IMAGE_PHOTONAME}", ftpUser, ftpPassword);
-            var photoBytes = GetBytesFromStream(photoStream);
+            byte[] photoBytes = null;
+            try
+            {
+                var photoStream = GetFileStreamToFtp($"{defaultAddress}/{NO_IMAGE_PHOTONAME}", ftpUser, ftpPassword);
+                photoBytes = GetBytesFromStream(photoStream);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
             return Convert.ToBase64String(photoBytes);
         }
         /// <summary>
@@ -266,8 +276,16 @@ namespace ManageDisco.Helper
         /// <returns></returns>
         public static string GetBase64Image(string defaultAddress, string ftpUser, string ftpPassword)
         {
-            var photoStream = GetFileStreamToFtp($"{defaultAddress}", ftpUser, ftpPassword);
-            var photoBytes = GetBytesFromStream(photoStream);
+            byte[] photoBytes = null;
+            try
+            {
+                var photoStream = GetFileStreamToFtp($"{defaultAddress}", ftpUser, ftpPassword);
+                photoBytes = GetBytesFromStream(photoStream);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
             return Convert.ToBase64String(photoBytes);
         }
 
