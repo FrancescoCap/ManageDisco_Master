@@ -51,13 +51,13 @@ namespace ManageDisco.Controllers
                 }).OrderByDescending(x => x.Date).ToListAsync();
 
 
-            //events.ForEach(x =>
-            //{
-            //    var address = _db.EventPhoto.FirstOrDefault(p => p.EventPhotoEventId == x.Id).EventPhotoImagePath;
-            //    string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPassword)));
-            //    x.ImagePreview = base64Value;
+            events.ForEach(x =>
+            {
+                var address = _db.EventPhoto.FirstOrDefault(p => p.EventPhotoEventId == x.Id).EventPhotoImagePath;
+                string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPassword)));
+                x.ImagePreview = base64Value;
 
-            //});
+            });
 
 
 
@@ -90,14 +90,14 @@ namespace ManageDisco.Controllers
                                         EventStatusConstants.STATUS_ONGOING : x.Date.Year == DateTime.Today.Year -100 ? EventStatusConstants.STATUS_CANCELLED : EventStatusConstants.STATUS_END,
                     UserHasReservation =  _db.Reservation.Any(r => r.EventPartyId == x.Id && r.UserIdOwner == _user.Id)
                 }).OrderByDescending(x => x.Date).ToListAsync();
-                      
 
-            //events.ForEach(x =>
-            //{
-            //    var address = _db.EventPhoto.FirstOrDefault(p => p.EventPhotoEventId == x.Id).EventPhotoImagePath;
-            //    string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPassword)));
-            //    x.ImagePreview = base64Value;
-            //});       
+
+            events.ForEach(x =>
+            {
+                var address = _db.EventPhoto.FirstOrDefault(p => p.EventPhotoEventId == x.Id).EventPhotoImagePath;
+                string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPassword)));
+                x.ImagePreview = base64Value;
+            });
 
             EventPartyOverview partyOverview = new EventPartyOverview();
             partyOverview.Events = events;
@@ -133,11 +133,11 @@ namespace ManageDisco.Controllers
 
             if (eventImgs != null && eventImgs.Count > 0)
             {
-                //eventImgs.ForEach(x =>
-                //{
-                //    var imgBytes = HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(x.EventPhotoImagePath, ftpUser, ftpPassword));
-                //    eventParty.LinkImage.Add(Convert.ToBase64String(imgBytes));
-                //});
+                eventImgs.ForEach(x =>
+                {
+                    var imgBytes = HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(x.EventPhotoImagePath, ftpUser, ftpPassword));
+                    eventParty.LinkImage.Add(Convert.ToBase64String(imgBytes));
+                });
 
             }
 
@@ -179,12 +179,12 @@ namespace ManageDisco.Controllers
 
             if (eventImgs != null && eventImgs.Count > 0)
             {
-                //eventImgs.ForEach(x =>
-                //{
-                //    var imgBytes = HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(x.EventPhotoImagePath, ftpUser, ftpPassword));
-                //    eventParty.LinkImage.Add(Convert.ToBase64String(imgBytes));
-                //});
-                
+                eventImgs.ForEach(x =>
+                {
+                    var imgBytes = HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(x.EventPhotoImagePath, ftpUser, ftpPassword));
+                    eventParty.LinkImage.Add(Convert.ToBase64String(imgBytes));
+                });
+
             }
 
             if (eventParty == null)
