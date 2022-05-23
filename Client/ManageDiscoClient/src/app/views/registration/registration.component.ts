@@ -4,7 +4,6 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError } from 'rxjs';
 import { ApiCaller } from '../../api/api';
-import { client_URL } from '../../app.module';
 import { LoginResponse, RegistrationRequest } from '../../model/models';
 import { ModalService } from '../../service/modal.service';
 

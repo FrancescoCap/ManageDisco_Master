@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using ManageDisco.Context;
+using Microsoft.Extensions.Configuration;
 using NPOI.SS.Formula.Functions;
 using System;
 using System.Collections.Generic;
@@ -13,11 +14,11 @@ namespace ManageDisco.Service
     {
         IConfiguration _conf;
         string endpoint = "";
-
+       
         public TwilioService(IConfiguration config)
         {
             _conf = config;
-            endpoint = $"{_conf["Twilio:UrlCallback"]}/api/Whatsapp";
+            endpoint = $"{_conf["Twilio:UrlCallback"]}api/Whatsapp";
         }
         /// <summary>
         /// Starts an auto-call for Twilio endpoint emulating message receveing from user

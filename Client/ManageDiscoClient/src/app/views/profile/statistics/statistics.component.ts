@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { ApiCaller } from '../../../api/api';
 import { maxTablePageRows } from '../../../app.module';
 import { TableViewDataModel } from '../../../components/tableview/tableview.model';
-import { Statistics } from '../../../model/models';
+import { EventParty, EventPartyView, Statistics } from '../../../model/models';
 
 @Component({
   selector: 'app-event-statistics',
@@ -13,7 +13,7 @@ import { Statistics } from '../../../model/models';
 })
 export class StatisticsComponent implements OnInit {
 
-  @Output("onEventChange") onEventChange: EventEmitter<number> = new EventEmitter<number>();
+ 
   @Input("eventId") changeEventListener?: Subject<number>;
   @Input("isMobileTemplate") isMobileTemplate = false;
 
@@ -36,11 +36,13 @@ export class StatisticsComponent implements OnInit {
 
   isLoading = false;
   eventId = 0;
+  events?: EventPartyView = { events: []};
 
   constructor(private _api:ApiCaller) { }
 
   ngOnInit(): void {
     this.rowsPerPage = maxTablePageRows;
+    this.getEvents();
     this.changeEventListener?.subscribe((id: number) => {
       this.eventId = id;
       this.initData();
@@ -56,6 +58,13 @@ export class StatisticsComponent implements OnInit {
         this.setDataForTableView();
         this.isLoading = false;
       })
+  }
+
+  getEvents() {
+    this._api.getEvents()
+      .subscribe((data:any) => {
+        this.events = data;
+    })
   }
 
   setDataForTableView() {
@@ -95,6 +104,10 @@ export class StatisticsComponent implements OnInit {
         ]
       })
     })
+  }
+
+  onEventChange() {
+    this.initData();
   }
 
 }

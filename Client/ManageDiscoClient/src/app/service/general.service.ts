@@ -39,7 +39,6 @@ export class GeneralService {
   public isMenuAlreadyLoaded() {    
     if (this.isMenuLoaded.observers.length == 0) {      
       this.setMenuLoaded(false);
-      console.log(this.isMenuLoaded);
     }
 
     return this.isMenuLoaded;

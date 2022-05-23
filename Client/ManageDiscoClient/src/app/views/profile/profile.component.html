@@ -75,16 +75,8 @@
       <div class="col-12">
         <label id="no-data" class="col-12">Statistiche</label>
         <small class="col-12">Visualizza le statistiche per evento.</small>
-      </div>
-      <div class="row col-12 mb-3">
-        <div class="row">
-          <select class="col-10 col-lg-4 p-2" [(ngModel)]="selectedEvent">
-            <option [value]="0">Filtra per evento</option>
-            <option *ngFor="let event Of events" [value]="event.id">{{event.name}} - {{event.date | date: 'dd/MM/yyyy'}}</option>
-          </select>
-        </div>
-      </div>
-      <app-event-statistics [eventId]="onEventChangeCaller" [isMobileTemplate]="isMobileView || isTabletView"></app-event-statistics>
+      </div>      
+      <app-event-statistics [isMobileTemplate]="isMobileView || isTabletView"></app-event-statistics>
     </div>
 
     <div class="col-12 col-lg-10 p-2 p-lg-5 div-container" style="border:1px solid #000" *ngIf="pageViews[PERMISSION_VIEW_INDEX]">

@@ -3,26 +3,15 @@ using ManageDisco.Helper;
 using ManageDisco.Model.UserIdentity;
 using ManageDisco.Resource;
 using ManageDisco.Service;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Twilio;
 using Twilio.AspNet.Common;
 using Twilio.AspNet.Core;
-using Twilio.Rest.Api.V2010.Account;
 using Twilio.TwiML;
-using Twilio.TwiML.Messaging;
-using Twilio.Types;
 
 namespace ManageDisco.Controllers
 {
@@ -104,7 +93,7 @@ namespace ManageDisco.Controllers
             };
             //_twilioService.StartTwilioResponse(from, to, $"Ciao {user.Name} {user.Surname} sono Opium! Puoi trovare il coupon al seguente link: {couponGenerationResponse.Link.Replace("http://","")}");
             _twilioService.StartTwilioResponse(from, to, $"Ciao {user.Name} {user.Surname} sono Opium! Puoi trovare il coupon al seguente link: {couponGenerationResponse.Link.Replace("http://","")}", media);
-          
+            
         }
 
         private void SendPhoneNumberConfirmation(string from, string to)

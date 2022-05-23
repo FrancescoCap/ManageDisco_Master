@@ -1,12 +1,10 @@
 import { OnInit } from '@angular/core';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { concatMap, mergeMap } from 'rxjs';
-import { toArray } from 'rxjs';
-import { forkJoin, Observable, of, Subject } from 'rxjs';
+import { CookieService } from 'ngx-cookie-service';
 import { ApiCaller } from './api/api';
-import { client_URL, LOCALSTORARE_LOGIN_HEADER, LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, onLoginResponse, onMenuChange } from './app.module';
-import { HeaderMenu, HomeInfo } from './model/models';
+import { LOCALSTORARE_LOGIN_HEADER, LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, onLoginResponse, onMenuChange } from './app.module';
+import { CookieConstants, HeaderMenu, HomeInfo } from './model/models';
 import { GeneralService } from './service/general.service';
 import { UserService } from './service/user.service';
 
@@ -35,21 +33,22 @@ export class AppComponent implements OnInit {
   constructor(private _api: ApiCaller,    
     private _generalService: GeneralService,
     private _user: UserService,
-    private _router:Router) { }
+    private _router: Router,
+    private _cookieService:CookieService) { }
 
   ngOnInit(): void {
-    //this.redirectToHomeifLogged();
     this.isMobileView = this._generalService.isMobileView() || this._generalService.isTabletView();
-    this.isAuthenticated = this._user!.userIsAuthenticated();
-    this.getFooterAndHeader();
+    this.getFooter();
     
     this.authorizationStateString = localStorage.getItem(LOCALSTORARE_LOGIN_HEADER)!;
     onLoginResponse.next(this.authorizationStateString);
     this.isLoginHeaderMenuEnabled = localStorage.getItem(LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU) == "1";
+    
   }
 
   ngAfterViewInit() {
     this.startListeners();
+    onMenuChange.next(false);    
   }
 
   startListeners() {
@@ -57,30 +56,29 @@ export class AppComponent implements OnInit {
       this.authorizationStateString = value;
     });
 
-    onMenuChange.subscribe(() => {
-      this._api.getMenu().subscribe((menu: HeaderMenu[]) => {
-        this.menu = menu;
-      })
+    onMenuChange.subscribe((startCall: boolean) => {
+      
+      if (startCall) {
+        this._cookieService.delete(CookieConstants.MENU_STATE);
+        this._api.getMenu().subscribe((menu: HeaderMenu[]) => {
+          this.menu = menu;
+          //save menu when is not necessary refresh tabs
+          var menuString = this.serializeMenuInCookie();
+          var menuCookie = `${menuString}`;
+          this._cookieService.set(CookieConstants.MENU_STATE,menuCookie);
+        });
+      } else {
+        this.deserializeMenuCookie();
+      }
     });
   }
 
-  getFooterAndHeader() {
-    var calls: Observable<any> = of(
-      this._api.getHomeInfo(),
-      this._api.getMenu()
-    )
-
-    calls.pipe(
-      concatMap(value => { return value; }),
-      toArray()
-    )
-      .subscribe((data: any) => {
-      this.homeInfo = data[0]
-      this.menu = data[1] as HeaderMenu[];
+  getFooter() {
+    this._api.getHomeInfo().subscribe((data: any) => {
+      this.homeInfo = data;
       this.instagramContactTypeId = this.homeInfo!.contacts?.find(x => x.contactTypeDescription?.includes("Instagram"))?.contactTypeId;
       this.facebookContactTypeId = this.homeInfo!.contacts?.find(x => x.contactTypeDescription?.includes("Facebook"))?.contactTypeId;     
     });
-
   }
 
   onLoginLogoutClick() {
@@ -108,4 +106,61 @@ export class AppComponent implements OnInit {
     this.showChildLogout = !this.showChildLogout;
   }
 
+  serializeMenuInCookie(): string {
+    var menuString: string = "";
+
+    this.menu?.forEach((h, hi) => { //hi = headerIndex
+      menuString += `${h.header}|${h.link}|${h.icon}|${h.child != null ? h.child?.length : 0}`;
+
+      if (h.child != null && h.child?.length > 0) {
+        h.child.forEach(c => {
+          menuString += `:${c.title}|${c.link}|${c.icon}`;
+        });
+      }
+      //I don't know why menu length starts from 1 and not 0
+      //new menu tab
+      menuString += hi < this.menu!.length-1 ? "," : "";
+
+    });
+    return menuString;
+  }
+
+  deserializeMenuCookie() {
+    var deserializedMenu: HeaderMenu[] = [];
+
+    var menuString = this._cookieService.get(CookieConstants.MENU_STATE);
+   
+    //get tabs
+    var headers = menuString.split(",");
+   
+    headers.forEach(h => {
+      var menuItem: HeaderMenu = {};
+      var headerValues = h.split("|");
+     
+      menuItem.header = headerValues[0];
+      menuItem.link = headerValues[1];
+      menuItem.icon = headerValues[2];
+      if (headerValues[3] != "0") {
+        menuItem.child = [];
+      }
+     
+      var childs = h.split(":");
+      if (childs.length == 1) {
+        //if length == 1 means that no have child beacause split() returns 1 item also if no split was done
+        deserializedMenu.push(menuItem);
+        return;
+      } 
+
+      childs.forEach(c => {
+        var childValues = c.split("|");       
+        menuItem.child?.push({
+          title: childValues[0],
+          link: childValues[1],
+          icon: childValues[2]
+        })
+      });
+      deserializedMenu.push(menuItem);
+    })
+    this.menu = deserializedMenu;
+  }
 }

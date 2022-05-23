@@ -1,3 +1,11 @@
+<div class="row col-12 mb-3">
+  <div class="row">
+    <select class="col-10 col-lg-4 p-2" [(ngModel)]="eventId" (change)="onEventChange()">
+      <option [value]="0">Filtra per evento</option>
+      <option *ngFor="let event Of events!.events" [value]="event.id">{{event.name}} - {{event.date | date: 'dd/MM/yyyy'}}</option>
+    </select>
+  </div>
+</div>
 <div class="col-12">
   <label id="no-data" class="col-12">Coupon ingresso omaggio:</label>
   <div class="col-12" *ngIf="statisticsList.freeEntrance != null">

@@ -6,7 +6,8 @@ export enum CookieConstants {
   PR_REF_COOKIE = "p_r",
   AUTH_FULL_COOKIE = "a_f",
   AUTH_STANDARD_COOKIE = "a_s",
-  CLIENT_SESSION = "c_s"
+  CLIENT_SESSION = "c_s",
+  MENU_STATE = "menu",
 }
 
 export enum TranslatedRolesEnum {

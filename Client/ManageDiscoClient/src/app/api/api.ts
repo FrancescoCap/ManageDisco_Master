@@ -269,7 +269,7 @@ export class ApiCaller {
   //    }));
   //}
 
-  public getEvents():Observable<EventPartyView> {
+  public getEvents() {
     return this.http.getCall(this.url.getEvents(), this.onApiError).pipe(
       map((data: EventPartyView) => {
         data.events!.map((item: EventParty) => {
