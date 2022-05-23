@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using ManageDisco.Context;
 using ManageDisco.Model;
 using ManageDisco.Model.UserIdentity;
+using ManageDisco.Helper;
+using Microsoft.AspNetCore.Identity;
 
 namespace ManageDisco.Controllers
 {
@@ -15,41 +17,101 @@ namespace ManageDisco.Controllers
     [ApiController]
     public class PaymentOverviewsController : BaseController
     {
-        public PaymentOverviewsController(DiscoContext db) : base(db)
+       
+        public PaymentOverviewsController(DiscoContext db,
+            UserManager<User> userManager) : base(db, userManager)
         {
+            
         }
 
-
-        // GET: api/PaymentOverviews
+        /// <summary>
+        /// Returns data useful for get payments to collaborator. Api used for mobile and desktop
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PaymentOverview>>> GetPaymentOverview([FromQuery] string userId)
+        public async Task<ActionResult<PaymentsOverviewFull>> GetPaymentsOverview([FromQuery] string userId)
         {
-            if (userId == "Seleziona collaboratore")
-                return Ok(new List<ReservationPaymentView>());
+            PaymentsOverviewFull paymentsData = new PaymentsOverviewFull();
+            List<Task> tasks = new List<Task>()
+            {
+                Task.Run(async () => {
 
+                    if (!HelperMethods.UserIsAdministrator(_user))
+                        return;
 
-            IQueryable<ReservationPaymentView> payments = _db.PaymentOverview
-              .Select(x => new ReservationPaymentView()
-              {
-                  PaymentId = x.PaymentOverviewId,
-                  Name = x.User.Name,
-                  Surname = x.User.Surname,
-                  TotalIncoming = x.TotalIncoming,
-                  TotalPayed = x.TotalCreditPayed,
-                  ResumeCredit = x.TotalCreditResume,
-                  UserId = x.UserId
-              });
+                    paymentsData.Collaborators = (List<User>) await _userManager.GetUsersInRoleAsync(RolesConstants.ROLE_ADMINISTRATOR);
+                    paymentsData.Collaborators.AddRange((List<User>) await _userManager.GetUsersInRoleAsync(RolesConstants.ROLE_PR));
+                    paymentsData.Collaborators.AddRange((List<User>) await _userManager.GetUsersInRoleAsync(RolesConstants.ROLE_WAREHOUSE_WORKER));
+                    //clean from unnecessary data
+                    paymentsData.Collaborators.ForEach(x =>
+                    {
+                        x.Email = "";
+                        x.PasswordHash = "";
+                        x.PhoneNumber = null;
+                        x.NormalizedEmail = "";
+                        x.UserName = "";
+                        x.NormalizedUserName = "";
+                        x.Gender = "";
+                        x.UserCode = "";
+                        x.SecurityStamp = "";
+                        x.ConcurrencyStamp = "";
+                    });
 
-            if (!String.IsNullOrEmpty(userId))
-                payments = payments.Where(x => x.UserId == userId);
+                }),
+                Task.Run(async () => {
+                    
+                        var tempList = _db.PaymentOverview
+                        .Select(x => new ReservationPaymentView()
+                        {
+                            PaymentId = x.PaymentOverviewId,
+                            TotalIncoming = x.TotalIncoming,
+                            TotalPayed = x.TotalCreditPayed,
+                            ResumeCredit = x.TotalCreditResume,
+                            Name = x.User.Name,
+                            Surname = x.User.Surname,
+                            UserId = x.UserId                           
+                        });
 
-            if (_user.Roles.Contains(RolesConstants.ROLE_PR))
-                payments = payments.Where(x => x.UserId == _user.Id);
+                        if (HelperMethods.UserIsAdministrator(_user))
+                        {
+                            if (!String.IsNullOrEmpty(userId))
+                                tempList = tempList.Where(x => x.UserId == userId);
+                        }else if (HelperMethods.UserIsPrOrAdministrator(_user))
+                        {
+                            tempList = tempList.Where(x => x.UserId == _user.Id);
+                        }
 
+                        paymentsData.PaymentsOverview =  await tempList.ToListAsync();
+                })/*,
+                Task.Run(() => {
+                    
+                        var tempList = _db.ReservationPayment
+                        .Select(x => new ReservationPayment()
+                        {
+                            ReservationPaymentId = x.ReservationPaymentId,
+                            ReservationPaymentAmount = x.ReservationPaymentAmount,
+                            ReservationPaymentDescription = x.ReservationPaymentDescription,
+                            ReservationPaymentDate = x.ReservationPaymentDate
+                        });
 
-            return Ok(payments.ToList());
+                        if (HelperMethods.UserIsAdministrator(_user))
+                        {
+                            tempList = tempList.Where(x => x.UserId == userId);
+                        }else if (HelperMethods.UserIsPrOrAdministrator(_user))
+                        {
+                            tempList = tempList.Where(x => x.UserId == _user.Id);
+                        }                   
+                
+                })*/
+            };
 
-        }  
+            tasks.ForEach(t =>
+            {
+                t.Wait(); 
+            });
+
+            return Ok(paymentsData);
+        }
 
         // POST: api/PaymentOverviews
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

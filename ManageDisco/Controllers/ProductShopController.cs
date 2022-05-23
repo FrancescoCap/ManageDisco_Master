@@ -42,10 +42,10 @@ namespace ManageDisco.Controllers
                     ProductShopImagePath = x.ProductShopImagePath
                 }).ToListAsync();
 
-            //header.ForEach(x =>
-            //{
-            //    x.productShopBase64Image = !String.IsNullOrEmpty(x.ProductShopImagePath) ? /*HelperMethods.GetBase64Image(x.ProductShopImagePath, ftpUser, ftpPassword)*/"" : HelperMethods.GetBase64DefaultNoImage(ftpAddress, ftpUser,ftpPassword);
-            //});
+            header.ForEach(x =>
+            {
+                x.productShopBase64Image = !String.IsNullOrEmpty(x.ProductShopImagePath) ? HelperMethods.GetBase64Image(x.ProductShopImagePath, ftpUser, ftpPassword) : HelperMethods.GetBase64DefaultNoImage(ftpAddress, ftpUser, ftpPassword);
+            });
 
             return Ok(header);
         }

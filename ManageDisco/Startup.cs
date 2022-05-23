@@ -43,6 +43,7 @@ namespace ManageDisco
                 options.UseSqlServer(Configuration.GetConnectionString("connString"));              
                
             });
+            services.AddTransient<DiscoContext>();
 
             services.AddAntiforgery(options =>
             {

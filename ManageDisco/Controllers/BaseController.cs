@@ -54,9 +54,10 @@ namespace ManageDisco.Controllers
             ftpUser = configuration["Ftp:User"];
             ftpPassword = configuration["Ftp:Pass"];
         }
-        public BaseController(DiscoContext db)
+        public BaseController(DiscoContext db, UserManager<User> userManager = null)
         {
             _db = db;
+            _userManager = userManager;
         }
         public BaseController(DiscoContext db, IConfiguration configuration, TwilioService twilioService, UserManager<User> userManager)
         {

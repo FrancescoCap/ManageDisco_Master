@@ -28,6 +28,9 @@ namespace ManageDisco.Model
         /// </summary>
         public decimal TotalCreditPayed { get; set; }   //somma dei paymentsAmount in ReservationPayment
     }
+    /// <summary>
+    /// Rappresentazione in tabella della panoramica dei pagamenti
+    /// </summary>
     public class ReservationPaymentView
     {
         public int PaymentId { get; set; }
@@ -49,4 +52,12 @@ namespace ManageDisco.Model
         public string PaymentDescription { get; set; }
     }
 
+    public class PaymentsOverviewFull
+    {
+        public List<User> Collaborators { get; set; }
+        public List<ReservationPaymentView> PaymentsOverview { get; set; }
+        //not used beacause load it just in time!
+        public List<ReservationPayment> ReservationPayments {get;set;}
+
+    }
 }

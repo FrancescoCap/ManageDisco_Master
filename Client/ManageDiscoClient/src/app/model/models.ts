@@ -404,6 +404,12 @@ export interface ReservationType {
   reservationTypeString?: string;
 }
 
+export interface PaymentsOverviewFull {
+  collaborators?: User[];
+  paymentsOverview: PaymentOverview[];
+}
+
+
 export interface PaymentOverview {
   userIdView?:string,
 

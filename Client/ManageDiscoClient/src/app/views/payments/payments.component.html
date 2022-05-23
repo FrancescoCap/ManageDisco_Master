@@ -59,7 +59,7 @@
   <div class="body-container" *ngIf="!isLoading">
     <div class="col-lg-12 col-12 p-2 text-center">
       <label id="no-data" class="col-12">PAGAMENTI</label>
-      <select class="col-11 p-2" *ngIf="userIsAdministrator" (change)="loadPaymentsDetail($event)">
+      <select class="col-11 p-2" *ngIf="collaborators != null" (change)="loadPaymentsDetail($event)">
         <option [value]="">Seleziona collaboratore</option>
         <option *ngFor="let collaborator Of collaborators;let idx = index" [value]="collaborator.id">{{collaborator.name}} - {{collaborator.surname}}</option>
       </select>

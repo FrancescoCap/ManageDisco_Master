@@ -3,7 +3,7 @@ import { Injectable, Input, ViewContainerRef } from "@angular/core";
 import { Router } from "@angular/router";
 import { map, Observable, pipe } from "rxjs";
 import { GeneralMethods } from "../helper/general";
-import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartyView, PrCustomerView, HomeInfo, CatalogView, HomePhotoPost, Role, TranslatedRolesEnum, ReservationStatus, TranslatedReservationStatusEnum, ProductShopHeader, ProductShopType, UserPermissionCell, UserPermissionTable, UserPermissionPut, CouponValidation, ReservationPost } from "../model/models";
+import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartyView, PrCustomerView, HomeInfo, CatalogView, HomePhotoPost, Role, TranslatedRolesEnum, ReservationStatus, TranslatedReservationStatusEnum, ProductShopHeader, ProductShopType, UserPermissionCell, UserPermissionTable, UserPermissionPut, CouponValidation, ReservationPost, PaymentsOverviewFull } from "../model/models";
 import { ModalService } from "../service/modal.service";
 
 import { ApiHttpService } from "./http";
@@ -354,10 +354,10 @@ export class ApiCaller {
     return this.http.putCall(this.url.confirmBudget() + `?reservationId=${reservationId}&euro=${euro}`, null, this.onApiError);
   }
 
-  public getPaymentsOverview(userId?: string): Observable<PaymentOverview[]> {
+  public getPaymentsOverview(userId?: string): Observable<PaymentsOverviewFull> {
       return this.http.getCall(this.url.paymentOverview(userId), this.onApiError).pipe(
-        map((data: PaymentOverview[]) => {
-          data.map((item: PaymentOverview) => {
+        map((data: PaymentsOverviewFull) => {
+          data.paymentsOverview.map((item: PaymentOverview) => {
             item.userIdView = "btnDetails_" + item.userId;
             return item;
           })

@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { catchError, concatMap, Observable, of, toArray } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { ModalModelEnum, ModalViewGroup } from '../../components/modal/modal.model';
-import { ModalType, PaymentOverview, PaymentPost, ReservationPayments, User } from '../../model/models';
+import { ModalType, PaymentOverview, PaymentPost, PaymentsOverviewFull, ReservationPayments, User } from '../../model/models';
 import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 import { UserService } from '../../service/user.service';
@@ -39,7 +39,6 @@ export class PaymentsComponent implements OnInit {
   paymentDetailsMap: Map<any, boolean> = new Map<any, boolean>();
   selectedPayment?: any;
   modalViews?: ModalViewGroup[];
-  userIsAdministrator = false;
   calls?: Observable<any>;
 
   constructor(private _api: ApiCaller,
@@ -50,18 +49,18 @@ export class PaymentsComponent implements OnInit {
   ngOnInit(): void {
     this.isMobileView = this._services.isMobileView();
     this.isTabletView = this._services.isTabletView();
-    this.userIsAdministrator = this._user.userIsAdminstrator();
+    this.initData();
 
-    if (this.userIsAdministrator) {
-      if(this.isMobileView || this.isTabletView)
-        this.getCollaborators();
-      else
-        this.initData();
+    //if (this.userIsAdministrator) {
+    //  if(this.isMobileView || this.isTabletView)
+    //    this.getCollaborators();
+    //  else
+    //    this.initData();
 
-    } else if (this._user.userIsInStaff()) {
-      this.getPaymentsOverviewDetails();      
-        this.initData();
-    }
+    //} else if (this._user.userIsInStaff()) {
+    //  this.getPaymentsOverviewDetails();      
+    //    this.initData();
+    //}
     
   }
 
@@ -179,8 +178,10 @@ export class PaymentsComponent implements OnInit {
    
   getPaymentOverview() {
     this._api.getPaymentsOverview(this.userIdExpanded)
-      .subscribe((data: any) => {
-        this.payments = data;
+      .subscribe((data: PaymentsOverviewFull) => {
+        this.payments = data.paymentsOverview;
+        this.collaborators = data.collaborators;
+
         this.initDetailsFlags();
 
         this.userCanPay = this._user.userIsAdminstrator();

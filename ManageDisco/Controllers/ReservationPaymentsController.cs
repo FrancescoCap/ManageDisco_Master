@@ -31,6 +31,7 @@ namespace ManageDisco.Controllers
 
         }
 
+        [Obsolete("All moved in PaymentOverviewsController (GetPaymentOverview())")]
         // GET: api/ReservationPayments/5
         [HttpGet("User")]
         public async Task<ActionResult<List<ReservationPayment>>> GetReservationPayment([FromQuery]string userId)

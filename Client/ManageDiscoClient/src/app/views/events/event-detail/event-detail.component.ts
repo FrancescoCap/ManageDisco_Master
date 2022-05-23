@@ -1,8 +1,8 @@
 import { Component, OnInit, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
-import { Router, RouterModule, RouterOutlet } from '@angular/router';
-import { catchError } from 'rxjs';
+import { Router, RouterOutlet } from '@angular/router';
+import { catchError, concat, concatMap, of } from 'rxjs';
 import { ApiCaller } from '../../../api/api';
-import { EventParty, LoginRequest, ModalType, PrCustomerView, ReservationPost, ReservationType } from '../../../model/models';
+import { EventParty, LoginRequest, ModalType, PrCustomerView, ReservationPost, ReservationType, Table } from '../../../model/models';
 import { ModalService } from '../../../service/modal.service';
 import SwiperCore, { EffectFade, Autoplay, Pagination, Navigation, Scrollbar } from "swiper";
 import { ModalModelEnum, ModalViewGroup } from '../../../components/modal/modal.model';
@@ -10,6 +10,7 @@ import { Observable } from 'rxjs';
 import { forkJoin } from 'rxjs';
 import { UserService } from '../../../service/user.service';
 import { GeneralMethods } from '../../../helper/general';
+import { toArray } from 'rxjs';
 
 SwiperCore.use([EffectFade, Autoplay, Pagination, Navigation, Scrollbar]);
 
@@ -28,6 +29,7 @@ export class EventDetailComponent implements OnInit {
   modaViews: ModalViewGroup[] = [];
   reservationType?: ReservationType[];
   prCustomers?: PrCustomerView[];
+  tables?: Table[];
 
   event?: EventParty;
   eventId: any = 0;
@@ -58,9 +60,20 @@ export class EventDetailComponent implements OnInit {
 
   initData() {
     this.isLoading = true;
-    this._api.getEventDetail(this.eventId)
+
+    var calls = of(this._api.getEventDetail(this.eventId), this._api.getTables());
+
+    calls
+      .pipe(
+        concatMap(values => { return values }),
+        toArray(),
+        catchError(err => {
+          this.isLoading = false;
+          return err;
+        }))
     .subscribe((data:any)  => {
-      this.event = data;
+      this.event = data[0];
+      this.tables = data[1];
       this.editPriceMode = false;
       this.editDescription = false;
       this.userIsAdministrator = this.user.userIsAdminstrator();
@@ -162,7 +175,8 @@ export class EventDetailComponent implements OnInit {
     },
     {
       type: ModalModelEnum.Dropdown, viewItems: [
-        {label: "Tipo prenotazione", viewId:"drpReservationType", referenceId:"reservationType", list:this.reservationType}
+        { label: "Tipo prenotazione", viewId: "drpReservationType", referenceId: "reservationType", list: this.reservationType },
+        { label: "Posizione tavolo", viewId: "drpTables", referenceId: "tableId", list: this.tables }
       ]
       }];
 
@@ -188,7 +202,8 @@ export class EventDetailComponent implements OnInit {
       reservationPeopleCount: newReservation.get("peopleCount"),     
       reservationName: newReservation.get("reservationName"),
       reservationUserCodeValue: newReservation.get("userCode"),
-      reservationType: newReservation.get("reservationType")
+      reservationType: newReservation.get("reservationType"),
+      tableId: newReservation.get("tableId")
     };
 
     if (newReservation.get("customerId") != null)
