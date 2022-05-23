@@ -61,7 +61,7 @@ export class StatisticsComponent implements OnInit {
   }
 
   getEvents() {
-    this._api.getEvents()
+    this._api.getEvents(false)
       .subscribe((data:any) => {
         this.events = data;
     })

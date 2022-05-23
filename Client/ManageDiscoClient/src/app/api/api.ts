@@ -269,8 +269,8 @@ export class ApiCaller {
   //    }));
   //}
 
-  public getEvents() {
-    return this.http.getCall(this.url.getEvents(), this.onApiError).pipe(
+  public getEvents(loadImages:boolean) {
+    return this.http.getCall(loadImages ? this.url.getEvents():this.url.getEventsNoImages(), this.onApiError).pipe(
       map((data: EventPartyView) => {
         data.events!.map((item: EventParty) => {
           item._showDate = new Date(item.date!).getFullYear() > 2020;

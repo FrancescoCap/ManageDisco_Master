@@ -89,7 +89,7 @@ export class ReservationComponent implements OnInit {
   }
 
   public getInitialCalls() {
-    return of(this._api.getEvents(), this._api.getReservations(this.eventFilter, 0));
+    return of(this._api.getEvents(false), this._api.getReservations(this.eventFilter, 0));
   }
 
   public initData() {

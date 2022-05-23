@@ -68,7 +68,7 @@ export class TableComponent implements OnInit {
     this.isLoading = true;
 
     const calls: Observable<any>[] = [
-      this.api.getEvents(),
+      this.api.getEvents(false),
       this.api.getReservations(0, 0),
       this.api.getReservationStatus(),
       this.api.getTables()

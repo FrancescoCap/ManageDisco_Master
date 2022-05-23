@@ -72,7 +72,7 @@ export class TableOrderComponent implements AfterViewInit {
   }
 
   getEvents() {
-    return this._api.getEvents();
+    return this._api.getEvents(false);
   }
 
   //Restituisce i tavoli confermati e sistemati sulla mappa per l'evento richiesto

@@ -73,7 +73,7 @@ namespace ManageDisco.Controllers
         
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<EventPartyOverview>> GetEvents([FromQuery]bool WithReservation)
+        public async Task<ActionResult<EventPartyOverview>> GetEvents([FromQuery]bool loadImages)
         {
             List<EventPartyList> events = await _db.Events
                 .Where(x => x.Date.Year == DateTime.Today.Year)
@@ -91,13 +91,15 @@ namespace ManageDisco.Controllers
                     UserHasReservation =  _db.Reservation.Any(r => r.EventPartyId == x.Id && r.UserIdOwner == _user.Id)
                 }).OrderByDescending(x => x.Date).ToListAsync();
 
-
-            events.ForEach(x =>
+            if (loadImages)
             {
-                var address = _db.EventPhoto.FirstOrDefault(p => p.EventPhotoEventId == x.Id).EventPhotoImagePath;
-                string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPassword)));
-                x.ImagePreview = base64Value;
-            });
+                events.ForEach(x =>
+                {
+                    var address = _db.EventPhoto.FirstOrDefault(p => p.EventPhotoEventId == x.Id).EventPhotoImagePath;
+                    string base64Value = Convert.ToBase64String(HelperMethods.GetBytesFromStream(HelperMethods.GetFileStreamToFtp(address, ftpUser, ftpPassword)));
+                    x.ImagePreview = base64Value;
+                });
+            }          
 
             EventPartyOverview partyOverview = new EventPartyOverview();
             partyOverview.Events = events;

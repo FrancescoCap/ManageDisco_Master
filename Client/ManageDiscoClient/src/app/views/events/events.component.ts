@@ -59,7 +59,7 @@ export class EventsComponent implements OnInit {
 
   initData() {
     this.isLoading = true;
-    this._api.getEvents()
+    this._api.getEvents(true)
       .subscribe((data: any) => {
         this.events_full = data;
         

@@ -175,7 +175,11 @@ export class Endpoints {
     if (eventId != null)
       return this.base_url + `EventParties?eventId=${eventId}`;
     else
-      return this.base_url + `EventParties`;
+      return this.base_url + `EventParties?loadImages=true`;
+  }
+
+  public getEventsNoImages() {
+    return this.base_url + `EventParties?loadImages=false`;
   }
 
   public getEventDetail(eventId:number) {
