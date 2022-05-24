@@ -50,6 +50,7 @@ namespace ManageDisco.Controllers
                     UserIdOwner = x.UserIdOwner,
                     CanAcceptReservation = x.ReservationStatusId != ReservationStatusValue.RESERVATIONSTATUS_REJECTED && x.ReservationStatusId != ReservationStatusValue.RESERVATIONSTATUS_APPROVED &&
                             HelperMethods.UserIsAdministrator(_user), //E' concettualmente sbagliato bloccare la funzionalità da qui. Dovrebbe essere un attributo a livello Utente
+                    IsReservationEditable = x.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_APPROVED && HelperMethods.UserIsAdministrator(_user),
                     CanAcceptBudget = x.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_APPROVED &&
                             DateTime.Compare(x.EventParty.Date, DateTime.Today) > 0 && HelperMethods.UserIsInStaff(_user) && x.ReservationRealBudget == 0,
                     ReservationName = x.ReservationTableName,

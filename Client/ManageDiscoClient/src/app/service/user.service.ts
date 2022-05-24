@@ -1,62 +1,35 @@
 import { Inject, Injectable } from "@angular/core";
 import { inject } from "@angular/core/testing";
+import { CookieService } from "ngx-cookie-service";
 import { Subject } from "rxjs";
 import { BehaviorSubject } from "rxjs";
+import { COOKIE_ISAUTHENTICATED, COOKIE_PR_CODE } from "../app.module";
 import { CookieConstants } from "../model/models";
 
 @Injectable()
 export class UserService {
 
-
   _points: BehaviorSubject<number> = new BehaviorSubject<number>(0);
 
-  //constructor(@Inject) {
-  //  this.onLoginListener = new Subject<string>();
-  //}
+  constructor(private _cookieService: CookieService) {
 
-  //getLoginListener() {    
-  //  return this.onLoginListener;
-  //}
-
-  //setLoginListener(value: string) {
-  //  if (this.onLoginListener == null)
-  //    this.onLoginListener = new Subject<string>();
-  //  this.onLoginListener.next(value);
-  //}
-
+  }
+ 
+  
   public userIsAuthenticated() {
-    return document.cookie.includes(CookieConstants.ISAUTH_COOKIE + "=1");
+    return this._cookieService.get(COOKIE_ISAUTHENTICATED) == "true";
   }
 
-  public userIsAdminstrator() {
-    return document.cookie.includes(CookieConstants.AUTH_FULL_COOKIE + "=1");
+  public setUserAuthenticated() {
+    this._cookieService.set(COOKIE_ISAUTHENTICATED, "true");
   }
 
-  public userIsCustomer() {
-    return this.userIsAuthenticated() &&
-      !document.cookie.includes(CookieConstants.AUTH_FULL_COOKIE + "=1") &&
-      !document.cookie.includes(CookieConstants.AUTH_STANDARD_COOKIE + "=1");
-  }
-
-  public userIsPr() {
-    return document.cookie.includes(CookieConstants.AUTH_STANDARD_COOKIE + "=1") && !document.cookie.includes(CookieConstants.AUTH_FULL_COOKIE + "=1");
-  }
-
-  public userIsInStaff() {
-    return document.cookie.includes(CookieConstants.AUTH_STANDARD_COOKIE + "=1") || document.cookie.includes(CookieConstants.AUTH_FULL_COOKIE + "=1");
-  }
-
-  public userIsGuest() {
-    return document.cookie.includes(CookieConstants.ISAUTH_COOKIE + "=0");
+  public setPrCode(prCode:string) {
+    this._cookieService.set(COOKIE_PR_CODE, prCode);
   }
 
   public getCustomerPrCode() {
-    if (this.userIsCustomer()) {
-      var cookies = document.cookie.split(";");
-      var prCode = cookies.find(x => x.includes(CookieConstants.PR_REF_COOKIE))?.split("=")[1];
-      return prCode;
-    } else
-      return "";      
+    return localStorage.getItem(COOKIE_PR_CODE);
   }
 
   public setPoints(points:number) {
@@ -67,6 +40,8 @@ export class UserService {
     return this._points;
   }
   public removeLocalCookie(cookieName:string) {
-    document.cookie = cookieName + "=false";
+    this._cookieService.delete(cookieName);
   }
+
+  
 }

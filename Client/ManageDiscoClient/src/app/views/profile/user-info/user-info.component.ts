@@ -62,7 +62,6 @@ export class UserInfoComponent implements OnInit {
   }
 
   initFlags() {
-    this.userIsCustomer = this._userService.userIsCustomer();
     this.sections.find(x => x.index == this.VIEW_USER_DATA)!.isActive = true;
   }
 
@@ -83,7 +82,8 @@ export class UserInfoComponent implements OnInit {
       this.user = data[0];
       this.userAwardsList = data[1];
       this.initUserEditObject();
-
+      //TODO BAD WAY
+      this.userIsCustomer = data[0].isCustomer;
       this.setDataTableView();
 
       this.isLoading = false;

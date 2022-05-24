@@ -47,6 +47,7 @@ namespace ManageDisco.Model
     {
         public bool EventIsEnd { get; set; }
         public bool UserCanEditInfo { get; set; }
+        public bool UserIsInStaff { get; set; }
         public bool UserCanEnrollFreeEntrance { get; set; }
         public string EventPartyStatusDescription { get; set; }
         /// <summary>
@@ -72,7 +73,9 @@ namespace ManageDisco.Model
         public bool UserCanAddReservation { get; set; }
         public bool UserCanAddEvent { get; set; }
         public bool UserCanDeleteEvent { get; set; }        
+        public bool UserIsInStaff { get; set; }        
         public List<EventPartyList> Events { get; set; }
+        public List<ReservationView> EventReservations { get; set; }
     }
     /// <summary>
     /// Modello utilizzato per i campi modificabili

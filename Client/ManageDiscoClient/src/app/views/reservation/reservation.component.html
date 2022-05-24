@@ -8,7 +8,7 @@
       <div class="col-12 p-2 col-lg-6">
         <select class="col-lg-6 col-12 p-2" name="drpEvents" [(ngModel)]="eventFilter" (change)="onFilterEventChange()">
           <option [value]="0">Filtra per evento</option>
-          <option *ngFor="let event of events" [value]="event.id">{{event.name}} - {{event.date | date: 'dd/MM/yyyy'}}</option>
+          <option *ngFor="let event of reservationData!.events" [value]="event.id">{{event.name}} - {{event.date | date: 'dd/MM/yyyy'}}</option>
         </select>
       </div>      
       <div class="col-12 p-2 col-lg-6 text-center text-lg-end mx-auto">
@@ -18,13 +18,13 @@
     <div *ngIf="!isMobileView && !isTabletView;else mobileTemplate">
       <!--Table component-->
       <app-tableview [data-list]="tableData" [max-rows-page]="tableRowPage"></app-tableview>
-      <div class="no-data" *ngIf="reservations == null || reservations.length == 0">
+      <div class="no-data" *ngIf="reservationData!.eventReservations == null || reservationData!.eventReservations.length == 0">
         NON CI SONO PRENOTAZIONI PER QUESTO EVENTO
       </div>
     </div>
     <ng-template #mobileTemplate>
       <div style="overflow:auto;" class="mobile-list">
-        <div class="col-12 p-1 row" *ngFor="let reserve Of reservations">
+        <div class="col-12 p-1 row" *ngFor="let reserve Of reservationData!.eventReservations">
           <div class="col-12">
             <div class="col-12"><b>Data:</b> {{reserve.reservationDate | date: 'dd/MM/yyyy'}}</div>
             <div class="col-12"><b>Codice prenotazione:</b> {{reserve.reservationCode}}</div>
@@ -55,7 +55,7 @@
           <div class="col-12 dropdown-divider"></div>
         </div>
       </div>
-      <div class="no-data" *ngIf="reservations == null || reservations.length == 0">
+      <div class="no-data" *ngIf="reservationData!.eventReservations == null || reservationData!.eventReservations.length == 0">
         NON CI SONO PRENOTAZIONI PER QUESTO EVENTO
       </div>
     </ng-template>

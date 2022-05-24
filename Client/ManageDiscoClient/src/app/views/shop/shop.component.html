@@ -10,7 +10,7 @@
         </div>
       </div>
     </div>
-    <div class="row m-2 p-2 product-card-container" *ngFor="let prod of productsShop">
+    <div class="row m-2 p-2 product-card-container" *ngFor="let prod of productsShop.items">
       <div id="productImage" class="col-12 image-container">
         <img class="col-12" [src]="prod.productShopBase64Image" />
       </div>
@@ -31,7 +31,7 @@
         </div>
       </div>
     </div>
-    <div class="row p-2" *ngFor="let prod of productsShop">
+    <div class="row p-2" *ngFor="let prod of productsShop.items">
       <div class="col-md-4 text-md-start col-12">
         <img class="col-12" [src]="prod.productShopBase64Image" />
       </div>
@@ -45,8 +45,8 @@
       <div class="dropdown-divider"></div>
     </div>
   </ng-template>
-  <!--No events template-->
-  <div id="no-data" *ngIf="productsShop == null || productsShop.length == 0" class="row col-12 p-4">
+  <!--No products template-->
+  <div id="no-data" *ngIf="productsShop.items != null && productsShop.items.length == 0" class="row col-12 p-4">
     NON CI SONO PREMI ACQUISIBILI
   </div>
 </div>

@@ -3,7 +3,7 @@ import { catchError, forkJoin, Observable, Subject } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { ModalModelEnum, ModalViewGroup } from '../../components/modal/modal.model';
 import { TableViewDataModel } from '../../components/tableview/tableview.model';
-import { EventParty, UserPermissionPut, NavigationLabel, RegistrationRequest, Reservation, Role, Statistics, User, UserInfoView, UserPermission, UserPermissionCell, UserPermissionTable, UserProduct } from '../../model/models';
+import { EventParty, NavigationLabel, RegistrationRequest, Reservation, Role, Statistics, User, UserInfoView,  UserPermissionTable, UserProduct, NewCollaboratorInfo } from '../../model/models';
 import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 import { UserService } from '../../service/user.service';
@@ -53,7 +53,7 @@ export class ProfileComponent implements OnInit {
   isLoading?: boolean = false;
   loadingSubject?: Subject<boolean> = new Subject<boolean>();
 
-  userIsAdministrator = false;
+  userCanAddCollabortor = false;
   userIsCustomer = false;
 
   navigationLabel: NavigationLabel[] = [
@@ -75,6 +75,7 @@ export class ProfileComponent implements OnInit {
   isMobileView = false;
   isTabletView = false;
   onEventChangeCaller: Subject<number> = new Subject<number>();
+  viewTypeReceived = false;
 
   constructor(private _api: ApiCaller,
     private _modalService: ModalService,
@@ -83,16 +84,18 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.initFlags();
+    this.setPageViewTypeForUserType();
+  }
+
+  setPageViewTypeForUserType() {
+    this._api.getProfilePageViewType().subscribe((value: any) => { this.userIsCustomer = value; this.viewTypeReceived = true})
   }
 
   ngAfterContentInit() {
-    this._modalService.setContainer(this.modalContainer!);
-    
+    this._modalService.setContainer(this.modalContainer!);    
   }
 
-  initFlags() {
-    this.userIsAdministrator = this._user.userIsAdminstrator();
-    this.userIsCustomer = this._user.userIsCustomer();
+  initFlags() {    
     this.isMobileView = this._generalService.isMobileView();
     this.isTabletView = this._generalService.isTabletView();
   }
@@ -110,8 +113,7 @@ export class ProfileComponent implements OnInit {
 
     switch (item) {
       case this.COLLABORATORS_VIEW_INDEX:
-        if (this.userIsAdministrator)
-          this.getAvaiableRoles();
+          this.getNewCollaboratorInfoAdd();
         break;
       case this.STATISTICS_VIEW_INDEX:
         //this.getEvents();
@@ -123,13 +125,15 @@ export class ProfileComponent implements OnInit {
       this.registrationRequest = { email: "", password: "", name: "", surname: "", username: "", phoneNumber: "", role: this.registrationRequest?.role, gender:"Male" };
   }
 
-  getAvaiableRoles() {
-    this._api.getRoles().pipe(
+  getNewCollaboratorInfoAdd() {
+    this._api.getAddingCollaboratorInfo().pipe(
       catchError(err => {
-        this._modalService.showErrorOrMessageModal(err.message, "ERRORE");
+        this.isLoading = false;
         return err;
       })).subscribe((data: any) => {
-        this.roles = data;
+        var parsedData = data as NewCollaboratorInfo;
+        this.roles = parsedData.roles!;
+        this.userCanAddCollabortor = parsedData.userCanAddCollaborator!;
       })
   }
 

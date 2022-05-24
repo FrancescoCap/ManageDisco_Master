@@ -32,8 +32,11 @@ namespace ManageDisco.Controllers
         [HttpGet]
         public async Task<IActionResult> GetProductShop()
         {
-            List<ProductShopView> header = await _db.ProductShopHeader
-                .Select(x => new ProductShopView()
+            ProductShopView productShop = new ProductShopView();
+            productShop.CanUserHandleItems = _user != null && HelperMethods.UserIsAdministrator(_user);
+
+            productShop.Items = await _db.ProductShopHeader
+                .Select(x => new ProductShopItems()
                 {
                     ProductShopHeaderIdId = x.ProductShopHeaderIdId,
                     ProductShopHeaderName = x.ProductShopHeaderName,
@@ -42,12 +45,12 @@ namespace ManageDisco.Controllers
                     ProductShopImagePath = x.ProductShopImagePath
                 }).ToListAsync();
 
-            header.ForEach(x =>
+            productShop.Items.ForEach(x =>
             {
                 x.productShopBase64Image = !String.IsNullOrEmpty(x.ProductShopImagePath) ? HelperMethods.GetBase64Image(x.ProductShopImagePath, ftpUser, ftpPassword) : HelperMethods.GetBase64DefaultNoImage(ftpAddress, ftpUser, ftpPassword);
             });
 
-            return Ok(header);
+            return Ok(productShop);
         }
 
         [HttpGet("UserAwards")]

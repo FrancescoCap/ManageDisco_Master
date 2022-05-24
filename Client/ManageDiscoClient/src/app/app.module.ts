@@ -19,7 +19,6 @@ import { CookieService } from 'ngx-cookie-service';
 import { Subject } from 'rxjs';
 import { TableService } from './service/table.service';
 import { TableViewModule } from './components/tableview/table.module';
-import { HeaderMenu } from './model/models';
 
 
 const routes:Routes = [ 
@@ -46,8 +45,10 @@ export const server_URL = "http://localhost:5000/api/";
 export const client_URL = "http://localhost:4200/";
 export const LOCALSTORARE_LOGIN_HEADER = "loginHeader";
 export const LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU = "loginHeaderEnableMenu";
-export const LOCALSTORARE_ISAUTHENTICATED = "authenticated";
 export const LOCALSTORARE_LAST_PAGE_REQUEST = "lastPageRequest";
+export const COOKIE_PR_CODE = "prCode";
+export const COOKIE_ISAUTHENTICATED = "isAuthenticated";
+
 export const onLoginResponse: Subject<string> = new Subject<string>();
 export const onMenuChange: Subject<boolean> = new Subject<boolean>();
 export const maxTablePageRows = 10;

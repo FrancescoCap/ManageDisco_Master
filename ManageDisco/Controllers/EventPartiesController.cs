@@ -73,7 +73,7 @@ namespace ManageDisco.Controllers
         
         [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<EventPartyOverview>> GetEvents([FromQuery]bool loadImages)
+        public async Task<ActionResult<EventPartyOverview>> GetEvents([FromQuery]bool loadImages, [FromQuery] bool withReservations)
         {
             List<EventPartyList> events = await _db.Events
                 .Where(x => x.Date.Year == DateTime.Today.Year)
@@ -105,7 +105,45 @@ namespace ManageDisco.Controllers
             partyOverview.Events = events;
             partyOverview.UserCanAddEvent = HelperMethods.UserIsAdministrator(_user) || _user.UserCanHandleEvents;
             partyOverview.UserCanAddReservation = HelperMethods.UserIsCustomer(_user);
+            partyOverview.UserIsInStaff = HelperMethods.UserIsInStaff(_user);
             partyOverview.UserCanDeleteEvent = HelperMethods.UserIsAdministrator(_user) || _user.UserCanHandleEvents;
+
+            if (withReservations)
+            {
+                partyOverview.EventReservations = new List<ReservationView>();
+                partyOverview.Events.ForEach(async x =>
+                {
+                    var reservations = _db.Reservation
+                        .Where(r => r.EventPartyId == x.Id)
+                        .Select(r => new ReservationView() {
+                            ReservationId = r.ReservationId,
+                            ReservationCode = r.ReservationCode,
+                            ReservationDate = r.ReservationDate,
+                            EventId = r.EventPartyId,
+                            EventName = r.EventParty.Name,
+                            ReservationPeopleCount = r.ReservationPeopleCount,
+                            ReservationTypeValue = r.ReservationType.ReservationTypeString,
+                            ReservationUserCode = r.ReservationUserCodeValue,
+                            ReservationExpectedBudget = r.ReservationExpectedBudget,
+                            ReservationRealBudget = r.ReservationRealBudget,
+                            ReservationStatusId = r.ReservationStatus.ReservationStatusId,
+                            ReservationStatus = r.ReservationStatus.ReservationStatusValue,
+                            UserId = r.UserId,
+                            UserIdOwner = r.UserIdOwner,
+                            CanAcceptReservation = r.ReservationStatusId != ReservationStatusValue.RESERVATIONSTATUS_REJECTED && r.ReservationStatusId != ReservationStatusValue.RESERVATIONSTATUS_APPROVED &&
+                            HelperMethods.UserIsAdministrator(_user), //E' concettualmente sbagliato bloccare la funzionalità da qui. Dovrebbe essere un attributo a livello Utente
+                            IsReservationEditable = r.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_APPROVED && HelperMethods.UserIsAdministrator(_user),
+                            CanAcceptBudget = r.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_APPROVED &&
+                            DateTime.Compare(r.EventParty.Date, DateTime.Today) > 0 && HelperMethods.UserIsInStaff(_user) && r.ReservationRealBudget == 0,
+                            ReservationName = r.ReservationTableName,
+                            TableId = r.TableId != null ? r.TableId : 0,
+                            ReservationTablAssigned = $"{r.Table.TableAreaDescription} - {r.Table.TableNumber}"
+
+                        }).ToList();
+
+                    partyOverview.EventReservations.AddRange(reservations);
+                });
+            }
 
             return Ok(partyOverview);
         }
@@ -166,7 +204,8 @@ namespace ManageDisco.Controllers
                     EntrancePrice = x.EntrancePrice,
                     FreeEntranceDescription = x.FreeEntranceDescription,
                     TablePrice = x.TablePrice,
-                    UserCanEditInfo = HelperMethods.UserIsAdministrator(_user),
+                    UserCanEditInfo = HelperMethods.UserIsAdministrator(_user) || _user.UserCanHandleEvents,
+                    UserIsInStaff = HelperMethods.UserIsAdministrator(_user) || HelperMethods.UserIsInStaff(_user),
                     EventIsEnd = x.Date.CompareTo(DateTime.Today) < 0,  //la data dell'evento è precedente alla data odierna 
                     UserCanEnrollFreeEntrance = _user.Gender == GenderCostants.GENDER_FEMALE,
                     FreeEntranceEnabled = x.FreeEntranceEnabled,

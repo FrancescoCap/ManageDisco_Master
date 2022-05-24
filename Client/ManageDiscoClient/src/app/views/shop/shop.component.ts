@@ -5,7 +5,7 @@ import { catchError, forkJoin } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { ModalModelEnum, ModalViewGroup } from '../../components/modal/modal.model';
 import { GeneralMethods } from '../../helper/general';
-import { LoginRequest, ModalType, ProductShopHeader } from '../../model/models';
+import { LoginRequest, ModalType, ProductShopHeader, ProductShopView } from '../../model/models';
 import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 import { UserService } from '../../service/user.service';
@@ -19,7 +19,7 @@ export class ShopComponent implements OnInit {
 
   @ViewChild("modalContainer", { read: ViewContainerRef, static: false }) modalContainer?: ViewContainerRef;
 
-  productsShop?: ProductShopHeader[] = [];
+  productsShop: ProductShopView = {canUserHandleItems:false};
   
   isMobileView = false;
   isTabletView = false;
@@ -34,7 +34,6 @@ export class ShopComponent implements OnInit {
   ngOnInit(): void {
     this.isMobileView = this._generalService.isMobileView();
     this.isTabletView = this._generalService.isTabletView();
-    this.userIsAdministrator = this._user.userIsAdminstrator();
     this.initData();
   }
 
@@ -45,8 +44,15 @@ export class ShopComponent implements OnInit {
 
   initData() {
     this.isLoading = true;
-    this._api.getShop().subscribe((data: any) => {
+    this._api.getShop()
+      .pipe(
+        catchError(err => {
+          this.isLoading = false;
+          return err;
+        }))
+    .subscribe((data: any) => {
       this.productsShop = data;
+      this.userIsAdministrator = data.canUserHandleItems;
       this.isLoading = false;
     })
   }

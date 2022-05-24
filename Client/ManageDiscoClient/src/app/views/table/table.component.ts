@@ -8,7 +8,7 @@ import { ApiCaller } from '../../api/api';
 import { server_URL } from '../../app.module';
 import { TableViewDataModel } from '../../components/tableview/tableview.model';
 import { GeneralMethods } from '../../helper/general';
-import { AssignTablePost, EventParty, EventPartyView, Reservation, ReservationStatus, ReservationViewTable, Table, TableMapFileInfo } from '../../model/models';
+import { AssignTablePost, EventParty, EventPartiesViewInfo, Reservation, ReservationStatus, ReservationViewTable, Table, TableEvents, TableEventView, TableMapFileInfo } from '../../model/models';
 import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 import { UserService } from '../../service/user.service';
@@ -38,7 +38,7 @@ export class TableComponent implements OnInit {
   }
 
   acceptedReservations: Reservation[] = [];
-  events?: EventPartyView;
+  events: EventParty[] = [];
   reservationStatus: ReservationStatus[] = [];
   avaiableTables: Table[] = [];
 
@@ -55,8 +55,7 @@ export class TableComponent implements OnInit {
     private _userService:UserService) { }
 
   ngOnInit(): void {
-    this.isMobileView = this._generalService.isMobileView();
-    this.userIsAdministrator = this._userService.userIsAdminstrator();
+    this.isMobileView = this._generalService.isMobileView(); 
     this.initData();    
   }
 
@@ -74,15 +73,18 @@ export class TableComponent implements OnInit {
       this.api.getTables()
     ]
 
-    forkJoin(calls).pipe(
+   this.api.getEventReservationTables().pipe(
       catchError(err => {
         this.isLoading = false;
         return err;
-      })).subscribe((data: any) => {
-        this.events = data[0];
-        this.acceptedReservations = data[1];
-        this.reservationStatus = data[2];
-        this.avaiableTables = data[3];
+      })).subscribe((data: TableEventView) => {
+        this.events = data.eventParties!;
+        this.acceptedReservations = data.reservations!;
+        this.reservationStatus = data.reservationStatus!;
+        this.avaiableTables = data.tables!;
+        
+        this.userIsAdministrator = data.userCanHandleReservation!;
+
         this.setDataForTableView();
         this.tableViewData.onDataListChange = new EventEmitter<any>();
 
@@ -149,13 +151,9 @@ export class TableComponent implements OnInit {
   }
 
   loadReservation() {
-    forkJoin([
-      //different endpoints in getReservations()
-      this.api.getReservations(this.selectedEventId, this.selectedResStatusId),
-      this.api.getTables()
-    ]).subscribe((data: any) => {      
-      this.acceptedReservations = data[0];
-      this.avaiableTables = data[1];
+    this.api.getEventReservationTables(this.selectedEventId).subscribe((data: TableEventView) => {      
+      this.acceptedReservations = data.reservations!;
+      this.avaiableTables = data.tables!;
       this.setDataForTableView();
       this.tableViewData.onDataListChange?.emit(this.tableViewData);
     })

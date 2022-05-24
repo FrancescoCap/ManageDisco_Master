@@ -8,6 +8,10 @@ export class Endpoints {
     return this.base_url + `Reservations/Table/PdfExport?eventId=${eventId}`;
   }
 
+  getProfilePageViewType(): string {
+    return this.base_url + `User/ProfilePageView`;
+  }
+
   postAutoAssignTable(eventId:any) {
     return this.base_url + `Reservations/AutoAssign?eventId=${eventId}`;
   }
@@ -56,8 +60,8 @@ export class Endpoints {
     return this.base_url + `User/Collaborators`;
   }
 
-  getRoles() {
-    return this.base_url + `User/Roles`;
+  getAddingCollaboratorInfo() {
+    return this.base_url + `User/NewCollaboratorInfo`;
   }
 
   getStatistics(eventId: any): string {
@@ -178,8 +182,8 @@ export class Endpoints {
       return this.base_url + `EventParties?loadImages=true`;
   }
 
-  public getEventsNoImages() {
-    return this.base_url + `EventParties?loadImages=false`;
+  public getEventsNoImages(withReservations:boolean = false) {
+    return this.base_url + `EventParties?loadImages=false&withReservations=${withReservations}`;
   }
 
   public getEventDetail(eventId:number) {
@@ -218,6 +222,13 @@ export class Endpoints {
     return this.base_url + `ReservationStatus`;
   }
 
+  public getEventReservationTables(eventId?: number) {
+    if (eventId != null)
+      return this.base_url + `Tables/EventTables?eventId=${eventId}`;
+
+    return this.base_url + `Tables/EventTables`;
+  }
+
   public getTables() {
     return this.base_url + `Tables`;
   }
@@ -226,6 +237,7 @@ export class Endpoints {
     return this.base_url + `Tables/Assignable?eventId=${eventId}`;
   }
 
+  //wrong name: thhis api returns header tables order
   public getEventTables(eventId:number) {
     return this.base_url + `Tables/TablesOrder?eventId=${eventId}`;
   }

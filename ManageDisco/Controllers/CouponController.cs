@@ -79,6 +79,7 @@ namespace ManageDisco.Controllers
         /// </summary>
         /// <param name="couponUserId"></param>
         /// <returns></returns>
+        [Authorize(Roles = RolesConstants.ROLE_ADMINISTRATOR + "," + RolesConstants.ROLE_PR)]
         [HttpPost]
         [Route("Validate")]
         public async Task<IActionResult> ValidateFreeEntranceCoupon([FromQuery] string couponUserId)

@@ -34,6 +34,12 @@ namespace ManageDisco.Model
 
     public class ProductShopView
     {
+        public bool CanUserHandleItems { get; set; }
+        public List<ProductShopItems> Items { get; set; }
+    }
+
+    public class ProductShopItems
+    {
         public int ProductShopHeaderIdId { get; set; }
         public string ProductShopHeaderName { get; set; }
         public string ProductShopHeaderDescription { get; set; }

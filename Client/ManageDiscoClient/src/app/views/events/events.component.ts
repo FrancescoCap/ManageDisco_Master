@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { catchError, forkJoin, Observable } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { ModalImageBoxList, ModalModelEnum, ModalTextBoxList, ModalViewGroup } from '../../components/modal/modal.model';
-import { EventParty, EventPartyView, NewTableOrderData, PrCustomerView, Reservation, ReservationPost, ReservationType } from '../../model/models';
+import { EventParty, EventPartiesViewInfo, NewTableOrderData, PrCustomerView, Reservation, ReservationPost, ReservationType } from '../../model/models';
 import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 
@@ -19,8 +19,8 @@ export class EventsComponent implements OnInit {
   @ViewChild("modalContainer", { read: ViewContainerRef, static: false }) modalContainer?:ViewContainerRef;
   isLoading = false;
 
-  events_full?: EventPartyView = {events:[]};
-  events?: EventPartyView = {events:[]};
+  events_full?: EventPartiesViewInfo = {events:[]};
+  events?: EventPartiesViewInfo = {events:[]};
   eventFilterValue: string = "";
 
   txtListModal: ModalViewGroup = {type: ModalModelEnum.TextBox, viewItems:[]};

@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { catchError, forkJoin, Observable } from 'rxjs';
 import { ApiCaller } from '../../api/api';
 import { ModalModelEnum, ModalViewGroup } from '../../components/modal/modal.model';
-import { CouponValidation, EventPartyView, ModalType, Product, TableEventHeader, TableOrderHeader, TableOrderPut, TableOrderRow } from '../../model/models';
+import { CouponValidation, EventPartiesViewInfo, ModalType, Product, TableEventHeader, TableOrderHeader, TableOrderPut, TableOrderRow } from '../../model/models';
 import { ModalService } from '../../service/modal.service';
 
 @Component({
@@ -19,7 +19,7 @@ export class TableOrderComponent implements AfterViewInit {
 
   eventTables: TableEventHeader = { tables: [] };
   eventTablesFull: any[] = []; //Contiene tutta la lista dei tavoli: mi serve per poter ripristinare la lista originale/eseguire un nuovo filtro
-  events?: EventPartyView;
+  events?: EventPartiesViewInfo;
   products?: Product[]; //bottiglie
   tableOrderRows?: TableOrderHeader;  //Per ricarico in modal ed eventuale modifica. La carico quando viene cliccato l'edit
 

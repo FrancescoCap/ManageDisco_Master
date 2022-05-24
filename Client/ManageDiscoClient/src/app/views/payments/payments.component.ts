@@ -184,7 +184,7 @@ export class PaymentsComponent implements OnInit {
 
         this.initDetailsFlags();
 
-        this.userCanPay = this._user.userIsAdminstrator();
+        this.userCanPay = data.userCanRegisterPayments!;
         this.isLoading = false;
       })
   }

@@ -46,6 +46,11 @@ export interface ProductShopType {
   productShopTypeDescription?: string;
 }
 
+export interface ProductShopView {
+  canUserHandleItems: boolean;
+  items?: ProductShopHeader[];
+}
+
 export interface ProductShopHeader {
   productShopHeaderIdId?: number;
   productShopHeaderPrice?: number;
@@ -75,6 +80,12 @@ export interface Role {
   _translatedRole?: string;
   id: string;
   name: string;
+}
+
+export interface NewCollaboratorInfo {
+  userCanAddCollaborator?: boolean;
+  useCustomerView?: boolean;
+  roles?: Role[];
 }
 
 export interface Statistics {
@@ -291,6 +302,7 @@ export interface Reservation {
   reservationExpectedBudget?: number;
   reservationRealBudget?: number;
   canAcceptReservation?: boolean;
+  isReservationEditable?: boolean;
   canAcceptBudget?: boolean;
   reservationStatusId?: number;
   reservationStatus?: string;
@@ -327,11 +339,13 @@ export interface PrCustomerView {
   surname?: string;
 }
 
-export interface EventPartyView {
+export interface EventPartiesViewInfo {
   userCanAddReservation?: boolean;
   userCanAddEvent?: boolean;
   userCanDeleteEvent?: boolean;  
+  userIsInStaff?: boolean;  
   events?: EventParty[];
+  eventReservations?: Reservation[];
 }
 
 export interface UserPermission {
@@ -390,6 +404,7 @@ export interface EventParty {
   tablePrice?: any;
   freeEntranceDescription?: any;
   userHasReservation?: boolean;
+  userIsInStaff?: boolean;
   userCanEditInfo?: boolean;
   userCanEnrollFreeEntrance?: boolean;
   eventIsEnd?: boolean;
@@ -405,6 +420,7 @@ export interface ReservationType {
 }
 
 export interface PaymentsOverviewFull {
+  userCanRegisterPayments?: boolean;
   collaborators?: User[];
   paymentsOverview: PaymentOverview[];
 }
@@ -442,6 +458,14 @@ export interface PaymentPost {
   userId?: string;
   reservationPaymentAmount?: number;
   reservationPaymentDescription?: string;
+}
+
+export interface TableEventView {
+  userCanHandleReservation?: boolean;
+  eventParties?: EventParty[];
+  reservations?: Reservation[];
+  reservationStatus?: ReservationStatus[];
+  tables?: Table[];
 }
 
 export interface Table {

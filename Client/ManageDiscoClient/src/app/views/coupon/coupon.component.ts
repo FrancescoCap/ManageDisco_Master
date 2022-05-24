@@ -42,7 +42,7 @@ export class CouponComponent implements OnInit {
     this._modal.setContainer(this.modalContainer!);
 
     if (this._user.userIsAuthenticated()) {
-      if (this.action != null && this.action == "validate" && this._user.userIsInStaff())
+      if (this.action != null && this.action == "validate")
         this.getCouponInfo();
       else if (this.action != null && this.action == "phoneConfirm")
         this.confirmPhone();

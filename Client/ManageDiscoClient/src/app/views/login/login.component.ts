@@ -8,6 +8,7 @@ import { LOCALSTORARE_LOGIN_HEADER, LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, onLog
 import {CookieConstants, LoginRequest } from '../../model/models';
 import { GeneralService } from '../../service/general.service';
 import { CookieService } from 'ngx-cookie-service';
+import { UserService } from '../../service/user.service';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +26,8 @@ export class LoginComponent implements OnInit {
   constructor(private _api: ApiCaller,
     private _generalService: GeneralService,
     private _cookie: CookieService,
-    private _router: Router) {
+    private _router: Router,
+    private _user:UserService  ) {
   }
 
   ngOnInit(): void {
@@ -50,7 +52,8 @@ export class LoginComponent implements OnInit {
         onLoginResponse.next(headerString);
         onMenuChange.next(true);
 
-        document.cookie = CookieConstants.ISAUTHENTICATED + "=true";
+        this._user.setUserAuthenticated();
+        this._user.setPrCode(data.body.prCode);
         localStorage.setItem(LOCALSTORARE_LOGIN_HEADER, headerString);
         localStorage.setItem(LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, "1");
         this._router.navigateByUrl("Home");

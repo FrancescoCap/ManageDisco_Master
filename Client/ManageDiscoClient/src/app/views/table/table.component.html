@@ -4,10 +4,10 @@
   </div>
   <div class="col-12 mb-3">
     <div class="row">
-      <div class="col-12 col-lg-3 p-1 row" *ngIf="events != null && events.events != null">
+      <div class="col-12 col-lg-3 p-1 row" *ngIf="events != null">
         <select id="drpEvents" class="col-12  p-2" [ngModel]="selectedEventId" (change)="onEventChange($event)">
           <option [value]="0">Seleziona evento</option>
-          <option *ngFor="let ev of events.events" [value]="ev.id">{{ev.name}}</option>
+          <option *ngFor="let ev of events" [value]="ev.id">{{ev.name}}</option>
         </select>
       </div>
       <div class="col-12 col-lg-3 mt-3 mt-lg-0 p-1 row">

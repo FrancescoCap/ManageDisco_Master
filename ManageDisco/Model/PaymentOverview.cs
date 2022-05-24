@@ -54,6 +54,7 @@ namespace ManageDisco.Model
 
     public class PaymentsOverviewFull
     {
+        public bool UserCanRegisterPayments { get; set; }
         public List<User> Collaborators { get; set; }
         public List<ReservationPaymentView> PaymentsOverview { get; set; }
         //not used beacause load it just in time!

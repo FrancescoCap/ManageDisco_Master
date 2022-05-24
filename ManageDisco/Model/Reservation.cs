@@ -106,6 +106,10 @@ namespace ManageDisco.Model
         /// </summary>
         public bool CanAcceptReservation { get; set; }
         /// <summary>
+        /// True se la prenotazione è modificabile
+        /// </summary>
+        public bool IsReservationEditable { get; set; }
+        /// <summary>
         /// True se è possibile confermare il budget
         /// </summary>
         public bool CanAcceptBudget { get; set; }

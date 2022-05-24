@@ -118,7 +118,7 @@ namespace ManageDisco.Helper
         {
             return roles.Any(x => x.Contains(RolesConstants.ROLE_PR) || x.Contains(RolesConstants.ROLE_ADMINISTRATOR));
         }
-        public static bool UserIsPr(User user, List<string> roles)
+        public static bool UserIsPr(List<string> roles)
         {
             return roles.Any(x => x.Contains(RolesConstants.ROLE_PR));
         }

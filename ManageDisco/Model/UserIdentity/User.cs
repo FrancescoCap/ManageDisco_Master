@@ -66,6 +66,10 @@ namespace ManageDisco.Model.UserIdentity
         public string UserNameSurname { get; set; }
         public string Message { get; set; }
         public bool OperationSuccess { get; set; }
+        /// <summary>
+        /// Only for customer. Leave empty if it isn't
+        /// </summary>
+        public string PrCode { get; set; }
     }
 
     public class CollaboratorView
@@ -102,7 +106,13 @@ namespace ManageDisco.Model.UserIdentity
         public string PrName { get; set; }
         public string PrSurname { get; set; }
         public string PrEmail { get; set; }
-        public string PrCode { get; set; }      
+        public string PrCode { get; set; }
         public string InvitationLink { get; set; }
+    }
+
+    public class NewCollaboratorInfo
+    {
+        public bool UserCanAddCollaborator { get; set; }
+        public List<IdentityRole> Roles { get; set; }
     }
 }

@@ -10,7 +10,7 @@ import { ApiCaller } from '../../api/api';
 import { ModalModelEnum, ModalModelList, ModalTextBoxList, ModalViewGroup } from '../../components/modal/modal.model';
 import { TableViewDataModel } from '../../components/tableview/tableview.model';
 import { GeneralMethods } from '../../helper/general';
-import { EventParty, ModalType, PrCustomerView, Reservation, ReservationPost, ReservationType, Table } from '../../model/models';
+import { EventParty, EventPartiesViewInfo, ModalType, PrCustomerView, Reservation, ReservationPost, ReservationType, Table } from '../../model/models';
 import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 import { UserService } from '../../service/user.service';
@@ -47,9 +47,10 @@ export class ReservationComponent implements OnInit {
   openNewResModal = false;
   newResModaltitle = "Nuova prenotazione";
   editBudget: boolean = false;
+  userIsInStaff = false;
  
   reservations?: Reservation[];
-  events?: EventParty[];
+  reservationData?: EventPartiesViewInfo;
   reservationTypes?: ReservationType[];
   newReservation: ReservationPost = { eventPartyId: 0, reservationPeopleCount: 0, reservationExpectedBudget: 0, reservationUserCodeValue: "" };
   prCustomers?: PrCustomerView[];
@@ -88,37 +89,28 @@ export class ReservationComponent implements OnInit {
     this._api.setModalContainer(this.modalContainer!);
   }
 
-  public getInitialCalls() {
-    return of(this._api.getEvents(false), this._api.getReservations(this.eventFilter, 0));
-  }
-
+  
   public initData() {
     this.isLoading = true;
-    this.calls = this.getInitialCalls();
-
-    this.calls.pipe(   
-      concatMap(data => {        
-        return data;
-      }),
-      toArray(),
-      catchError(err => { return err; }))
+    
+    this._api.getEvents(false, true).pipe(
+      catchError(err => { this.isLoading = false; return err; }))
       .subscribe((data: any) => {
-        this.events = data[0].events;
-        this.reservations = data[1];
+        this.reservationData = data;
+        this.userIsInStaff = this.reservationData?.userIsInStaff!; //save
+        
         this.setDataForTableView();
-
         this.editBudget = false;
         this.isLoading = false;
       });
   }
 
   setDataForTableView() {
-    var editPermissions = this._user.userIsAdminstrator();
     
     if (this.tableData.rows.length > 0)
       this.tableData.rows = [];
 
-    this.reservations?.forEach((x, y) => {
+    this.reservationData?.eventReservations?.forEach((x, y) => {
       this.tableData.rows.push({
         cells: [
           { value: formatDate(x.reservationDate!.toString(), "dd/MM/yyyy", "en-US") },
@@ -133,10 +125,10 @@ export class ReservationComponent implements OnInit {
           { value: x.reservationRealBudget!, isCurrency: true },
           {
             value: "", icon: [
-              { class: "fa fa-check", referenceId: `conf_${x.reservationId}`, isToShow: editPermissions && x.reservationStatusId != 2, onClickCallback: this.onConfirmReservation},  //confirm reservation
-              {class: "fa fa-edit", referenceId: `edt_${x.reservationId}`, isToShow: editPermissions && x.reservationStatusId != 3, onClickCallback: this.onEditReservation},    //edit reservation (include budget edit) --> open modal
-              { class: "fa fa-euro", referenceId: `bdg_${x.reservationId}`, isToShow: editPermissions && x.reservationStatusId != 3 && x.canAcceptBudget, onClickCallback: this.onConfirmBudgetInRow},    //direct confirm for budget
-              { class: "fa fa-trash", referenceId: `del_${x.reservationId}`, isToShow: editPermissions && x.reservationStatusId != 3, onClickCallback: this.onRejectReservation}    //reject reservation
+              { class: "fa fa-check", referenceId: `conf_${x.reservationId}`, isToShow: x.canAcceptReservation, onClickCallback: this.onConfirmReservation},  //confirm reservation
+              { class: "fa fa-edit", referenceId: `edt_${x.reservationId}`, isToShow: x.isReservationEditable , onClickCallback: this.onEditReservation},    //edit reservation (include budget edit) --> open modal
+              { class: "fa fa-euro", referenceId: `bdg_${x.reservationId}`, isToShow: x.isReservationEditable && x.canAcceptBudget, onClickCallback: this.onConfirmBudgetInRow},    //direct confirm for budget
+              { class: "fa fa-trash", referenceId: `del_${x.reservationId}`, isToShow: x.canAcceptReservation, onClickCallback: this.onRejectReservation}    //reject reservation
             ]
           }]
       })
@@ -156,7 +148,7 @@ export class ReservationComponent implements OnInit {
         return err;
       }))
       .subscribe((data:any) => {
-        this.reservations = data[1];
+        this.reservationData!.eventReservations = data[1];
         //reload table
         this.setDataForTableView();
         this.isLoading = false;
@@ -176,7 +168,7 @@ export class ReservationComponent implements OnInit {
         return err;
       }))
       .subscribe((data: any) => {
-        this.reservations = data[1];
+        this.reservationData!.eventReservations = data[1];
         //reload table
         this.setDataForTableView();
         this.isLoading = false;
@@ -184,7 +176,7 @@ export class ReservationComponent implements OnInit {
   }
 
   onConfirmBudgetInRow = (reservationId: number): void => {
-    var budget = this.reservations?.find(x => x.reservationId == reservationId)?.reservationExpectedBudget;
+    var budget = this.reservationData!.eventReservations?.find(x => x.reservationId == reservationId)?.reservationExpectedBudget;
     this._api.confirmReservationBudget(reservationId, budget!)
       .subscribe(data => {
         this.initData();
@@ -213,7 +205,7 @@ export class ReservationComponent implements OnInit {
     if (reservationId == 0)
       return {};
 
-    return this.reservations?.find(x => x.reservationId == reservationId)!;
+    return this.reservationData!.eventReservations!.find(x => x.reservationId == reservationId)!;
   }
 
   onReservationEditConfirm = (data:any):void => {
@@ -247,7 +239,7 @@ export class ReservationComponent implements OnInit {
       toArray(),
       catchError(err => { this.isLoading = false; return err;})
     ).subscribe((data: any) => {
-      this.reservations = data[1];
+      this.reservationData!.eventReservations = data[1];
       this.setDataForTableView();
       this._modal.hideModal();
       this.editBudget = false;
@@ -275,7 +267,7 @@ export class ReservationComponent implements OnInit {
     } else if (btnId.includes("Budget")) {
       if (btnId.includes("btnConfirmBudget")) {
         //api confirm expectedBudget
-        var budget = this.reservations?.find(x => x.reservationId == reserveId)?.reservationExpectedBudget;
+        var budget = this.reservationData!.eventReservations!.find(x => x.reservationId == reserveId)?.reservationExpectedBudget;
 
         if (budget != null)
           this.confirmBudget(reserveId, budget);
@@ -286,7 +278,7 @@ export class ReservationComponent implements OnInit {
       } else if (btnId.toString().includes("btnOkEdtBudget")) {
         //api confirm edt budget
 
-        var budget = this.reservations?.find(x => x.reservationId == reserveId)?.reservationRealBudget;
+        var budget = this.reservationData!.eventReservations!.find(x => x.reservationId == reserveId)?.reservationRealBudget;
         
         if (budget != null)
           this.confirmBudget(reserveId, budget);
@@ -327,7 +319,7 @@ export class ReservationComponent implements OnInit {
     var modaViews: ModalViewGroup[] = [
       {
         type: ModalModelEnum.Dropdown, viewItems: [{
-          viewId: "drpEvent", referenceId:"eventId", list: this.events, label: "Evento"
+          viewId: "drpEvent", referenceId:"eventId", list: this.reservationData?.events, label: "Evento"
         }]
       },
       {
@@ -343,9 +335,9 @@ export class ReservationComponent implements OnInit {
         { label: "Tipo prenotazione", viewId: "drpreservationTypes", referenceId: "reservationTypes", list: this.reservationTypes },
         { label: "Posizione tavolo", viewId: "drpTables", referenceId: "tableId", list: this.tables }
       ]
-    }];
+      }];
 
-    if (this._user.userIsInStaff()) {
+    if (this.userIsInStaff) {
       modaViews.push({
         type: ModalModelEnum.Table, viewItems: [{ label: "Prenota per", viewId: "tblPrCustomers", referenceId: "customerId", list: this.prCustomers }]
       })
@@ -377,7 +369,7 @@ export class ReservationComponent implements OnInit {
       if (data[0] != null)
         this._modal.showOperationResponseModal(data[0].message, "Prenotazione effettuata", false);
       //reload reservations
-      this.reservations = data[1];
+      this.reservationData!.eventReservations = data[1];
       this.setDataForTableView();
     })
   }
@@ -385,7 +377,7 @@ export class ReservationComponent implements OnInit {
   onFilterEventChange() {    
     this._api.getReservations(this.eventFilter).pipe()
       .subscribe((data: any) => {
-        this.reservations = data;
+        this.reservationData!.eventReservations = data;        
         this.setDataForTableView();
     });
   }

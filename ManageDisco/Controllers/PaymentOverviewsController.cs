@@ -110,6 +110,8 @@ namespace ManageDisco.Controllers
                 t.Wait(); 
             });
 
+            paymentsData.UserCanRegisterPayments = HelperMethods.UserIsAdministrator(_user);
+
             return Ok(paymentsData);
         }
 

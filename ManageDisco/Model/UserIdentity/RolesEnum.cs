@@ -49,5 +49,6 @@ namespace ManageDisco.Model.UserIdentity
         public const string PERMISSION_EVENT = "Gestione eventi";
         public const string PERMISSION_HOME_TEMPLATE = "Gestione template home";
         public const string PERMISSION_WAREHOUSE = "Gestione magazzino";
+        public const string PERMISSION_NEW_COLLABORATOR = "Nuovo collaboratore";
     }
 }

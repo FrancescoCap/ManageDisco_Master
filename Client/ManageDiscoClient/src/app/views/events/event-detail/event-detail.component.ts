@@ -48,8 +48,7 @@ export class EventDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.activatedRoute.queryParams.subscribe(params => {
-      this.eventId = params["eventId"];     
-      this.areDetailsEditableFromUser = this.user.userIsAdminstrator();
+      this.eventId = params["eventId"];           
     })
     this.initData();
   }
@@ -74,9 +73,14 @@ export class EventDetailComponent implements OnInit {
     .subscribe((data:any)  => {
       this.event = data[0];
       this.tables = data[1];
+
       this.editPriceMode = false;
       this.editDescription = false;
-      this.userIsAdministrator = this.user.userIsAdminstrator();
+
+      this.userIsAdministrator = data.userCanEditInfo;
+      //serve?
+      this.areDetailsEditableFromUser = data.userCanEditInfo;
+
       this.isLoading = false;
     });
   }
@@ -180,7 +184,7 @@ export class EventDetailComponent implements OnInit {
       ]
       }];
 
-    if (this.user.userIsInStaff()) {
+    if (this.event!.userIsInStaff) {
      
       this.modaViews.push({
         type: ModalModelEnum.Table, selector:"tblCustomer", multiSelect: false, viewItems: [{ label: "Prenota per", viewId: "tblPrCustomers", referenceId: "customerId", list: this.prCustomers }]
@@ -253,7 +257,7 @@ export class EventDetailComponent implements OnInit {
   }
 
   startEditDesctiption() {
-    if (this.user.userIsAdminstrator())
+    if (this.event?.userCanEditInfo)
       this.editDescription = true;
   }
 

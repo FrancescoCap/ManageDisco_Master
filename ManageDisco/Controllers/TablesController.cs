@@ -36,7 +36,7 @@ namespace ManageDisco.Controllers
              * RECUPERERO IL NOME DEL FILE A SECONDA DELLA DISCOTECA A CUI APPARTIENE L'UTENTE (SE COLLABORATORE) O SU CUI SI STA EFFETTUANDO LA PRENOTAZIONE (IN CASO DI CLIENTE)
              */
 
-            return base.Ok(new TableMapReponse() { Path = @"C:\Users\Francesco\source\repos\ManageDisco\ManageDisco\Resource\pianta_tavoli.pdf", FileName="pianta_tavoli.pdf" });
+            return base.Ok(new TableMapReponse() { Path = @"C:\Users\Francesco\source\repos\ManageDisco\ManageDisco\Resource\pianta_tavoli.pdf", FileName = "pianta_tavoli.pdf" });
         }
 
         /// <summary>
@@ -46,21 +46,21 @@ namespace ManageDisco.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("TablesOrder")]
-        public async Task<IActionResult> GetConfirmedTablesForEvent([FromQuery]int eventId)
+        public async Task<IActionResult> GetConfirmedTablesForEvent([FromQuery] int eventId)
         {
 
-           IQueryable<TableOrderView> tables = _db.Reservation
-                .Where(x => x.TableId != null && x.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_APPROVED)
-                .Select(x => new TableOrderView()
-                {
-                    TableId = x.TableId.Value,
-                    TableAreaDescription = x.Table.TableAreaDescription,
-                    TableNumber = x.Table.TableNumber,
-                    TableName = x.ReservationTableName,
-                    EventId = x.EventPartyId,
-                    TableDate = x.EventParty.Date,
-                    HasOrder = _db.TableOrderHeader.Any(o => o.TableId == x.TableId && x.EventPartyId == eventId)
-                });
+            IQueryable<TableOrderView> tables = _db.Reservation
+                 .Where(x => x.TableId != null && x.ReservationStatusId == ReservationStatusValue.RESERVATIONSTATUS_APPROVED)
+                 .Select(x => new TableOrderView()
+                 {
+                     TableId = x.TableId.Value,
+                     TableAreaDescription = x.Table.TableAreaDescription,
+                     TableNumber = x.Table.TableNumber,
+                     TableName = x.ReservationTableName,
+                     EventId = x.EventPartyId,
+                     TableDate = x.EventParty.Date,
+                     HasOrder = _db.TableOrderHeader.Any(o => o.TableId == x.TableId && x.EventPartyId == eventId)
+                 });
 
             if (eventId > 0)
                 tables = tables.Where(x => x.EventId == eventId);
@@ -71,7 +71,7 @@ namespace ManageDisco.Controllers
             header.Tables = await tables.ToListAsync();
             header.EventId = tables.FirstOrDefault() == null ? eventId : tables.FirstOrDefault().EventId;
 
-            return Ok(header);                        
+            return Ok(header);
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace ManageDisco.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("TableOrdersList")]
-        public async Task<IActionResult> GetOrderList([FromQuery]int tableId)
+        public async Task<IActionResult> GetOrderList([FromQuery] int tableId)
         {
             //Per tutta la serata il tavolo avrà sempre e solo un header in cui verranno
             //aggiornati i valori ad ogni ordine
@@ -92,8 +92,8 @@ namespace ManageDisco.Controllers
                 {
                     TableOrderHeaderId = x.TableOrderHeaderId,
                     TableOrderHeaderExit = x.TableOrderHeaderExit,
-                    TableOrderHeaderSpending = x.TableOrderHeaderSpending                    
-                    
+                    TableOrderHeaderSpending = x.TableOrderHeaderSpending
+
                 }).FirstOrDefaultAsync();
 
             List<TableOrderRowView> rows = await _db.TableOrderRow
@@ -104,7 +104,7 @@ namespace ManageDisco.Controllers
                     TableOrderRowQuantity = x.TableOrderRowQuantity,
                     ProductId = x.ProductId,
                     ProductName = x.Product.ProductName
-                    
+
                 }).ToListAsync();
 
             var groupedRow = rows
@@ -123,6 +123,73 @@ namespace ManageDisco.Controllers
 
 
             return Ok(summary);
+        }
+
+        [HttpGet]
+        [Route("EventTables")]
+        public async Task<IActionResult> GetEventTables([FromQuery] int eventId)
+        {
+            TableEventView tableEventView = new TableEventView();
+
+            List<Task> tasks = new List<Task>()
+            {
+                new Task(() => { 
+                    //events
+                    tableEventView.EventParties = _db.Events.ToList();
+                }),
+                new Task(async() => {
+                    tableEventView.ReservationStatus = _db.ReservationStatus.ToList();
+                }),
+                new Task(async() => {
+                    tableEventView.Tables = _db.Table.ToList();
+                }),
+                new Task(async () => {
+
+                    var tmpReservations = _db.Reservation
+                        .Select(x => new ReservationView(){
+                            ReservationId = x.ReservationId,
+                            ReservationCode = x.ReservationCode,
+                            ReservationDate = x.ReservationDate,
+                            EventId = x.EventPartyId,
+                            EventName = x.EventParty.Name,
+                            ReservationPeopleCount = x.ReservationPeopleCount,
+                            ReservationTypeValue = x.ReservationType.ReservationTypeString,
+                            ReservationUserCode = x.ReservationUserCodeValue,
+                            ReservationExpectedBudget = x.ReservationExpectedBudget,
+                            ReservationRealBudget = x.ReservationRealBudget,
+                            ReservationStatusId = x.ReservationStatus.ReservationStatusId,
+                            ReservationStatus = x.ReservationStatus.ReservationStatusValue,
+                            UserId = x.UserId,
+                            UserIdOwner = x.UserIdOwner,
+                            ReservationName = x.ReservationTableName,
+                            TableId = x.TableId != null ? x.TableId : 0,
+                            ReservationTablAssigned = $"{x.Table.TableAreaDescription} - {x.Table.TableNumber}"
+                        });
+
+                    if (eventId > 0)
+                       tmpReservations = tmpReservations.Where(x => x.EventId == eventId);
+                    else
+                    {
+                        var startDate = DateTime.Now.Date.AddDays(-7);
+                        tmpReservations = tmpReservations.Where(x => x.ReservationDate.Date.CompareTo(startDate) > 0);
+                    }
+
+                    if (HelperMethods.UserIsPr(_user))
+                        tmpReservations = tmpReservations.Where(x => x.UserId == _user.Id);
+
+                    tableEventView.Reservations = tmpReservations.ToList();
+                })
+            };
+
+            foreach (Task t in tasks)
+            {
+                t.Start();
+                t.Wait();
+            }
+
+            tableEventView.UserCanHandleReservation = HelperMethods.UserIsAdministrator(_user);
+
+            return Ok(tableEventView);
         }
 
         // PUT: api/Tables/5
@@ -152,7 +219,7 @@ namespace ManageDisco.Controllers
                     throw;
                 }
             }
-           
+
             return NoContent();
         }
         /// <summary>
@@ -169,7 +236,7 @@ namespace ManageDisco.Controllers
                 return BadRequest("Invalid table");
             if (orderInfo == null || orderInfo.ProductsId == null || !orderInfo.ProductsId.Any())
                 return Ok();
-            
+
 
             Table table = await _db.Table.FirstOrDefaultAsync(x => x.TableId == tableId);
             if (table == null)
@@ -201,7 +268,7 @@ namespace ManageDisco.Controllers
                         return BadRequest(new GeneralReponse() { Message = "Il tavolo ha già usufruito di un coupon.", OperationSuccess = false });
                     else
                         orderHeader.TableOrderHeaderCouponCode = orderInfo.ShopCoupon;
-                }                
+                }
 
                 orderHeader.TableOrderHeaderExit = orderHeader.TableOrderHeaderExit + orderInfo.ExitChanged;
                 orderHeader.TableOrderHeaderSpending = orderHeader.TableOrderHeaderSpending + orderInfo.ProductsSpendingAmount;
@@ -241,7 +308,7 @@ namespace ManageDisco.Controllers
                             TableOrderHeader = orderHeader
                         });
                     });
-                   
+
 
                     userProduct.UserProductUsed = true;
                     _db.Entry(userProduct).State = EntityState.Modified;
@@ -251,13 +318,13 @@ namespace ManageDisco.Controllers
 
             }
 
-            _db.TableOrderRow.AddRange(orderRows);           
+            _db.TableOrderRow.AddRange(orderRows);
 
             await _db.SaveChangesAsync();
 
             return Ok();
         }
-                
+
         // DELETE: api/Tables/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTable(int id)
@@ -273,7 +340,7 @@ namespace ManageDisco.Controllers
 
             return NoContent();
         }
-       
+
         private bool TableExists(int id)
         {
             return _db.Table.Any(e => e.TableId == id);

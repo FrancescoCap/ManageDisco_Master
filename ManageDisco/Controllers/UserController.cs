@@ -153,6 +153,15 @@ namespace ManageDisco.Controllers
             response = await new HelperMethods().GenerateTokens(_db, user, HttpContext, _userManager, _encryption, _configuration);
             response.UserPoints = user.Points;
             response.UserNameSurname = String.Format("{0} {1}", user.Name, user.Surname);
+
+            if (HelperMethods.UserIsCustomer((List<string>)userRoles))
+            {
+                string linkedPrId = _db.PrCustomer.FirstOrDefault(x => x.PrCustomerCustomerid == user.Id).PrCustomerPrId;
+                var findPrTask = await _db.Users.FirstOrDefaultAsync(x => x.Id == linkedPrId);
+                var prCode = findPrTask.UserCode;
+                response.PrCode = prCode;
+            }
+
             //delete old cookie if user login wihout logout operation           
             areCookiesToAdd(false, (List<string>)userRoles);
 
@@ -319,9 +328,8 @@ namespace ManageDisco.Controllers
                 UserPhoneNumber = user.PhoneNumber,
                 UserPoints = user.Points,
                 IsPhoneNumberConfirmed = user.PhoneNumberConfirmed
-
             };
-
+            
             var roles = await _userManager.GetRolesAsync(user);
             userInfoView.IsCustomer = !HelperMethods.UserIsInStaff(user, roles.ToList());
 
@@ -341,6 +349,53 @@ namespace ManageDisco.Controllers
 
 
             return Ok(userInfoView);
+        }
+
+        /// <summary>
+        /// Handle profile page view. Client have to know if is customer to hide other menu options
+        /// </summary>
+        /// <returns></returns>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet]
+        [Route("ProfilePageView")]
+        public async Task<IActionResult> GetPageTypeView()
+        {
+            var user = await _userManager.FindByIdAsync(HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);          
+            var userRoles = _userManager.GetRolesAsync(user).Result;
+
+            return Ok(HelperMethods.UserIsCustomer((List<string>) userRoles));
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet]
+        [Route("NewCollaboratorInfo")]
+        public async Task<IActionResult> GetAddingCollabortorInfo()
+        {
+            var user = await _userManager.FindByIdAsync(HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value);
+            bool isApiAllowed = _db.UserPermission.Any(x => x.UserId == user.Id &&
+                     x.PermissionAction.PermissionActionDescription == PermissionValueCostants.PERMISSION_NEW_COLLABORATOR &&
+                     x.PermissionActionAllowed == true);
+
+            var userRoles = _userManager.GetRolesAsync(user).Result;
+            //Roles which user can add collaborator
+            var enabledNewCollabatorRoles = await _db.Roles.Where(x => x.Name != RolesConstants.ROLE_CUSTOMER).ToListAsync();
+            //filter roles
+            if (HelperMethods.UserIsPr((List<string>)userRoles))
+            {
+                enabledNewCollabatorRoles = enabledNewCollabatorRoles.Where(x => x.Name == RolesConstants.ROLE_PR).ToList();
+            }
+              
+
+            if (!isApiAllowed && !HelperMethods.UserIsAdministrator((List<string>) userRoles))
+                return Forbid();
+
+            NewCollaboratorInfo newCollaboratorInfo = new NewCollaboratorInfo()
+            {
+                UserCanAddCollaborator = isApiAllowed,
+                Roles = enabledNewCollabatorRoles
+            };
+
+            return Ok(newCollaboratorInfo);
         }
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]

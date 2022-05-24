@@ -59,5 +59,16 @@ namespace ManageDisco.Model
         /// </summary>
         public bool HasOrder { get; set; }
     }
+    /// <summary>
+    /// Mostra tutti i tavoli assegnati per gli eventi. Fornisce inoltre ulteriori dati utili alla pagina chiamante
+    /// </summary>
+    public class TableEventView
+    {
+        public bool UserCanHandleReservation { get; set; }
+        public List<EventParty> EventParties { get; set; }
+        public List<ReservationView> Reservations { get; set; }
+        public List<ReservationStatus> ReservationStatus { get; set; }
+        public List<Table> Tables { get;set; }
+    }
 
 }

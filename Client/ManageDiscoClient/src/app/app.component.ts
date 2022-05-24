@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
 import { ApiCaller } from './api/api';
-import { LOCALSTORARE_LOGIN_HEADER, LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, onLoginResponse, onMenuChange } from './app.module';
+import { COOKIE_ISAUTHENTICATED, COOKIE_PR_CODE, LOCALSTORARE_LOGIN_HEADER, LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU, onLoginResponse, onMenuChange } from './app.module';
 import { CookieConstants, HeaderMenu, HomeInfo } from './model/models';
 import { GeneralService } from './service/general.service';
 import { UserService } from './service/user.service';
@@ -97,6 +97,8 @@ export class AppComponent implements OnInit {
     this._api.logout().subscribe(() => {
       localStorage.removeItem(LOCALSTORARE_LOGIN_HEADER);
       localStorage.removeItem(LOCALSTORARE_LOGIN_HEADER_ENABLE_MENU);
+      this._user.removeLocalCookie(COOKIE_ISAUTHENTICATED);
+      this._user.removeLocalCookie(COOKIE_PR_CODE);
       
       this.goToLoginPage();
     })

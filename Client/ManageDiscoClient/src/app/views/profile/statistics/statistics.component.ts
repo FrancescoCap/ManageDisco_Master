@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { ApiCaller } from '../../../api/api';
 import { maxTablePageRows } from '../../../app.module';
 import { TableViewDataModel } from '../../../components/tableview/tableview.model';
-import { EventParty, EventPartyView, Statistics } from '../../../model/models';
+import { EventParty, EventPartiesViewInfo, Statistics } from '../../../model/models';
 
 @Component({
   selector: 'app-event-statistics',
@@ -36,7 +36,7 @@ export class StatisticsComponent implements OnInit {
 
   isLoading = false;
   eventId = 0;
-  events?: EventPartyView = { events: []};
+  events?: EventPartiesViewInfo = { events: []};
 
   constructor(private _api:ApiCaller) { }
 

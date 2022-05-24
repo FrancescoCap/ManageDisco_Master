@@ -3,7 +3,7 @@ import { Injectable, Input, ViewContainerRef } from "@angular/core";
 import { Router } from "@angular/router";
 import { map, Observable, pipe } from "rxjs";
 import { GeneralMethods } from "../helper/general";
-import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartyView, PrCustomerView, HomeInfo, CatalogView, HomePhotoPost, Role, TranslatedRolesEnum, ReservationStatus, TranslatedReservationStatusEnum, ProductShopHeader, ProductShopType, UserPermissionCell, UserPermissionTable, UserPermissionPut, CouponValidation, ReservationPost, PaymentsOverviewFull } from "../model/models";
+import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartiesViewInfo, PrCustomerView, HomeInfo, CatalogView, HomePhotoPost, Role, TranslatedRolesEnum, ReservationStatus, TranslatedReservationStatusEnum, ProductShopHeader, ProductShopType, UserPermissionCell, UserPermissionTable, UserPermissionPut, CouponValidation, ReservationPost, PaymentsOverviewFull, NewCollaboratorInfo, ProductShopView, UserInfoView } from "../model/models";
 import { ModalService } from "../service/modal.service";
 
 import { ApiHttpService } from "./http";
@@ -40,6 +40,10 @@ export class ApiCaller {
     } else if (status == HttpStatusCode.BadRequest) {
       this.modalService.showErrorOrMessageModal(message, "ERRORE");
     }
+  }
+
+  public getProfilePageViewType() {
+    return this.http.getCall(this.url.getProfilePageViewType(), this.onApiError);
   }
 
   public exportTables(eventId:number) {
@@ -104,9 +108,9 @@ export class ApiCaller {
 
   public getShop() {
     return this.http.getCall(this.url.getShop(), this.onApiError).pipe(
-      map((data: ProductShopHeader[]) => {
-        data.forEach((o, i) => {
-          data[i].productShopBase64Image = GeneralMethods.normalizeBase64(o.productShopBase64Image!);
+      map((data: ProductShopView) => {
+        data.items?.forEach((o, i) => {
+          data.items![i].productShopBase64Image = GeneralMethods.normalizeBase64(o.productShopBase64Image!);
         })
         return data;
       }));
@@ -116,14 +120,14 @@ export class ApiCaller {
     return this.http.getCall(this.url.getCollaborators(), this.onApiError);
   }
 
-  public getRoles() {
-    return this.http.getCall(this.url.getRoles()).pipe(
-      map((roles: Role[]) => {
-        roles.forEach(x => {
+  public getAddingCollaboratorInfo() {
+    return this.http.getCall(this.url.getAddingCollaboratorInfo(), this.onApiError).pipe(
+      map((info: NewCollaboratorInfo) => {
+        info.roles?.forEach(x => {
           //index 0 è la chiave dell'enum e 1 il valore
-         x._translatedRole = Object.entries(TranslatedRolesEnum).find(k => k[0] == x.name)?.[1];
+          x._translatedRole = Object.entries(TranslatedRolesEnum).find(k => k[0] == x.name)?.[1];
         });
-        return roles;
+        return info;
       }));
   }
 
@@ -225,7 +229,7 @@ export class ApiCaller {
     return this.http.getCall(this.url.getUserInfoFromId(userId));
   }
 
-  public getUserInfo(): Observable<any> {
+  public getUserInfo(): Observable<UserInfoView> {
     return this.http.getCall(this.url.getUserInfo(), this.onApiError);
   }
 
@@ -269,9 +273,9 @@ export class ApiCaller {
   //    }));
   //}
 
-  public getEvents(loadImages:boolean) {
-    return this.http.getCall(loadImages ? this.url.getEvents():this.url.getEventsNoImages(), this.onApiError).pipe(
-      map((data: EventPartyView) => {
+  public getEvents(loadImages:boolean, withReservations:boolean = false) {
+    return this.http.getCall(loadImages ? this.url.getEvents():this.url.getEventsNoImages(withReservations), this.onApiError).pipe(
+      map((data: EventPartiesViewInfo) => {
         data.events!.map((item: EventParty) => {
           item._showDate = new Date(item.date!).getFullYear() > 2020;
           item._dropId = item.id;
@@ -372,6 +376,10 @@ export class ApiCaller {
 
   public postPayment(newPayment: PaymentPost) {
     return this.http.postCall(this.url.reservationsPayments(), newPayment, this.onApiError);
+  }
+
+  public getEventReservationTables(eventId?:number) {
+    return this.http.getCall(this.url.getEventReservationTables(eventId), this.onApiError);
   }
 
   public getTables() {

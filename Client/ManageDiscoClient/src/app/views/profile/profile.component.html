@@ -1,4 +1,4 @@
-<div class="col-12 body-container row">
+<div class="col-12 body-container row" *ngIf="viewTypeReceived">
   <h3 class="col-12 text-center" style="font-family:Britannic; font-size:36px">IMPOSTAZIONI</h3>
   <div id="navigationLabelContainer"
        class="col-12 col-lg-2 p-0 div-container"
@@ -24,7 +24,7 @@
     </div>
 
     <div class="col-12 col-lg-10 p-2 p-lg-5 div-container" style="border:1px solid #000" *ngIf="pageViews[COLLABORATORS_VIEW_INDEX]">
-      <div *ngIf="userIsAdministrator;else notAllowed">
+      <div *ngIf="userCanAddCollabortor;else notAllowed">
         <div class="col-12">
           <label id="no-data" class="col-12">Nuovo collaboratore</label>
           <small id="col-12">Abilita un nuovo collaboratore alla vendita. Il nuovo utente dovrà accettare l'email di verifica.</small>
