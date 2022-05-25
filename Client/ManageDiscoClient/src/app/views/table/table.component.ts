@@ -82,7 +82,8 @@ export class TableComponent implements OnInit {
         this.acceptedReservations = data.reservations!;
         this.reservationStatus = data.reservationStatus!;
         this.avaiableTables = data.tables!;
-        
+        console.log(data.tables)
+        console.log(this.avaiableTables)
         this.userIsAdministrator = data.userCanHandleReservation!;
 
         this.setDataForTableView();
@@ -116,7 +117,7 @@ export class TableComponent implements OnInit {
   }
 
   onTableLocationClick = (data: any): void => {
-    this.selectedReservationId = data;
+    this.selectedReservationId = data;   
     var assignTableModalViews = GeneralMethods.getAssignTableModalViews(this.avaiableTables);
 
     this._modal.showAddModal(this.onTableLoactionConfirmed, "ASSEGNA TAVOLO", assignTableModalViews)
