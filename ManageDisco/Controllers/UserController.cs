@@ -144,11 +144,7 @@ namespace ManageDisco.Controllers
             foreach (string role in userRoles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
-            }
-
-            //token
-            //var token = HelperMethods.GenerateJwtToken(claims, _configuration["Jwt:SecurityKey"], _configuration["Jwt:ValidIssuer"], _configuration["Jwt:ValidAudience"]);
-            //token = _encryption.EncryptCookie(token, "cookieAuth");      
+            } 
 
             response = await new HelperMethods().GenerateTokens(_db, user, HttpContext, _userManager, _encryption, _configuration);
             response.UserPoints = user.Points;
@@ -305,6 +301,36 @@ namespace ManageDisco.Controllers
             authenticationResponse.OperationSuccess = true;
             //Change to Redirect(loginPage)
             return Ok(authenticationResponse);
+        }
+                
+        [HttpPost]
+        [Route("Register/Admin")]
+        public async Task<IActionResult> RegisterAdmin([FromBody] RegisterRequest registerRequest)
+        {
+            if (registerRequest == null ||
+                registerRequest.Email == null || 
+                registerRequest.Password == null ||
+                registerRequest.PhoneNumber == null)
+                return BadRequest();
+
+            User newUser = new User() { 
+                Name = registerRequest.Name,
+                Surname = registerRequest.Surname,
+                Email = registerRequest.Email,
+                Gender = registerRequest.Gender,
+                PhoneNumber = registerRequest.PhoneNumber,
+                UserName = registerRequest.Username
+            };
+            
+
+            var registrationResult = _userManager.CreateAsync(newUser, registerRequest.Password);
+            if (!registrationResult.Result.Succeeded)
+                return BadRequest(registrationResult.Result.Errors);
+
+           await _userManager.AddToRoleAsync(newUser, RolesConstants.ROLE_ADMINISTRATOR);
+
+
+            return Ok();
         }
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
