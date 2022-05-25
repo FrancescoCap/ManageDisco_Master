@@ -142,25 +142,27 @@ export class AppComponent implements OnInit {
       menuItem.header = headerValues[0];
       menuItem.link = headerValues[1];
       menuItem.icon = headerValues[2];
+     
       if (headerValues[3] != "0") {
         menuItem.child = [];
       }
      
       var childs = h.split(":");
+      console.log(childs)
       if (childs.length == 1) {
         //if length == 1 means that no have child beacause split() returns 1 item also if no split was done
         deserializedMenu.push(menuItem);
         return;
       } 
 
-      childs.forEach(c => {
-        var childValues = c.split("|");       
+      for (var i = 1; i < childs.length; i++) { //skip first element: splitting for "|" includes also header again
+        var childValues = childs[i].split("|");
         menuItem.child?.push({
           title: childValues[0],
           link: childValues[1],
           icon: childValues[2]
         })
-      });
+      }
       deserializedMenu.push(menuItem);
     })
     this.menu = deserializedMenu;
