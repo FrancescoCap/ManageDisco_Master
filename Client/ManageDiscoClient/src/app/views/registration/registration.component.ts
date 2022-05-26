@@ -59,6 +59,6 @@ export class RegistrationComponent implements OnInit {
 
   onRegistrationResponseModalClose = (data: any): void => {
     setTimeout(() => { }, 1000);
-    this._router.navigateByUrl("Home");
+    this._router.navigateByUrl("Login");
   }
 }

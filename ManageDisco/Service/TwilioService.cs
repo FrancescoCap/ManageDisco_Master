@@ -47,22 +47,35 @@ namespace ManageDisco.Service
         public void StartTwilioResponse(string from, string to, string body)
         {
             Twilio.TwilioClient.Init(_conf["Twilio:AccountId"], _conf["Twilio:Token"]);
-
-            var message = MessageResource.Create(                
-                from: new Twilio.Types.PhoneNumber(SanitizeNumber(from)),
-                to: new Twilio.Types.PhoneNumber(SanitizeNumber(to)),
-                body: body);           
+            try
+            {
+                var message = MessageResource.Create(
+               from: new Twilio.Types.PhoneNumber(SanitizeNumber(from)),
+               to: new Twilio.Types.PhoneNumber(SanitizeNumber(to)),
+               body: body);
+            }
+            catch(Exception ex)
+            {
+                throw new Exception();
+            }
+           
         }
 
         public void StartTwilioResponse(string from, string to, string body, List<Uri> mediaUrl)
         {
             Twilio.TwilioClient.Init(_conf["Twilio:AccountId"], _conf["Twilio:Token"]);
-
-            var message = MessageResource.Create(
-                mediaUrl: mediaUrl,
-                from: new Twilio.Types.PhoneNumber(SanitizeNumber(from)),
-                to: new Twilio.Types.PhoneNumber(SanitizeNumber(to)),
-                body: body);
+            try
+            {
+                var message = MessageResource.Create(
+               mediaUrl: mediaUrl,
+               from: new Twilio.Types.PhoneNumber(SanitizeNumber(from)),
+               to: new Twilio.Types.PhoneNumber(SanitizeNumber(to)),
+               body: body);
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.InnerException.Message);
+            }           
         }
 
         private string SanitizeNumber(string value)
