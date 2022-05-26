@@ -1,8 +1,8 @@
 import { Component, OnInit, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
-import { catchError, concat, concatMap, of } from 'rxjs';
+import { catchError, concat, concatMap, of, Subject } from 'rxjs';
 import { ApiCaller } from '../../../api/api';
-import { EventParty, LoginRequest, ModalType, PrCustomerView, ReservationPost, ReservationType, Table } from '../../../model/models';
+import { EventParty, FreeTables, LoginRequest, ModalType, PrCustomerView, ReservationPost, ReservationType, Table } from '../../../model/models';
 import { ModalService } from '../../../service/modal.service';
 import SwiperCore, { EffectFade, Autoplay, Pagination, Navigation, Scrollbar } from "swiper";
 import { ModalModelEnum, ModalViewGroup } from '../../../components/modal/modal.model';
@@ -38,6 +38,10 @@ export class EventDetailComponent implements OnInit {
   editDescription = false;
   areDetailsEditableFromUser: boolean = false;
   userIsAdministrator: boolean = false;
+
+  freeTableListener?: Subject<string> = new Subject<string>();
+  freeTableString?: string;
+  freeTableBudget: number = 0;
 
   //[ngStyle] = "{'visibility': areDetailsEditableFromUser == true ? 'visible':'hidden'}"
   constructor(private _api: ApiCaller,
@@ -173,7 +177,7 @@ export class EventDetailComponent implements OnInit {
       type: ModalModelEnum.TextBox, viewItems: [
         { label: "Nome prenotazione", viewId: "txtReservationName", referenceId: "reservationName" },
         { label: "Nr. persone", viewId: "txtPeopleCount", referenceId: "peopleCount" },
-        { label: "Budget (previsto)", viewId: "txtExpectedBudget", referenceId: "expectedBudget" },
+        { label: "Budget (previsto)", viewId: "txtExpectedBudget", referenceId: "expectedBudget", validationFunc: this.onEditNewReservationBudget, extraDescription: this.freeTableListener },
         { label: "Note", viewId: "txtReservationNote", referenceId: "reservationNote" }
       ],
     },
@@ -189,9 +193,6 @@ export class EventDetailComponent implements OnInit {
       this.modaViews.push({
         type: ModalModelEnum.Table, selector:"tblCustomer", multiSelect: false, viewItems: [{ label: "Prenota per", viewId: "tblPrCustomers", referenceId: "customerId", list: this.prCustomers }]
       });
-      this.modaViews.push({
-        type: ModalModelEnum.Checkbox, selector: "checkBoxForMe", viewItems: [{label: "Prenota per me", viewId:"chbForMe", referenceId:"chbIsForMe"}]
-      })
     } else {      
       this.modaViews.push({
         type: ModalModelEnum.TextBox, viewItems: [{ label: "Codice pr", viewId: "txtPrCode", referenceId: "userCode", defaultText: this.user.getCustomerPrCode() }]
@@ -265,5 +266,18 @@ export class EventDetailComponent implements OnInit {
     this._api.closeFreeEntrance(this.eventId).subscribe((data: any) => {
       this.initData();
     })
+  }
+
+  onEditNewReservationBudget = (budget: number) => {
+    this.freeTableBudget = budget;
+
+    this._api.getFreeEventTables(this.eventId, this.freeTableBudget)
+      .subscribe((tables: FreeTables[]) => {
+        var freeTables = "I tavoli liberi più idonei per i parametri indicati sono: ";
+        tables.forEach((x, y) => {
+          freeTables += y > 0 ? ", " + x.description : x.description;
+        });
+        this.freeTableListener?.next(freeTables);
+      })
   }
 }

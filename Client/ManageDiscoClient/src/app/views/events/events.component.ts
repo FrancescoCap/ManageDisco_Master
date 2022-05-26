@@ -144,9 +144,9 @@ export class EventsComponent implements OnInit {
   
     this._api.postEvent(newEvent)
       .pipe(catchError(err => { this.isLoading = false;  return err;}))
-     .subscribe(() => {
-       this.isLoading = false;
-       this._modalService.hideModal();
+      .subscribe(() => {
+        this._modalService.hideModal();
+       this.isLoading = false;      
        this.initData();
      })
  }

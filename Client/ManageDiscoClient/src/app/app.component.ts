@@ -148,7 +148,6 @@ export class AppComponent implements OnInit {
       }
      
       var childs = h.split(":");
-      console.log(childs)
       if (childs.length == 1) {
         //if length == 1 means that no have child beacause split() returns 1 item also if no split was done
         deserializedMenu.push(menuItem);

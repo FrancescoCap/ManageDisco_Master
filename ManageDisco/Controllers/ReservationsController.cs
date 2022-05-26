@@ -351,7 +351,7 @@ namespace ManageDisco.Controllers
                 EventPartyId = reservationData.EventPartyId,
                 ReservationExpectedBudget = reservationData.ReservationExpectedBudget,
                 ReservationRealBudget = reservationData.ReservationRealBudget,
-                ReservationStatusId = ReservationStatusValue.RESERVATIONSTATUS_PENDING,
+                ReservationStatusId = reservationData.TableId != 0 ? ReservationStatusValue.RESERVATIONSTATUS_APPROVED : ReservationStatusValue.RESERVATIONSTATUS_PENDING, //if tableId is provided means it is accepted automatically
                 ReservationConfirmationNote = "",
                 ReservationNote = reservationData.ReservationNote,
                 ReservationTableName = reservationData.ReservationName
@@ -371,12 +371,27 @@ namespace ManageDisco.Controllers
             Reservation alreadyPresentTableReservation = await _db.Reservation.FirstOrDefaultAsync(x => x.EventPartyId == reservationData.EventPartyId && x.TableId == reservationData.TableId);
             if (alreadyPresentTableReservation != null)
             {
-                if (await ChangeReservationTable(reservation, alreadyPresentTableReservation))
+                if (HelperMethods.UserIsAdministrator(_user))
                 {
-                    if (HelperMethods.UserIsAdministrator(_user))
-                        confirmMessage = $"Il tavolo precedentemente assegnato a {alreadyPresentTableReservation.ReservationTableName} e stato ora prenotato per {reservation.ReservationTableName}";
-
+                    if (await ChangeReservationTable(reservation, alreadyPresentTableReservation))
+                    {
+                        if (HelperMethods.UserIsAdministrator(_user))
+                            confirmMessage = $"Il tavolo precedentemente assegnato a {alreadyPresentTableReservation.ReservationTableName} e stato ora prenotato per {reservation.ReservationTableName}";
+                    }
+                    else
+                    {
+                        confirmMessage = "La prenotazione è stata inserita ma il tavolo non assegnato perché già assegnto.";
+                    }
                 }
+                else
+                {
+                    confirmMessage = $"Il tavolo è stato già assegnato.";
+                    return BadRequest(new GeneralReponse() { Message = confirmMessage, OperationSuccess = false });
+                }           
+            }
+            else
+            {
+                reservation.TableId = reservationData.TableId;
             }
 
             _db.Reservation.Add(reservation);
@@ -385,6 +400,21 @@ namespace ManageDisco.Controllers
             return Ok(new ReservationResponse() { ReservationCode = reservation.ReservationCode, Message = confirmMessage });
         }
 
+        [HttpGet]
+        [Route("FreeTables")]
+        public async Task<IActionResult> GetFreeTableForReservation([FromQuery] decimal budget, [FromQuery] int eventId)
+        {
+            if (budget == 0)
+                return Ok("Budget cannot be zero.");
+            if (eventId == 0)
+                return Ok("Not valid event");
+
+            var busyTables = await _db.Reservation.Where(x => x.EventPartyId == eventId).Select(x => x.TableId).ToListAsync();
+            var freeTables = await _db.Table.Where(x =>  budget >= x.TableMinBudget &&!busyTables.Contains(x.TableId)).Select(x => new FreeReservationTables() { Description = $"{x.TableAreaDescription}-{x.TableNumber}" }).ToListAsync();
+
+            return Ok(freeTables);
+        }
+        
         [HttpGet("Event")]
         public async Task<IActionResult> GetEventReservation([FromQuery] int eventId)
         {
@@ -398,13 +428,6 @@ namespace ManageDisco.Controllers
 
             Reservation reservations = await _db.Reservation
                 .Where(x => x.UserIdOwner == _user.Id && x.EventPartyId == eventParty.Id)
-                //.Select(x => new Reservation()
-                //{
-                //    EventPartyId = x.EventPartyId,
-                //    ReservationExpectedBudget = x.ReservationExpectedBudget,
-                //    ReservationPeopleCount = x.ReservationPeopleCount,
-                //    Reservation
-                //})
                 .FirstOrDefaultAsync();
 
 
@@ -440,11 +463,20 @@ namespace ManageDisco.Controllers
                 if (await ChangeReservationTable(reservation, oldReservation))
                     return Ok(new GeneralReponse() { Message = $"Il tavolo precedentemente assegnato a {oldReservation.ReservationTableName} e stato ora prenotato per {reservation.ReservationTableName}", OperationSuccess = false });
                 else
-                    return BadRequest(new GeneralReponse() { Message = $"Il tavolo è stato già assegnato a {oldReservation.ReservationTableName}.", OperationSuccess = false });
+                {
+                    if (HelperMethods.UserIsAdministrator(_user))
+                        return BadRequest(new GeneralReponse() { Message = $"Il tavolo è stato già assegnato a {oldReservation.ReservationTableName}.", OperationSuccess = false });
+                    else
+                        return BadRequest(new GeneralReponse() { Message = $"Il tavolo è stato già prenotato.", OperationSuccess = false });
+                }
+
+            }
+            else
+            {
+                reservation.TableId = table.TableId;
             }
 
-
-            reservation.TableId = table.TableId;
+           
             _db.Entry(reservation).State = EntityState.Modified;
 
             await _db.SaveChangesAsync();
@@ -518,9 +550,9 @@ namespace ManageDisco.Controllers
             {
                 newReservation.TableId = oldReservation.TableId;
                 oldReservation.TableId = null;
+                _db.Reservation.Update(newReservation);
+                _db.Reservation.Update(oldReservation);
 
-                _db.Entry(oldReservation).State = EntityState.Modified;
-                _db.Entry(newReservation).State = EntityState.Modified;
                 await _db.SaveChangesAsync();
                 tableChanged = true;
             }

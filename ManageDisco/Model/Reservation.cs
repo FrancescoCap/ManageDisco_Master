@@ -156,4 +156,9 @@ namespace ManageDisco.Model
         public string ReservationCode { get; set; }
         public string Message { get; set; }
     }
+
+    public class FreeReservationTables
+    {
+        public string Description { get; set; }
+    }
 }

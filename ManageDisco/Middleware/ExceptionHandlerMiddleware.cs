@@ -30,7 +30,7 @@ namespace ManageDisco.Middleware
             {
                 Log rowLog = new Log()
                 {
-                    ErrorMessage = e.Message,
+                    ErrorMessage = e.InnerException.Message,
                     ErrorStacktrace = e.StackTrace,
                     ErrorPath = context.Request.Path,
                     ErrorDate = DateTime.Now.ToString()

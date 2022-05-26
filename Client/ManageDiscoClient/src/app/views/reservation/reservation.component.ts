@@ -1,7 +1,7 @@
 import { formatDate } from '@angular/common';
 import { EventEmitter, ViewContainerRef } from '@angular/core';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { toArray } from 'rxjs';
+import { Subject, toArray } from 'rxjs';
 import { concatMap } from 'rxjs';
 import { of } from 'rxjs';
 import { Observable } from 'rxjs/internal/Observable';
@@ -10,7 +10,7 @@ import { ApiCaller } from '../../api/api';
 import { ModalModelEnum, ModalModelList, ModalTextBoxList, ModalViewGroup } from '../../components/modal/modal.model';
 import { TableViewDataModel } from '../../components/tableview/tableview.model';
 import { GeneralMethods } from '../../helper/general';
-import { EventParty, EventPartiesViewInfo, ModalType, PrCustomerView, Reservation, ReservationPost, ReservationType, Table } from '../../model/models';
+import { EventPartiesViewInfo, ModalType, PrCustomerView, Reservation, ReservationPost, ReservationType, Table, FreeTables } from '../../model/models';
 import { GeneralService } from '../../service/general.service';
 import { ModalService } from '../../service/modal.service';
 import { UserService } from '../../service/user.service';
@@ -54,8 +54,14 @@ export class ReservationComponent implements OnInit {
   reservationTypes?: ReservationType[];
   newReservation: ReservationPost = { eventPartyId: 0, reservationPeopleCount: 0, reservationExpectedBudget: 0, reservationUserCodeValue: "" };
   prCustomers?: PrCustomerView[];
-  tables?: Table[];
+  tables?: Table[]; 
   reservationIdSelected = -1;
+
+  freeTableListener?: Subject<string> = new Subject<string>();
+  freeTableString?: string;
+  freeTableEventId: number = 0;
+  freeTableBudget: number = 0;
+
 
   modalModelLists: ModalModelList[] = [];
   modalTextBoxLists: ModalTextBoxList[] = [
@@ -248,7 +254,7 @@ export class ReservationComponent implements OnInit {
   }
 
   handleReservation(evt: any) {
-    console.log("Ciao")
+   
     var button = evt.target;
     var status = 1;
     var reserveId = button.id.split("_")[1];
@@ -319,21 +325,21 @@ export class ReservationComponent implements OnInit {
     var modaViews: ModalViewGroup[] = [
       {
         type: ModalModelEnum.Dropdown, viewItems: [{
-          viewId: "drpEvent", referenceId:"eventId", list: this.reservationData?.events, label: "Evento"
+          viewId: "drpEvent", referenceId:"eventId", list: this.reservationData?.events, label: "Evento", validationFunc: this.onReservationAddEventChange
         }]
       },
       {
         type: ModalModelEnum.TextBox, viewItems: [
           { label: "Nome prenotazione", viewId: "txtReservationName", referenceId: "reservationName" },
           { label: "Nr. persone", viewId: "txtPeopleCount", referenceId: "peopleCount" },
-          { label: "Budget (previsto)", viewId: "txtExpectedBudget", referenceId: "expectedBudget" },
+          { label: "Budget (previsto)", viewId: "txtExpectedBudget", referenceId: "expectedBudget", validationFunc: this.onEditNewReservationBudget, extraDescription: this.freeTableListener},
           { label: "Note", viewId: "txtReservationNote", referenceId: "reservationNote" }
       ],
     },
     {
       type: ModalModelEnum.Dropdown, viewItems: [
         { label: "Tipo prenotazione", viewId: "drpreservationTypes", referenceId: "reservationTypes", list: this.reservationTypes },
-        { label: "Posizione tavolo", viewId: "drpTables", referenceId: "tableId", list: this.tables }
+        { label: "Posizione tavolo", viewId: "drpTables", referenceId: "tableId", list: this.tables}
       ]
       }];
 
@@ -393,4 +399,26 @@ export class ReservationComponent implements OnInit {
       tableId: data.get("tableId")
     };
   }
+
+  onReservationAddEventChange = (eventId: number) => {
+    this.freeTableEventId = eventId;
+  }
+
+  onEditNewReservationBudget = (budget: number) => {
+    this.freeTableBudget = budget;  
+
+    if (this.freeTableEventId == 0)     
+      this.freeTableListener?.next("Selezionare un evento per conoscere i tavoli disponibili.");
+    else {
+      this._api.getFreeEventTables(this.freeTableEventId, this.freeTableBudget)
+        .subscribe((tables: FreeTables[]) => {
+          var freeTables = "I tavoli liberi più idonei per i parametri indicati sono: ";
+          tables.forEach((x, y) => {
+            freeTables += y > 0 ? ", " + x.description : x.description;
+          });          
+          this.freeTableListener?.next(freeTables);                   
+        })
+    }
+      
+  }  
 }

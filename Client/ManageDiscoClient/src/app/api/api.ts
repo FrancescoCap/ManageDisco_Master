@@ -3,7 +3,7 @@ import { Injectable, Input, ViewContainerRef } from "@angular/core";
 import { Router } from "@angular/router";
 import { map, Observable, pipe } from "rxjs";
 import { GeneralMethods } from "../helper/general";
-import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartiesViewInfo, PrCustomerView, HomeInfo, CatalogView, HomePhotoPost, Role, TranslatedRolesEnum, ReservationStatus, TranslatedReservationStatusEnum, ProductShopHeader, ProductShopType, UserPermissionCell, UserPermissionTable, UserPermissionPut, CouponValidation, ReservationPost, PaymentsOverviewFull, NewCollaboratorInfo, ProductShopView, UserInfoView, TableEventView } from "../model/models";
+import { AssignTablePost, Catalog, EventParty, PaymentOverview, PaymentPost, Product, Reservation, ReservationType, Table, TableMapFileInfo, TableEvents, TableOrderPut, TableOrderHeader, EventPartiesViewInfo, PrCustomerView, HomeInfo, CatalogView, HomePhotoPost, Role, TranslatedRolesEnum, ReservationStatus, TranslatedReservationStatusEnum, ProductShopHeader, ProductShopType, UserPermissionCell, UserPermissionTable, UserPermissionPut, CouponValidation, ReservationPost, PaymentsOverviewFull, NewCollaboratorInfo, ProductShopView, UserInfoView, TableEventView, FreeTables } from "../model/models";
 import { ModalService } from "../service/modal.service";
 
 import { ApiHttpService } from "./http";
@@ -40,6 +40,10 @@ export class ApiCaller {
     } else if (status == HttpStatusCode.BadRequest) {
       this.modalService.showErrorOrMessageModal(message, "ERRORE");
     }
+  }
+
+  public getFreeEventTables(eventId:number, budget:number) {
+    return this.http.getCall(this.url.getFreeTables(eventId, budget), this.onApiError);
   }
 
   public getProfilePageViewType() {

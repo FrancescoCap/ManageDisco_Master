@@ -63,7 +63,7 @@ export class ModalComponent implements OnInit {
 
   showModal() {
     this.modalVisibilityListener = new Subject<boolean>();
-    this.modalVisibilityListener?.subscribe((val: boolean) => { this.visibile = val; })
+    this.modalVisibilityListener?.subscribe((val: boolean) => { this.visibile = val; });
   }
   
   initTabletxtQuantityFlags() {
@@ -74,8 +74,8 @@ export class ModalComponent implements OnInit {
           k.list?.forEach((el: any, elIndex: number) => {
             this.disableViewQuantityMap?.set(elIndex, true);
             this.viewQuantityValuesMap?.set(elIndex, "");
-          })
-        }
+          });
+        }        
       })
     })
   }
@@ -141,13 +141,12 @@ export class ModalComponent implements OnInit {
     this.values.set(referenceId, value);
   }
 
-
   dropDownValueChange(e: any) {
     this.selectedValueChange.emit(e);
   }
 
   onTxtChange(referenceId: any, value:any) {
-    this.values.set(referenceId, value)
+    this.values.set(referenceId, value);
   }
 
   onConfirmModal() {
@@ -293,12 +292,16 @@ export class ModalComponent implements OnInit {
   }
 
   inputChange(viewItem: ViewItem, event: any) {
-    setTimeout(() => {
+    setTimeout(() => {      
       var value = event.target.value;
+      
       if (viewItem.validationFunc != null) {
-          viewItem.validationFunc(value);
-          viewItem.extraDescription?.subscribe((value: any) => { viewItem.extraDescriptionString = value });  
-      }
+        viewItem.validationFunc(value);
+        
+        viewItem.extraDescription?.subscribe((value: any) => {
+          viewItem.extraDescriptionString = value
+        });
+      }      
       this.values.set(viewItem.referenceId, value);
     },500)   
   }

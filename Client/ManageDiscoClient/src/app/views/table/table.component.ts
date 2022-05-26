@@ -106,7 +106,7 @@ export class TableComponent implements OnInit {
           { value: x.reservationTablAssigned },
           {
             value: "", icon: [
-              { class: "fa fa-map", referenceId: `map_${x.reservationId}`, isToShow: this.userIsAdministrator, onClickCallback: this.onTableLocationClick }
+              { class: "fa fa-map", referenceId: `map_${x.reservationId}`, isToShow: this.userIsAdministrator && this.selectedEventId != 0, onClickCallback: this.onTableLocationClick }
             ]
           }
         ]

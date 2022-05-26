@@ -55,7 +55,7 @@ namespace ManageDisco.Helper
                 audience: audience,
                 claims: claims,
                 notBefore: null,
-                expires: DateTime.UtcNow.AddMinutes(1),
+                expires: DateTime.UtcNow.AddMinutes(5),
                 signingCredentials: credentials);           
 
 

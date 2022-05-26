@@ -4,6 +4,10 @@ export class Endpoints {
 
   private base_url = server_URL;
 
+  getFreeTables(eventId:number, budget:number) {
+    return this.base_url + `Reservations/FreeTables?eventId=${eventId}&budget=${budget}`
+  }
+
   exportTables(eventId:number) {
     return this.base_url + `Reservations/Table/PdfExport?eventId=${eventId}`;
   }

@@ -10,6 +10,10 @@ export enum CookieConstants {
   MENU_STATE = "menu",
 }
 
+export interface FreeTables {
+  description?: string;
+}
+
 export enum TranslatedRolesEnum {
   WAREHOUSE_WORKER = "Magazziniere",
   PR = "Pr",

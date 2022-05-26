@@ -19,7 +19,8 @@
                             class="col-10 col-lg-12 p-2"
                             [id]="viewItem.viewId"
                             [ngModel]="values.get(viewItem.referenceId)"
-                            (ngModelChange)="values.set(viewItem.referenceId, $event)">
+                            (ngModelChange)="values.set(viewItem.referenceId, $event)"
+                            (change)="viewItem.validationFunc != null ? inputChange(viewItem, $event) : null">
                       <option *ngFor="let listItem of viewItem.list"
                               [value]="listItem._dropId">
                         {{listItem._modalDropText}}
@@ -42,7 +43,7 @@
                              type="text"
                              [ngModel]="values.get(viewItem.referenceId)"
                              
-                             (change)="viewItem.validationFunc != null ? inputChange(viewItem, $event) : onChange($event,viewItem.referenceId)"/>
+                             (change)="viewItem.validationFunc != null || viewItem.extraDescription != null ? inputChange(viewItem, $event) : onChange($event,viewItem.referenceId)"/>
                     </ng-template>
                     <div class="col-lg-12 col-12 text-start" *ngIf="viewItem.extraDescription != null && viewItem.extraDescription.observers.length > 0">
                       <small style="white-space:pre-line;" class="text-start col-12">{{viewItem.extraDescriptionString}}</small>
