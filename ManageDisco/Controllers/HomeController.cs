@@ -181,11 +181,13 @@ namespace ManageDisco.Controllers
 
 
             var photoTypesNames = _db.PhotoType.Where(x => x.PhotoTypeDescription.Contains(EventPhotoDescriptionValues.HOME_IMAGE_FILTER_LIKE));
+            int photoIndex = _db.HomePhoto.Count(i => i.PhotoType.PhotoTypeId == photos.First().PhotoTypeId) + 1;
+            List<HomePhoto> homePhotoToAdd = new List<HomePhoto>();
 
             photos.ForEach(x =>
            {
                //se è un inserimento di una nuova foto devo sapere quante ne sono già presenti così continuare la numerazione e non sovrascrivere le vecchie
-               int photoIndex = _db.HomePhoto.Count(i => i.PhotoType.PhotoTypeId == x.PhotoTypeId) + 1;
+               
                var fileName = x.PhotoName;
                if (fileName == null || fileName == HelperMethods.NO_IMAGE_PHOTONAME)
                {
@@ -202,22 +204,23 @@ namespace ManageDisco.Controllers
                 */
                if (!HelperMethods.CheckFileFromFtp(ftpAddress, ftpUser, ftpPassword, fileName + "." + fileExtension))
                {
-                   _db.HomePhoto.Add(new HomePhoto()
+                   homePhotoToAdd.Add(new HomePhoto()
                    {
                        HomePhotoPath = $"{ftpAddress}/{fileName}.{fileExtension}",
                        PhotoTypeId = x.PhotoTypeId
                    });
                }
 
-               //HelperMethods.UploadFileToFtp(ftpAddress, ftpUser, ftpPassword, $"{fileName}.{fileExtension}", Convert.FromBase64String(imgContent));
+               HelperMethods.UploadFileToFtp(ftpAddress, ftpUser, ftpPassword, $"{fileName}.{fileExtension}", Convert.FromBase64String(imgContent));
                /*  Il salvataggio non lo faccio in asincrono perchè altrimenti parte l'upload della foto successiva generando l'eccezione
                *   sull'utilizzo di una stessa instaza DbContext su due thread differenti.
                *   Ho bisogno di salvare all'interno del ciclo perchè photoIndex deve essere sempre aggiornato con il count
                */
-               _db.SaveChanges();
+               photoIndex++;
 
            });
-
+            _db.HomePhoto.AddRange(homePhotoToAdd);
+            await _db.SaveChangesAsync();
 
 
             return Ok();

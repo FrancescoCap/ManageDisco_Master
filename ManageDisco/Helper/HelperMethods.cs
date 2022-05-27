@@ -211,7 +211,7 @@ namespace ManageDisco.Helper
                   }
                   catch (Exception ex)
                   {
-
+                      throw new Exception();
                   }
                   return exist;
               });

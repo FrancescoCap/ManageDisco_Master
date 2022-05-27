@@ -360,7 +360,7 @@ namespace ManageDisco.Controllers
             userInfoView.IsCustomer = !HelperMethods.UserIsInStaff(user, roles.ToList());
 
             if (!userInfoView.IsCustomer)
-                userInfoView.InvitationLink = $"{_configuration["NgRok:Client"]}/SignUp?code={user.UserCode}";
+                userInfoView.InvitationLink = $"{_configuration["NgRok:Client"]}SignUp?code={user.UserCode}";
 
             if (userInfoView.IsCustomer)
             {
