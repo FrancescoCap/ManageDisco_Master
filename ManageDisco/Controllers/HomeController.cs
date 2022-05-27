@@ -181,21 +181,21 @@ namespace ManageDisco.Controllers
 
 
             var photoTypesNames = _db.PhotoType.Where(x => x.PhotoTypeDescription.Contains(EventPhotoDescriptionValues.HOME_IMAGE_FILTER_LIKE));
-            int photoIndex = _db.HomePhoto.Count(i => i.PhotoType.PhotoTypeId == photos.First().PhotoTypeId) + 1;
+            int photoIndex = _db.HomePhoto.Count(i => i.PhotoType.PhotoTypeId == photos.First().PhotoTypeId);
             List<HomePhoto> homePhotoToAdd = new List<HomePhoto>();
 
             photos.ForEach(x =>
            {
-               //se è un inserimento di una nuova foto devo sapere quante ne sono già presenti così continuare la numerazione e non sovrascrivere le vecchie
-               
-               var fileName = x.PhotoName;
+              
+               var fileExtension = "webp";
+               var fileName = $"Home_{x.PhotoTypeId}_{photoIndex}.{fileExtension}";
                if (fileName == null || fileName == HelperMethods.NO_IMAGE_PHOTONAME)
                {
                    fileName = photoTypesNames.Where(t => t.PhotoTypeId == x.PhotoTypeId).FirstOrDefault().PhotoTypeDescription + "_" + photoIndex.ToString();
                }
-               var fileExtension = "webp";
+             
                //tolgo l'estensione per quando mi arriva il nome del file dal client, altrimenti l'upload su ftp viene errato
-               fileName = fileName.Replace("." + fileExtension, "");
+               fileName =  fileName.Replace("." + fileExtension, "");
                var imgContent = x.HomePhotoBase64.Split(',').Last();
 
                /*
